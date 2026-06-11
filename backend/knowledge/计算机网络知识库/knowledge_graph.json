@@ -1,0 +1,274 @@
+{
+  "course_name": "计算机网络",
+  "description": "计算机网络课程核心概念图谱，供 LLM Wiki 章节树、前置知识和关联知识检索使用。",
+  "version": "0.1.0",
+  "nodes": [
+    {
+      "id": "cn_overview",
+      "name": "计算机网络概述",
+      "type": "concept",
+      "chapter_id": "cn01",
+      "description": "计算机网络的定义、组成、功能和学习对象。"
+    },
+    {
+      "id": "cn_layering",
+      "name": "分层体系结构",
+      "type": "concept",
+      "chapter_id": "cn01",
+      "description": "通过 OSI 和 TCP/IP 分层模型组织网络协议与服务。"
+    },
+    {
+      "id": "cn_physical",
+      "name": "物理层",
+      "type": "layer",
+      "chapter_id": "cn02",
+      "description": "负责比特传输、信道、介质、编码和调制。"
+    },
+    {
+      "id": "cn_datalink",
+      "name": "数据链路层",
+      "type": "layer",
+      "chapter_id": "cn03",
+      "description": "负责成帧、差错检测、介质访问控制和相邻节点传输。"
+    },
+    {
+      "id": "cn_crc",
+      "name": "CRC校验",
+      "type": "mechanism",
+      "chapter_id": "cn03",
+      "description": "常用的差错检测方法，通过多项式除法生成校验码。"
+    },
+    {
+      "id": "cn_ethernet",
+      "name": "以太网",
+      "type": "protocol",
+      "chapter_id": "cn03",
+      "description": "局域网中最常见的数据链路层技术。"
+    },
+    {
+      "id": "cn_mac_switch",
+      "name": "MAC地址与交换机",
+      "type": "concept",
+      "chapter_id": "cn03",
+      "description": "MAC 地址标识链路层接口，交换机基于 MAC 表转发帧。"
+    },
+    {
+      "id": "cn_network_layer",
+      "name": "网络层",
+      "type": "layer",
+      "chapter_id": "cn04",
+      "description": "负责跨网络寻址、路由选择和分组转发。"
+    },
+    {
+      "id": "cn_ip",
+      "name": "IP协议",
+      "type": "protocol",
+      "chapter_id": "cn04",
+      "description": "网络层核心协议，提供无连接、不可靠的分组交付。"
+    },
+    {
+      "id": "cn_subnet",
+      "name": "子网划分",
+      "type": "skill",
+      "chapter_id": "cn04",
+      "description": "根据网络前缀、掩码和主机数量划分地址空间。"
+    },
+    {
+      "id": "cn_cidr",
+      "name": "CIDR与地址聚合",
+      "type": "mechanism",
+      "chapter_id": "cn04",
+      "description": "使用无类别编址与前缀聚合提升地址利用率和路由可扩展性。"
+    },
+    {
+      "id": "cn_arp",
+      "name": "ARP",
+      "type": "protocol",
+      "chapter_id": "cn04",
+      "description": "在 IPv4 局域网中解析 IP 地址对应的 MAC 地址。"
+    },
+    {
+      "id": "cn_icmp",
+      "name": "ICMP",
+      "type": "protocol",
+      "chapter_id": "cn04",
+      "description": "用于差错报告和网络诊断，是 ping 与 traceroute 的基础。"
+    },
+    {
+      "id": "cn_transport_layer",
+      "name": "运输层",
+      "type": "layer",
+      "chapter_id": "cn05",
+      "description": "面向进程提供端到端通信服务。"
+    },
+    {
+      "id": "cn_udp",
+      "name": "UDP",
+      "type": "protocol",
+      "chapter_id": "cn05",
+      "description": "无连接、低开销的运输层协议。"
+    },
+    {
+      "id": "cn_tcp",
+      "name": "TCP",
+      "type": "protocol",
+      "chapter_id": "cn05",
+      "description": "面向连接、可靠、字节流的运输层协议。"
+    },
+    {
+      "id": "cn_tcp_connection",
+      "name": "TCP连接管理",
+      "type": "mechanism",
+      "chapter_id": "cn05",
+      "description": "包含三次握手、四次挥手和 TCP 状态转换。"
+    },
+    {
+      "id": "cn_reliable_transport",
+      "name": "TCP可靠传输",
+      "type": "mechanism",
+      "chapter_id": "cn05",
+      "description": "通过序号、确认、重传和滑动窗口实现可靠交付。"
+    },
+    {
+      "id": "cn_flow_congestion",
+      "name": "流量控制与拥塞控制",
+      "type": "mechanism",
+      "chapter_id": "cn05",
+      "description": "协调接收端能力和网络承载能力，避免丢包和拥塞崩溃。"
+    },
+    {
+      "id": "cn_application_layer",
+      "name": "应用层",
+      "type": "layer",
+      "chapter_id": "cn06",
+      "description": "为用户应用提供网络服务和应用协议。"
+    },
+    {
+      "id": "cn_dns",
+      "name": "DNS",
+      "type": "protocol",
+      "chapter_id": "cn06",
+      "description": "域名系统负责将域名解析为 IP 地址。"
+    },
+    {
+      "id": "cn_http",
+      "name": "HTTP/HTTPS",
+      "type": "protocol",
+      "chapter_id": "cn06",
+      "description": "Web 通信的核心应用层协议，HTTPS 在 HTTP 上加入 TLS 安全层。"
+    },
+    {
+      "id": "cn_security",
+      "name": "网络安全概述",
+      "type": "concept",
+      "chapter_id": "cn07",
+      "description": "网络安全目标、威胁模型和常见防护思路。"
+    },
+    {
+      "id": "cn_firewall",
+      "name": "防火墙",
+      "type": "concept",
+      "chapter_id": "cn07",
+      "description": "基于策略过滤网络流量的边界防护设备或软件。"
+    },
+    {
+      "id": "cn_tls",
+      "name": "TLS/SSL",
+      "type": "protocol",
+      "chapter_id": "cn07",
+      "description": "通过握手、证书和密钥协商为应用通信提供机密性与完整性。"
+    },
+    {
+      "id": "cn_wlan",
+      "name": "无线局域网",
+      "type": "concept",
+      "chapter_id": "cn07",
+      "description": "基于 IEEE 802.11 的无线接入网络。"
+    },
+    {
+      "id": "cn_wireless_security",
+      "name": "无线网络安全",
+      "type": "concept",
+      "chapter_id": "cn07",
+      "description": "无线接入中的认证、加密、WPA2/WPA3 和常见攻击防护。"
+    },
+    {
+      "id": "cn_wireshark",
+      "name": "Wireshark抓包",
+      "type": "tool",
+      "chapter_id": "cn08",
+      "description": "通过抓包观察协议字段、交互过程和网络故障。"
+    },
+    {
+      "id": "cn_ping_traceroute",
+      "name": "ping与traceroute",
+      "type": "tool",
+      "chapter_id": "cn08",
+      "description": "常用连通性和路径诊断工具。"
+    },
+    {
+      "id": "cn_exercises",
+      "name": "计算机网络题库",
+      "type": "practice",
+      "chapter_id": "cn09",
+      "description": "覆盖选择、判断、简答、计算和综合分析题。"
+    },
+    {
+      "id": "cn_code_cases",
+      "name": "网络代码案例",
+      "type": "practice",
+      "chapter_id": "cn10",
+      "description": "通过 Python 与伪代码演示协议、网络工具和 socket 编程。"
+    },
+    {
+      "id": "cn_media_resources",
+      "name": "网络媒体资源",
+      "type": "resource",
+      "chapter_id": "cn11",
+      "description": "PPT、动画脚本、图示说明和板书提纲。"
+    },
+    {
+      "id": "cn_fact_cards",
+      "name": "计算机网络事实卡",
+      "type": "resource",
+      "chapter_id": "cn99",
+      "description": "可供 RAG 高置信召回的短事实卡集合。"
+    }
+  ],
+  "edges": [
+    {"source": "cn_overview", "target": "cn_layering", "relation": "prerequisite"},
+    {"source": "cn_layering", "target": "cn_physical", "relation": "organizes"},
+    {"source": "cn_layering", "target": "cn_datalink", "relation": "organizes"},
+    {"source": "cn_layering", "target": "cn_network_layer", "relation": "organizes"},
+    {"source": "cn_layering", "target": "cn_transport_layer", "relation": "organizes"},
+    {"source": "cn_layering", "target": "cn_application_layer", "relation": "organizes"},
+    {"source": "cn_datalink", "target": "cn_crc", "relation": "contains"},
+    {"source": "cn_datalink", "target": "cn_ethernet", "relation": "contains"},
+    {"source": "cn_ethernet", "target": "cn_mac_switch", "relation": "uses"},
+    {"source": "cn_network_layer", "target": "cn_ip", "relation": "contains"},
+    {"source": "cn_ip", "target": "cn_subnet", "relation": "addressing"},
+    {"source": "cn_subnet", "target": "cn_cidr", "relation": "extends"},
+    {"source": "cn_ip", "target": "cn_arp", "relation": "uses"},
+    {"source": "cn_ip", "target": "cn_icmp", "relation": "uses"},
+    {"source": "cn_transport_layer", "target": "cn_udp", "relation": "contains"},
+    {"source": "cn_transport_layer", "target": "cn_tcp", "relation": "contains"},
+    {"source": "cn_ip", "target": "cn_tcp", "relation": "supports"},
+    {"source": "cn_ip", "target": "cn_udp", "relation": "supports"},
+    {"source": "cn_tcp", "target": "cn_tcp_connection", "relation": "contains"},
+    {"source": "cn_tcp", "target": "cn_reliable_transport", "relation": "contains"},
+    {"source": "cn_tcp", "target": "cn_flow_congestion", "relation": "contains"},
+    {"source": "cn_application_layer", "target": "cn_dns", "relation": "contains"},
+    {"source": "cn_application_layer", "target": "cn_http", "relation": "contains"},
+    {"source": "cn_udp", "target": "cn_dns", "relation": "often_supports"},
+    {"source": "cn_tcp", "target": "cn_http", "relation": "supports"},
+    {"source": "cn_security", "target": "cn_firewall", "relation": "contains"},
+    {"source": "cn_security", "target": "cn_tls", "relation": "contains"},
+    {"source": "cn_tls", "target": "cn_http", "relation": "secures"},
+    {"source": "cn_wlan", "target": "cn_wireless_security", "relation": "requires"},
+    {"source": "cn_icmp", "target": "cn_ping_traceroute", "relation": "supports"},
+    {"source": "cn_wireshark", "target": "cn_exercises", "relation": "supports"},
+    {"source": "cn_code_cases", "target": "cn_exercises", "relation": "supports"},
+    {"source": "cn_fact_cards", "target": "cn_exercises", "relation": "supports"},
+    {"source": "cn_media_resources", "target": "cn_exercises", "relation": "supports"}
+  ]
+}

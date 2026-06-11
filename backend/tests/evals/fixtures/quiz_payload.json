@@ -1,0 +1,45 @@
+{
+  "settings": {
+    "mode": "training",
+    "question_count": 3,
+    "question_types": ["choice", "judge", "short_answer"],
+    "difficulty": "all",
+    "time_limit_sec": 480,
+    "chapter_mix": true
+  },
+  "questions": [
+    {
+      "id": 1,
+      "type": "choice",
+      "difficulty": "easy",
+      "knowledge_point": "反向传播",
+      "chapter": "深度学习",
+      "question": "反向传播最核心的作用是什么？",
+      "options": ["A. 高效计算梯度", "B. 随机初始化参数", "C. 绘制知识图谱", "D. 压缩训练数据"],
+      "answer": "A",
+      "explanation": "反向传播利用链式法则从输出层向前计算各层参数梯度。"
+    },
+    {
+      "id": 2,
+      "type": "judge",
+      "difficulty": "medium",
+      "knowledge_point": "链式法则",
+      "chapter": "深度学习",
+      "question": "反向传播与链式法则无关。",
+      "options": ["A. 正确", "B. 错误"],
+      "answer": "B",
+      "explanation": "反向传播正是链式法则在多层网络中的系统应用。"
+    },
+    {
+      "id": 3,
+      "type": "short_answer",
+      "difficulty": "hard",
+      "knowledge_point": "梯度下降",
+      "chapter": "机器学习基础",
+      "question": "简述反向传播与梯度下降之间的关系。",
+      "options": [],
+      "answer": "反向传播负责计算梯度，梯度下降使用这些梯度更新参数。",
+      "explanation": "二者分别对应梯度获取和参数优化两个环节。"
+    }
+  ]
+}

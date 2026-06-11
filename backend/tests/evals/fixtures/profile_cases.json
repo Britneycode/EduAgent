@@ -1,0 +1,36 @@
+[
+  {
+    "id": "profile_background_goal_style",
+    "input": "我是计算机专业大三学生，机器学习基础一般，想复习反向传播，最好图文结合",
+    "expected": {
+      "major": "计算机专业",
+      "grade": "大三",
+      "learning_goal": "复习",
+      "cognitive_style": "图文结合",
+      "knowledge_base": {
+        "机器学习": "一般"
+      }
+    }
+  },
+  {
+    "id": "profile_pace_coding_hours",
+    "input": "我学得比较慢，编程水平初级，每周大概能学6小时",
+    "expected": {
+      "learning_pace": "较慢",
+      "coding_level": "初级",
+      "weekly_hours": 6
+    }
+  },
+  {
+    "id": "profile_research_student_notes",
+    "input": "我是人工智能专业研一学生，深度学习基础扎实，目标是整理笔记",
+    "expected": {
+      "major": "人工智能专业",
+      "grade": "研一",
+      "learning_goal": "整理笔记",
+      "knowledge_base": {
+        "深度学习": "较好"
+      }
+    }
+  }
+]

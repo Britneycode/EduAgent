@@ -1,0 +1,765 @@
+{
+  "graph_id": "ai101_knowledge_graph",
+  "description": "《人工智能导论》知识点依赖关系图（DAG）",
+  "version": "1.0.0",
+  "last_updated": "2026-04-29",
+  "nodes": [
+    {
+      "id": "kp01_01_ai_definition",
+      "name": "人工智能的定义与本质",
+      "type": "concept",
+      "chapter_id": "ch01",
+      "difficulty": 1,
+      "tags": ["AI基础", "概念"]
+    },
+    {
+      "id": "kp01_02_ai_history",
+      "name": "AI发展史与三次浪潮",
+      "type": "knowledge",
+      "chapter_id": "ch01",
+      "difficulty": 1,
+      "tags": ["AI基础", "历史"]
+    },
+    {
+      "id": "kp01_03_ai_schools",
+      "name": "AI主要学派（符号主义、连接主义、行为主义）",
+      "type": "concept",
+      "chapter_id": "ch01",
+      "difficulty": 1,
+      "tags": ["AI基础", "理论"]
+    },
+    {
+      "id": "kp01_04_ai_branches",
+      "name": "AI核心分支与研究领域",
+      "type": "knowledge",
+      "chapter_id": "ch01",
+      "difficulty": 1,
+      "tags": ["AI基础", "分类"]
+    },
+    {
+      "id": "kp01_05_ai_applications",
+      "name": "AI典型应用场景",
+      "type": "knowledge",
+      "chapter_id": "ch01",
+      "difficulty": 1,
+      "tags": ["AI基础", "应用"]
+    },
+    {
+      "id": "kp02_01_agent_definition",
+      "name": "智能体的定义与基本架构",
+      "type": "concept",
+      "chapter_id": "ch02",
+      "difficulty": 1,
+      "tags": ["智能体", "概念"]
+    },
+    {
+      "id": "kp02_02_agent_types",
+      "name": "智能体类型分类",
+      "type": "concept",
+      "chapter_id": "ch02",
+      "difficulty": 1,
+      "tags": ["智能体", "分类"]
+    },
+    {
+      "id": "kp02_03_environment_types",
+      "name": "环境类型与特性",
+      "type": "concept",
+      "chapter_id": "ch02",
+      "difficulty": 1,
+      "tags": ["智能体", "环境"]
+    },
+    {
+      "id": "kp02_04_peas_framework",
+      "name": "PEAS描述框架",
+      "type": "method",
+      "chapter_id": "ch02",
+      "difficulty": 1,
+      "tags": ["智能体", "方法论"]
+    },
+    {
+      "id": "kp02_05_problem_formulation",
+      "name": "问题形式化与状态空间",
+      "type": "method",
+      "chapter_id": "ch02",
+      "difficulty": 2,
+      "tags": ["问题求解", "方法论"]
+    },
+    {
+      "id": "kp03_01_state_space",
+      "name": "状态空间表示与搜索树",
+      "type": "concept",
+      "chapter_id": "ch03",
+      "difficulty": 2,
+      "tags": ["搜索", "数据结构"]
+    },
+    {
+      "id": "kp03_02_bfs_dfs",
+      "name": "广度优先搜索与深度优先搜索",
+      "type": "algorithm",
+      "chapter_id": "ch03",
+      "difficulty": 2,
+      "tags": ["搜索", "无信息搜索"]
+    },
+    {
+      "id": "kp03_03_ucs",
+      "name": "一致代价搜索",
+      "type": "algorithm",
+      "chapter_id": "ch03",
+      "difficulty": 2,
+      "tags": ["搜索", "无信息搜索"]
+    },
+    {
+      "id": "kp03_04_informed_search",
+      "name": "有信息搜索（贪婪最佳优先搜索）",
+      "type": "algorithm",
+      "chapter_id": "ch03",
+      "difficulty": 2,
+      "tags": ["搜索", "有信息搜索"]
+    },
+    {
+      "id": "kp03_05_astar",
+      "name": "A*搜索算法",
+      "type": "algorithm",
+      "chapter_id": "ch03",
+      "difficulty": 3,
+      "tags": ["搜索", "有信息搜索", "核心算法"]
+    },
+    {
+      "id": "kp03_06_heuristics",
+      "name": "启发式函数设计",
+      "type": "method",
+      "chapter_id": "ch03",
+      "difficulty": 3,
+      "tags": ["搜索", "启发式"]
+    },
+    {
+      "id": "kp03_07_complexity_analysis",
+      "name": "搜索算法复杂度分析",
+      "type": "knowledge",
+      "chapter_id": "ch03",
+      "difficulty": 2,
+      "tags": ["搜索", "算法分析"]
+    },
+    {
+      "id": "kp04_01_knowledge_types",
+      "name": "知识的类型与表示需求",
+      "type": "concept",
+      "chapter_id": "ch04",
+      "difficulty": 1,
+      "tags": ["知识表示", "概念"]
+    },
+    {
+      "id": "kp04_02_propositional_logic",
+      "name": "命题逻辑",
+      "type": "method",
+      "chapter_id": "ch04",
+      "difficulty": 2,
+      "tags": ["知识表示", "逻辑"]
+    },
+    {
+      "id": "kp04_03_first_order_logic",
+      "name": "一阶谓词逻辑",
+      "type": "method",
+      "chapter_id": "ch04",
+      "difficulty": 3,
+      "tags": ["知识表示", "逻辑"]
+    },
+    {
+      "id": "kp04_04_resolution",
+      "name": "归结推理",
+      "type": "algorithm",
+      "chapter_id": "ch04",
+      "difficulty": 3,
+      "tags": ["推理", "算法"]
+    },
+    {
+      "id": "kp04_05_semantic_networks",
+      "name": "语义网络与框架表示",
+      "type": "method",
+      "chapter_id": "ch04",
+      "difficulty": 2,
+      "tags": ["知识表示", "结构化"]
+    },
+    {
+      "id": "kp04_06_ontologies",
+      "name": "本体论与本体构建",
+      "type": "concept",
+      "chapter_id": "ch04",
+      "difficulty": 2,
+      "tags": ["知识表示", "本体"]
+    },
+    {
+      "id": "kp04_07_knowledge_graphs",
+      "name": "知识图谱基础",
+      "type": "concept",
+      "chapter_id": "ch04",
+      "difficulty": 2,
+      "tags": ["知识表示", "知识图谱"]
+    },
+    {
+      "id": "kp05_01_ml_definition",
+      "name": "机器学习的定义与核心思想",
+      "type": "concept",
+      "chapter_id": "ch05",
+      "difficulty": 1,
+      "tags": ["机器学习", "概念"]
+    },
+    {
+      "id": "kp05_02_learning_paradigms",
+      "name": "学习范式（监督、无监督、强化）",
+      "type": "concept",
+      "chapter_id": "ch05",
+      "difficulty": 1,
+      "tags": ["机器学习", "分类"]
+    },
+    {
+      "id": "kp05_03_data_splitting",
+      "name": "数据集划分与交叉验证",
+      "type": "method",
+      "chapter_id": "ch05",
+      "difficulty": 2,
+      "tags": ["机器学习", "数据处理"]
+    },
+    {
+      "id": "kp05_04_feature_engineering",
+      "name": "特征工程基础",
+      "type": "method",
+      "chapter_id": "ch05",
+      "difficulty": 2,
+      "tags": ["机器学习", "特征工程"]
+    },
+    {
+      "id": "kp05_05_overfitting_underfitting",
+      "name": "过拟合与欠拟合",
+      "type": "concept",
+      "chapter_id": "ch05",
+      "difficulty": 2,
+      "tags": ["机器学习", "模型评估"]
+    },
+    {
+      "id": "kp05_06_bias_variance_tradeoff",
+      "name": "偏差-方差权衡",
+      "type": "concept",
+      "chapter_id": "ch05",
+      "difficulty": 3,
+      "tags": ["机器学习", "理论"]
+    },
+    {
+      "id": "kp06_01_linear_regression",
+      "name": "线性回归",
+      "type": "algorithm",
+      "chapter_id": "ch06",
+      "difficulty": 2,
+      "tags": ["监督学习", "回归"]
+    },
+    {
+      "id": "kp06_02_logistic_regression",
+      "name": "逻辑回归",
+      "type": "algorithm",
+      "chapter_id": "ch06",
+      "difficulty": 2,
+      "tags": ["监督学习", "分类"]
+    },
+    {
+      "id": "kp06_03_decision_tree",
+      "name": "决策树",
+      "type": "algorithm",
+      "chapter_id": "ch06",
+      "difficulty": 2,
+      "tags": ["监督学习", "分类"]
+    },
+    {
+      "id": "kp06_04_knn",
+      "name": "K近邻算法",
+      "type": "algorithm",
+      "chapter_id": "ch06",
+      "difficulty": 2,
+      "tags": ["监督学习", "分类"]
+    },
+    {
+      "id": "kp06_05_cross_validation",
+      "name": "交叉验证方法",
+      "type": "method",
+      "chapter_id": "ch06",
+      "difficulty": 2,
+      "tags": ["模型评估", "方法"]
+    },
+    {
+      "id": "kp06_06_metrics",
+      "name": "分类与回归评估指标",
+      "type": "knowledge",
+      "chapter_id": "ch06",
+      "difficulty": 2,
+      "tags": ["模型评估", "指标"]
+    },
+    {
+      "id": "kp06_07_roc_auc",
+      "name": "ROC曲线与AUC",
+      "type": "knowledge",
+      "chapter_id": "ch06",
+      "difficulty": 3,
+      "tags": ["模型评估", "可视化"]
+    },
+    {
+      "id": "kp07_01_perceptron",
+      "name": "感知机模型",
+      "type": "algorithm",
+      "chapter_id": "ch07",
+      "difficulty": 2,
+      "tags": ["神经网络", "基础模型"]
+    },
+    {
+      "id": "kp07_02_mlp",
+      "name": "多层前馈神经网络",
+      "type": "concept",
+      "chapter_id": "ch07",
+      "difficulty": 3,
+      "tags": ["神经网络", "架构"]
+    },
+    {
+      "id": "kp07_03_backpropagation",
+      "name": "反向传播算法",
+      "type": "algorithm",
+      "chapter_id": "ch07",
+      "difficulty": 3,
+      "tags": ["神经网络", "训练"]
+    },
+    {
+      "id": "kp07_04_activation_functions",
+      "name": "激活函数",
+      "type": "knowledge",
+      "chapter_id": "ch07",
+      "difficulty": 2,
+      "tags": ["神经网络", "组件"]
+    },
+    {
+      "id": "kp07_05_loss_optimization",
+      "name": "损失函数与优化器",
+      "type": "method",
+      "chapter_id": "ch07",
+      "difficulty": 3,
+      "tags": ["神经网络", "训练"]
+    },
+    {
+      "id": "kp07_06_cnn_basics",
+      "name": "卷积神经网络基础",
+      "type": "concept",
+      "chapter_id": "ch07",
+      "difficulty": 3,
+      "tags": ["深度学习", "CNN"]
+    },
+    {
+      "id": "kp07_07_frameworks",
+      "name": "深度学习框架（PyTorch/TensorFlow）",
+      "type": "tool",
+      "chapter_id": "ch07",
+      "difficulty": 2,
+      "tags": ["深度学习", "工具"]
+    },
+    {
+      "id": "kp08_01_nlp_overview",
+      "name": "自然语言处理概述",
+      "type": "concept",
+      "chapter_id": "ch08",
+      "difficulty": 1,
+      "tags": ["NLP", "概述"]
+    },
+    {
+      "id": "kp08_02_text_preprocessing",
+      "name": "文本预处理流程",
+      "type": "method",
+      "chapter_id": "ch08",
+      "difficulty": 2,
+      "tags": ["NLP", "数据处理"]
+    },
+    {
+      "id": "kp08_03_bow_tfidf",
+      "name": "词袋模型与TF-IDF",
+      "type": "method",
+      "chapter_id": "ch08",
+      "difficulty": 2,
+      "tags": ["NLP", "特征提取"]
+    },
+    {
+      "id": "kp08_04_word_embedding",
+      "name": "词嵌入（Word2Vec）",
+      "type": "concept",
+      "chapter_id": "ch08",
+      "difficulty": 3,
+      "tags": ["NLP", "表示学习"]
+    },
+    {
+      "id": "kp08_05_rnn",
+      "name": "循环神经网络",
+      "type": "concept",
+      "chapter_id": "ch08",
+      "difficulty": 3,
+      "tags": ["NLP", "序列模型"]
+    },
+    {
+      "id": "kp08_06_transformer",
+      "name": "Transformer架构",
+      "type": "concept",
+      "chapter_id": "ch08",
+      "difficulty": 3,
+      "tags": ["NLP", "架构", "核心"]
+    },
+    {
+      "id": "kp08_07_nlp_tasks",
+      "name": "NLP典型任务",
+      "type": "knowledge",
+      "chapter_id": "ch08",
+      "difficulty": 2,
+      "tags": ["NLP", "应用"]
+    },
+    {
+      "id": "kp09_01_cv_overview",
+      "name": "计算机视觉概述",
+      "type": "concept",
+      "chapter_id": "ch09",
+      "difficulty": 1,
+      "tags": ["计算机视觉", "概述"]
+    },
+    {
+      "id": "kp09_02_image_representation",
+      "name": "图像的数字化表示",
+      "type": "knowledge",
+      "chapter_id": "ch09",
+      "difficulty": 2,
+      "tags": ["计算机视觉", "基础"]
+    },
+    {
+      "id": "kp09_03_classic_cnns",
+      "name": "经典CNN架构（LeNet/VGG/ResNet）",
+      "type": "concept",
+      "chapter_id": "ch09",
+      "difficulty": 3,
+      "tags": ["计算机视觉", "架构"]
+    },
+    {
+      "id": "kp09_04_object_detection",
+      "name": "目标检测方法",
+      "type": "algorithm",
+      "chapter_id": "ch09",
+      "difficulty": 3,
+      "tags": ["计算机视觉", "检测"]
+    },
+    {
+      "id": "kp09_05_segmentation",
+      "name": "图像分割",
+      "type": "algorithm",
+      "chapter_id": "ch09",
+      "difficulty": 3,
+      "tags": ["计算机视觉", "分割"]
+    },
+    {
+      "id": "kp09_06_transfer_learning",
+      "name": "迁移学习",
+      "type": "method",
+      "chapter_id": "ch09",
+      "difficulty": 3,
+      "tags": ["计算机视觉", "方法"]
+    },
+    {
+      "id": "kp10_01_rl_framework",
+      "name": "强化学习基本框架",
+      "type": "concept",
+      "chapter_id": "ch10",
+      "difficulty": 2,
+      "tags": ["强化学习", "框架"]
+    },
+    {
+      "id": "kp10_02_mdp",
+      "name": "马尔可夫决策过程",
+      "type": "method",
+      "chapter_id": "ch10",
+      "difficulty": 3,
+      "tags": ["强化学习", "数学"]
+    },
+    {
+      "id": "kp10_03_value_function",
+      "name": "价值函数与贝尔曼方程",
+      "type": "method",
+      "chapter_id": "ch10",
+      "difficulty": 3,
+      "tags": ["强化学习", "核心概念"]
+    },
+    {
+      "id": "kp10_04_q_learning",
+      "name": "Q-learning算法",
+      "type": "algorithm",
+      "chapter_id": "ch10",
+      "difficulty": 3,
+      "tags": ["强化学习", "算法"]
+    },
+    {
+      "id": "kp10_05_policy_gradient",
+      "name": "策略梯度方法",
+      "type": "algorithm",
+      "chapter_id": "ch10",
+      "difficulty": 4,
+      "tags": ["强化学习", "算法"]
+    },
+    {
+      "id": "kp10_06_rl_applications",
+      "name": "强化学习应用场景",
+      "type": "knowledge",
+      "chapter_id": "ch10",
+      "difficulty": 2,
+      "tags": ["强化学习", "应用"]
+    },
+    {
+      "id": "kp11_01_generative_ai",
+      "name": "生成式AI概述",
+      "type": "concept",
+      "chapter_id": "ch11",
+      "difficulty": 2,
+      "tags": ["生成式AI", "概念"]
+    },
+    {
+      "id": "kp11_02_llm_architecture",
+      "name": "大语言模型架构（GPT/BERT）",
+      "type": "concept",
+      "chapter_id": "ch11",
+      "difficulty": 3,
+      "tags": ["LLM", "架构"]
+    },
+    {
+      "id": "kp11_03_pretraining_finetuning",
+      "name": "预训练与微调范式",
+      "type": "method",
+      "chapter_id": "ch11",
+      "difficulty": 3,
+      "tags": ["LLM", "训练"]
+    },
+    {
+      "id": "kp11_04_prompt_engineering",
+      "name": "提示工程",
+      "type": "method",
+      "chapter_id": "ch11",
+      "difficulty": 2,
+      "tags": ["LLM", "应用方法"]
+    },
+    {
+      "id": "kp11_05_rag",
+      "name": "检索增强生成（RAG）",
+      "type": "method",
+      "chapter_id": "ch11",
+      "difficulty": 3,
+      "tags": ["LLM", "技术"]
+    },
+    {
+      "id": "kp11_06_llm_limitations",
+      "name": "大模型的能力边界与局限性",
+      "type": "concept",
+      "chapter_id": "ch11",
+      "difficulty": 2,
+      "tags": ["LLM", "局限"]
+    },
+    {
+      "id": "kp11_07_multimodal",
+      "name": "多模态大模型",
+      "type": "concept",
+      "chapter_id": "ch11",
+      "difficulty": 3,
+      "tags": ["LLM", "多模态"]
+    },
+    {
+      "id": "kp12_01_bias_fairness",
+      "name": "AI偏见与公平性",
+      "type": "concept",
+      "chapter_id": "ch12",
+      "difficulty": 1,
+      "tags": ["伦理", "公平性"]
+    },
+    {
+      "id": "kp12_02_explainability",
+      "name": "AI可解释性",
+      "type": "concept",
+      "chapter_id": "ch12",
+      "difficulty": 2,
+      "tags": ["伦理", "可解释性"]
+    },
+    {
+      "id": "kp12_03_ai_safety",
+      "name": "AI安全与对齐",
+      "type": "concept",
+      "chapter_id": "ch12",
+      "difficulty": 2,
+      "tags": ["安全", "对齐"]
+    },
+    {
+      "id": "kp12_04_privacy",
+      "name": "隐私保护与数据安全",
+      "type": "concept",
+      "chapter_id": "ch12",
+      "difficulty": 2,
+      "tags": ["安全", "隐私"]
+    },
+    {
+      "id": "kp12_05_regulation",
+      "name": "AI治理与法规",
+      "type": "knowledge",
+      "chapter_id": "ch12",
+      "difficulty": 1,
+      "tags": ["伦理", "法规"]
+    },
+    {
+      "id": "kp12_06_future_trends",
+      "name": "AI未来发展趋势",
+      "type": "knowledge",
+      "chapter_id": "ch12",
+      "difficulty": 1,
+      "tags": ["趋势", "展望"]
+    },
+    {
+      "id": "kp13_01_project_planning",
+      "name": "AI项目规划与选题",
+      "type": "method",
+      "chapter_id": "ch13",
+      "difficulty": 3,
+      "tags": ["实践", "项目管理"]
+    },
+    {
+      "id": "kp13_02_data_pipeline",
+      "name": "数据收集与预处理流水线",
+      "type": "method",
+      "chapter_id": "ch13",
+      "difficulty": 3,
+      "tags": ["实践", "数据工程"]
+    },
+    {
+      "id": "kp13_03_model_development",
+      "name": "模型选择与训练",
+      "type": "method",
+      "chapter_id": "ch13",
+      "difficulty": 3,
+      "tags": ["实践", "建模"]
+    },
+    {
+      "id": "kp13_04_evaluation_deployment",
+      "name": "模型评估与部署",
+      "type": "method",
+      "chapter_id": "ch13",
+      "difficulty": 3,
+      "tags": ["实践", "部署"]
+    },
+    {
+      "id": "kp13_05_project_demonstration",
+      "name": "项目展示与报告",
+      "type": "method",
+      "chapter_id": "ch13",
+      "difficulty": 2,
+      "tags": ["实践", "展示"]
+    }
+  ],
+  "edges": [
+    {"source": "kp01_01_ai_definition", "target": "kp01_02_ai_history", "relation": "supports"},
+    {"source": "kp01_01_ai_definition", "target": "kp01_03_ai_schools", "relation": "supports"},
+    {"source": "kp01_03_ai_schools", "target": "kp01_04_ai_branches", "relation": "supports"},
+    {"source": "kp01_04_ai_branches", "target": "kp01_05_ai_applications", "relation": "supports"},
+
+    {"source": "kp01_01_ai_definition", "target": "kp02_01_agent_definition", "relation": "prerequisite"},
+    {"source": "kp02_01_agent_definition", "target": "kp02_02_agent_types", "relation": "supports"},
+    {"source": "kp02_01_agent_definition", "target": "kp02_03_environment_types", "relation": "supports"},
+    {"source": "kp02_02_agent_types", "target": "kp02_04_peas_framework", "relation": "supports"},
+    {"source": "kp02_03_environment_types", "target": "kp02_04_peas_framework", "relation": "supports"},
+    {"source": "kp02_04_peas_framework", "target": "kp02_05_problem_formulation", "relation": "supports"},
+
+    {"source": "kp02_05_problem_formulation", "target": "kp03_01_state_space", "relation": "prerequisite"},
+    {"source": "kp03_01_state_space", "target": "kp03_02_bfs_dfs", "relation": "prerequisite"},
+    {"source": "kp03_02_bfs_dfs", "target": "kp03_03_ucs", "relation": "prerequisite"},
+    {"source": "kp03_03_ucs", "target": "kp03_04_informed_search", "relation": "prerequisite"},
+    {"source": "kp03_04_informed_search", "target": "kp03_05_astar", "relation": "prerequisite"},
+    {"source": "kp03_05_astar", "target": "kp03_06_heuristics", "relation": "supports"},
+    {"source": "kp03_02_bfs_dfs", "target": "kp03_07_complexity_analysis", "relation": "supports"},
+    {"source": "kp03_03_ucs", "target": "kp03_07_complexity_analysis", "relation": "supports"},
+
+    {"source": "kp02_01_agent_definition", "target": "kp04_01_knowledge_types", "relation": "prerequisite"},
+    {"source": "kp04_01_knowledge_types", "target": "kp04_02_propositional_logic", "relation": "supports"},
+    {"source": "kp04_02_propositional_logic", "target": "kp04_03_first_order_logic", "relation": "prerequisite"},
+    {"source": "kp04_03_first_order_logic", "target": "kp04_04_resolution", "relation": "prerequisite"},
+    {"source": "kp04_01_knowledge_types", "target": "kp04_05_semantic_networks", "relation": "supports"},
+    {"source": "kp04_05_semantic_networks", "target": "kp04_06_ontologies", "relation": "extends"},
+    {"source": "kp04_06_ontologies", "target": "kp04_07_knowledge_graphs", "relation": "extends"},
+
+    {"source": "kp01_01_ai_definition", "target": "kp05_01_ml_definition", "relation": "prerequisite"},
+    {"source": "kp05_01_ml_definition", "target": "kp05_02_learning_paradigms", "relation": "supports"},
+    {"source": "kp05_01_ml_definition", "target": "kp05_03_data_splitting", "relation": "supports"},
+    {"source": "kp05_03_data_splitting", "target": "kp05_04_feature_engineering", "relation": "supports"},
+    {"source": "kp05_04_feature_engineering", "target": "kp05_05_overfitting_underfitting", "relation": "supports"},
+    {"source": "kp05_05_overfitting_underfitting", "target": "kp05_06_bias_variance_tradeoff", "relation": "extends"},
+
+    {"source": "kp05_01_ml_definition", "target": "kp06_01_linear_regression", "relation": "prerequisite"},
+    {"source": "kp06_01_linear_regression", "target": "kp06_02_logistic_regression", "relation": "extends"},
+    {"source": "kp05_01_ml_definition", "target": "kp06_03_decision_tree", "relation": "prerequisite"},
+    {"source": "kp05_01_ml_definition", "target": "kp06_04_knn", "relation": "prerequisite"},
+    {"source": "kp05_03_data_splitting", "target": "kp06_05_cross_validation", "relation": "extends"},
+    {"source": "kp06_02_logistic_regression", "target": "kp06_06_metrics", "relation": "supports"},
+    {"source": "kp06_06_metrics", "target": "kp06_07_roc_auc", "relation": "extends"},
+    {"source": "kp05_06_bias_variance_tradeoff", "target": "kp06_05_cross_validation", "relation": "supports"},
+
+    {"source": "kp06_01_linear_regression", "target": "kp07_01_perceptron", "relation": "prerequisite"},
+    {"source": "kp07_01_perceptron", "target": "kp07_02_mlp", "relation": "extends"},
+    {"source": "kp07_02_mlp", "target": "kp07_03_backpropagation", "relation": "prerequisite"},
+    {"source": "kp07_01_perceptron", "target": "kp07_04_activation_functions", "relation": "supports"},
+    {"source": "kp07_03_backpropagation", "target": "kp07_05_loss_optimization", "relation": "supports"},
+    {"source": "kp07_02_mlp", "target": "kp07_06_cnn_basics", "relation": "extends"},
+    {"source": "kp07_06_cnn_basics", "target": "kp07_07_frameworks", "relation": "supports"},
+    {"source": "kp05_05_overfitting_underfitting", "target": "kp07_05_loss_optimization", "relation": "supports"},
+
+    {"source": "kp07_02_mlp", "target": "kp08_01_nlp_overview", "relation": "prerequisite"},
+    {"source": "kp08_01_nlp_overview", "target": "kp08_02_text_preprocessing", "relation": "supports"},
+    {"source": "kp08_02_text_preprocessing", "target": "kp08_03_bow_tfidf", "relation": "prerequisite"},
+    {"source": "kp08_03_bow_tfidf", "target": "kp08_04_word_embedding", "relation": "extends"},
+    {"source": "kp08_04_word_embedding", "target": "kp08_05_rnn", "relation": "prerequisite"},
+    {"source": "kp08_05_rnn", "target": "kp08_06_transformer", "relation": "extends"},
+    {"source": "kp08_06_transformer", "target": "kp08_07_nlp_tasks", "relation": "supports"},
+
+    {"source": "kp07_06_cnn_basics", "target": "kp09_01_cv_overview", "relation": "prerequisite"},
+    {"source": "kp09_01_cv_overview", "target": "kp09_02_image_representation", "relation": "supports"},
+    {"source": "kp09_02_image_representation", "target": "kp09_03_classic_cnns", "relation": "prerequisite"},
+    {"source": "kp09_03_classic_cnns", "target": "kp09_04_object_detection", "relation": "extends"},
+    {"source": "kp09_03_classic_cnns", "target": "kp09_05_segmentation", "relation": "extends"},
+    {"source": "kp09_03_classic_cnns", "target": "kp09_06_transfer_learning", "relation": "supports"},
+
+    {"source": "kp02_01_agent_definition", "target": "kp10_01_rl_framework", "relation": "prerequisite"},
+    {"source": "kp05_01_ml_definition", "target": "kp10_01_rl_framework", "relation": "prerequisite"},
+    {"source": "kp10_01_rl_framework", "target": "kp10_02_mdp", "relation": "prerequisite"},
+    {"source": "kp10_02_mdp", "target": "kp10_03_value_function", "relation": "prerequisite"},
+    {"source": "kp10_03_value_function", "target": "kp10_04_q_learning", "relation": "prerequisite"},
+    {"source": "kp10_03_value_function", "target": "kp10_05_policy_gradient", "relation": "prerequisite"},
+    {"source": "kp10_04_q_learning", "target": "kp10_06_rl_applications", "relation": "supports"},
+
+    {"source": "kp08_06_transformer", "target": "kp11_01_generative_ai", "relation": "prerequisite"},
+    {"source": "kp11_01_generative_ai", "target": "kp11_02_llm_architecture", "relation": "supports"},
+    {"source": "kp11_02_llm_architecture", "target": "kp11_03_pretraining_finetuning", "relation": "prerequisite"},
+    {"source": "kp11_03_pretraining_finetuning", "target": "kp11_04_prompt_engineering", "relation": "supports"},
+    {"source": "kp11_04_prompt_engineering", "target": "kp11_05_rag", "relation": "extends"},
+    {"source": "kp11_02_llm_architecture", "target": "kp11_06_llm_limitations", "relation": "supports"},
+    {"source": "kp11_02_llm_architecture", "target": "kp11_07_multimodal", "relation": "extends"},
+
+    {"source": "kp01_05_ai_applications", "target": "kp12_01_bias_fairness", "relation": "supports"},
+    {"source": "kp11_06_llm_limitations", "target": "kp12_01_bias_fairness", "relation": "supports"},
+    {"source": "kp12_01_bias_fairness", "target": "kp12_02_explainability", "relation": "supports"},
+    {"source": "kp12_02_explainability", "target": "kp12_03_ai_safety", "relation": "supports"},
+    {"source": "kp12_03_ai_safety", "target": "kp12_04_privacy", "relation": "supports"},
+    {"source": "kp12_01_bias_fairness", "target": "kp12_05_regulation", "relation": "supports"},
+    {"source": "kp12_05_regulation", "target": "kp12_06_future_trends", "relation": "supports"},
+
+    {"source": "kp06_05_cross_validation", "target": "kp13_01_project_planning", "relation": "prerequisite"},
+    {"source": "kp07_07_frameworks", "target": "kp13_01_project_planning", "relation": "prerequisite"},
+    {"source": "kp13_01_project_planning", "target": "kp13_02_data_pipeline", "relation": "prerequisite"},
+    {"source": "kp05_04_feature_engineering", "target": "kp13_02_data_pipeline", "relation": "prerequisite"},
+    {"source": "kp13_02_data_pipeline", "target": "kp13_03_model_development", "relation": "prerequisite"},
+    {"source": "kp13_03_model_development", "target": "kp13_04_evaluation_deployment", "relation": "prerequisite"},
+    {"source": "kp13_04_evaluation_deployment", "target": "kp13_05_project_demonstration", "relation": "prerequisite"},
+
+    {"source": "kp04_02_propositional_logic", "target": "kp05_01_ml_definition", "relation": "contrasts"},
+    {"source": "kp03_05_astar", "target": "kp10_01_rl_framework", "relation": "contrasts"},
+    {"source": "kp05_02_learning_paradigms", "target": "kp10_01_rl_framework", "relation": "supports"},
+    {"source": "kp07_06_cnn_basics", "target": "kp08_05_rnn", "relation": "contrasts"},
+    {"source": "kp08_05_rnn", "target": "kp11_02_llm_architecture", "relation": "supports"},
+    {"source": "kp04_07_knowledge_graphs", "target": "kp11_05_rag", "relation": "supports"}
+  ]
+}

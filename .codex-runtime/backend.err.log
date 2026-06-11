@@ -1,0 +1,5 @@
+INFO:     Started server process [31588]
+INFO:     Waiting for application startup.
+\u26a0\ufe0f 当前为开发模式，Embedding 使用零向量
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)

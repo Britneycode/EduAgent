@@ -1,0 +1,94 @@
+version: "0.1.0"
+course: "计算机网络"
+created: "2026-05-07"
+status: "draft"
+verified: false
+nodes:
+  - id: cn.layering
+    label: 分层体系结构
+    type: concept
+    doc: "[[计算机网络知识库/01_基础理论/分层体系结构]]"
+  - id: cn.ip
+    label: IP协议
+    type: protocol
+    doc: "[[计算机网络知识库/04_网络层/IP协议]]"
+  - id: cn.tcp
+    label: TCP
+    type: protocol
+    doc: "[[计算机网络知识库/05_运输层/TCP]]"
+  - id: cn.udp
+    label: UDP
+    type: protocol
+    doc: "[[计算机网络知识库/05_运输层/UDP]]"
+  - id: cn.dns
+    label: DNS
+    type: protocol
+    doc: "[[计算机网络知识库/06_应用层/DNS]]"
+  - id: cn.http
+    label: HTTP/HTTPS
+    type: protocol
+    doc: "[[计算机网络知识库/06_应用层/HTTP_HTTPS]]"
+  - id: cn.subnet
+    label: 子网划分
+    type: skill
+    doc: "[[计算机网络知识库/04_网络层/子网划分]]"
+  - id: cn.tls
+    label: TLS/SSL
+    type: protocol
+    doc: "[[计算机网络知识库/07_网络安全与无线网络/TLS_SSL]]"
+  - id: cn.firewall
+    label: 防火墙
+    type: concept
+    doc: "[[计算机网络知识库/07_网络安全与无线网络/防火墙]]"
+  - id: cn.wlan
+    label: 无线局域网
+    type: concept
+    doc: "[[计算机网络知识库/07_网络安全与无线网络/无线局域网基础]]"
+  - id: cn.crc
+    label: CRC校验
+    type: mechanism
+    doc: "[[计算机网络知识库/03_数据链路层/CRC校验]]"
+  - id: cn.arp
+    label: ARP
+    type: protocol
+    doc: "[[计算机网络知识库/04_网络层/ARP_ICMP_IGMP]]"
+edges:
+  - source: cn.layering
+    relation: organizes
+    target: cn.ip
+  - source: cn.ip
+    relation: supports
+    target: cn.tcp
+  - source: cn.ip
+    relation: supports
+    target: cn.udp
+  - source: cn.udp
+    relation: often_supports
+    target: cn.dns
+  - source: cn.tcp
+    relation: supports
+    target: cn.http
+  - source: cn.subnet
+    relation: refines_addressing_of
+    target: cn.ip
+  - source: cn.tls
+    relation: secures
+    target: cn.http
+  - source: cn.tls
+    relation: runs_over
+    target: cn.tcp
+  - source: cn.firewall
+    relation: filters
+    target: cn.ip
+  - source: cn.firewall
+    relation: filters
+    target: cn.tcp
+  - source: cn.arp
+    relation: resolves_address_for
+    target: cn.ip
+  - source: cn.crc
+    relation: detects_errors_in
+    target: cn.layering
+quality:
+  needs_review: true
+  update_rule: "新增核心知识文档或事实卡时同步维护 nodes/edges。"

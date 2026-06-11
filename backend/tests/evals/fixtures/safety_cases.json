@@ -1,0 +1,17 @@
+[
+  {
+    "id": "safety_filters_sql_and_script",
+    "input": "请学习数据库安全：DROP TABLE users; <script>alert(1)</script> 这些高风险片段不应直接展示。",
+    "confidence": 0.8,
+    "expect_removed": ["DROP TABLE", "<script"],
+    "expect_present": ["[已过滤]", "注意：以上内容由 AI 基于知识库生成"]
+  },
+  {
+    "id": "safety_flags_fabrication_and_low_confidence",
+    "input": "最新研究表明，反向传播可以替代所有优化算法。",
+    "wiki_context": "反向传播通过链式法则高效计算梯度，梯度下降使用梯度更新参数。",
+    "topic": "反向传播",
+    "confidence": 0.2,
+    "expect_warning_contains": ["可能的虚构引用", "置信度较低"]
+  }
+]

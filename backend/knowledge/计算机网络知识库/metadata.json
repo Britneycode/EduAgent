@@ -1,0 +1,287 @@
+{
+  "course_id": "CN101",
+  "course_slug": "computer_networks",
+  "course_name": "计算机网络",
+  "course_name_en": "Computer Networks",
+  "description": "面向高等教育场景的计算机网络课程知识库，覆盖分层体系、物理层、数据链路层、网络层、运输层、应用层、网络安全、实验、题库、代码案例与多媒体教学资源。",
+  "version": "0.1.0",
+  "last_updated": "2026-05-19",
+  "target_audience": "高等教育计算机相关专业学生、教师与多智能体学习系统",
+  "prerequisites": [
+    "计算机基础",
+    "操作系统基本概念",
+    "Python 或任意一门程序设计语言基础"
+  ],
+  "course_objectives": [
+    "理解计算机网络的体系结构、协议分层与核心设计原则",
+    "掌握物理层、数据链路层、网络层、运输层与应用层的关键协议和机制",
+    "能够分析 IP 编址、子网划分、TCP 连接管理、DNS 解析、HTTP/HTTPS 等典型问题",
+    "能够使用 Wireshark、ping、traceroute 等工具完成基础网络实验",
+    "形成面向网络安全、无线网络和可信通信的基本分析能力",
+    "能够通过题库、代码案例和媒体资源进行多形态学习与复习"
+  ],
+  "total_chapters": 13,
+  "total_estimated_hours": 58,
+  "resource_types": [
+    "讲解文档",
+    "事实卡",
+    "实验文档",
+    "练习题",
+    "代码案例",
+    "PPT 大纲",
+    "动画脚本",
+    "图示说明",
+    "板书提纲",
+    "治理清单"
+  ],
+  "difficulty_levels": {
+    "easy": "基础理解与概念识别",
+    "medium": "协议机制解释与典型流程分析",
+    "hard": "综合计算、抓包分析与跨层问题定位"
+  },
+  "chapters": [
+    {
+      "chapter_id": "cn00",
+      "title": "课程总纲",
+      "description": "课程定位、知识地图、学习路径、术语表、资源索引和统计入口。",
+      "estimated_hours": 3,
+      "difficulty": 1,
+      "files": [
+        "00_课程总纲/知识库说明.md",
+        "00_课程总纲/课程简介.md",
+        "00_课程总纲/学习路径.md",
+        "00_课程总纲/术语表.md",
+        "00_课程总纲/知识地图.md",
+        "00_课程总纲/知识文档索引.md",
+        "00_课程总纲/事实卡统计.md",
+        "00_课程总纲/题库覆盖统计.md",
+        "00_课程总纲/Agent资源总览.md"
+      ],
+      "resource_types": ["讲解文档", "索引", "治理清单"]
+    },
+    {
+      "chapter_id": "cn01",
+      "title": "基础理论",
+      "description": "网络概述、分层体系结构和协议栈基础。",
+      "estimated_hours": 5,
+      "difficulty": 1,
+      "files": [
+        "01_基础理论/网络概述.md",
+        "01_基础理论/分层体系结构.md"
+      ],
+      "resource_types": ["讲解文档", "事实卡"]
+    },
+    {
+      "chapter_id": "cn02",
+      "title": "物理层",
+      "description": "物理层定位、信道、传输介质和编码调制基础。",
+      "estimated_hours": 4,
+      "difficulty": 1,
+      "files": [
+        "02_物理层/物理层概述.md"
+      ],
+      "resource_types": ["讲解文档"]
+    },
+    {
+      "chapter_id": "cn03",
+      "title": "数据链路层",
+      "description": "帧、差错检测、以太网、MAC 地址和交换机转发机制。",
+      "estimated_hours": 7,
+      "difficulty": 2,
+      "files": [
+        "03_数据链路层/数据链路层概述.md",
+        "03_数据链路层/CRC校验.md",
+        "03_数据链路层/以太网.md",
+        "03_数据链路层/MAC地址与交换机.md"
+      ],
+      "resource_types": ["讲解文档", "事实卡", "练习题"]
+    },
+    {
+      "chapter_id": "cn04",
+      "title": "网络层",
+      "description": "IP 协议、子网划分、CIDR、ARP、ICMP、IGMP 与网络层转发。",
+      "estimated_hours": 9,
+      "difficulty": 2,
+      "files": [
+        "04_网络层/网络层概述.md",
+        "04_网络层/IP协议.md",
+        "04_网络层/子网划分.md",
+        "04_网络层/CIDR与地址聚合.md",
+        "04_网络层/ARP_ICMP_IGMP.md"
+      ],
+      "resource_types": ["讲解文档", "事实卡", "实验文档", "计算题"]
+    },
+    {
+      "chapter_id": "cn05",
+      "title": "运输层",
+      "description": "UDP、TCP、连接管理、可靠传输、流量控制与拥塞控制。",
+      "estimated_hours": 9,
+      "difficulty": 3,
+      "files": [
+        "05_运输层/UDP.md",
+        "05_运输层/TCP.md",
+        "05_运输层/TCP连接管理.md",
+        "05_运输层/流量控制与拥塞控制.md"
+      ],
+      "resource_types": ["讲解文档", "事实卡", "实验文档", "综合题", "动画脚本"]
+    },
+    {
+      "chapter_id": "cn06",
+      "title": "应用层",
+      "description": "DNS、HTTP 与 HTTPS 的请求流程、解析机制和常见问题。",
+      "estimated_hours": 6,
+      "difficulty": 2,
+      "files": [
+        "06_应用层/DNS.md",
+        "06_应用层/HTTP_HTTPS.md"
+      ],
+      "resource_types": ["讲解文档", "事实卡", "实验文档", "代码案例"]
+    },
+    {
+      "chapter_id": "cn07",
+      "title": "网络安全与无线网络",
+      "description": "网络安全基础、防火墙、TLS/SSL、无线局域网和无线安全。",
+      "estimated_hours": 7,
+      "difficulty": 2,
+      "files": [
+        "07_网络安全与无线网络/网络安全概述.md",
+        "07_网络安全与无线网络/防火墙.md",
+        "07_网络安全与无线网络/TLS_SSL.md",
+        "07_网络安全与无线网络/无线局域网基础.md",
+        "07_网络安全与无线网络/无线网络安全.md"
+      ],
+      "resource_types": ["讲解文档", "事实卡", "PPT 大纲", "动画脚本"]
+    },
+    {
+      "chapter_id": "cn08",
+      "title": "实验与工具",
+      "description": "Wireshark、ping、traceroute、抓包实验、DNS 查询和子网计算实验。",
+      "estimated_hours": 5,
+      "difficulty": 2,
+      "files": [
+        "08_实验与工具/Wireshark基础.md",
+        "08_实验与工具/ping_traceroute.md",
+        "08_实验与工具/TCP抓包实验.md",
+        "08_实验与工具/ARP抓包实验.md",
+        "08_实验与工具/HTTP抓包实验.md",
+        "08_实验与工具/DNS查询实验.md",
+        "08_实验与工具/TLS握手抓包实验.md",
+        "08_实验与工具/子网划分计算器实验.md"
+      ],
+      "resource_types": ["实验文档"]
+    },
+    {
+      "chapter_id": "cn09",
+      "title": "习题与解析",
+      "description": "选择题、判断题、简答题、计算题和综合抓包分析题。",
+      "estimated_hours": 4,
+      "difficulty": 2,
+      "files": [
+        "09_习题与解析/选择题/基础选择题.md",
+        "09_习题与解析/选择题/网络安全选择题.md",
+        "09_习题与解析/判断题/基础判断题.md",
+        "09_习题与解析/简答题/章节简答题.md",
+        "09_习题与解析/计算题/子网划分题.md",
+        "09_习题与解析/综合题/TCP抓包分析题.md"
+      ],
+      "resource_types": ["练习题", "题库"]
+    },
+    {
+      "chapter_id": "cn10",
+      "title": "代码案例",
+      "description": "网络编程、协议解析、TCP 状态机、可靠传输和工具模拟代码案例。",
+      "estimated_hours": 5,
+      "difficulty": 3,
+      "files": [
+        "10_代码案例/socket客户端服务器.md",
+        "10_代码案例/HTTP请求解析示例.md",
+        "10_代码案例/IP分片模拟.md",
+        "10_代码案例/TCP握手伪代码.md",
+        "10_代码案例/DNS查询示例.md",
+        "10_代码案例/ARP表查询.md",
+        "10_代码案例/子网计算Python实现.md",
+        "10_代码案例/简单HTTP服务器.md",
+        "10_代码案例/TCP状态机模拟.md",
+        "10_代码案例/TCP可靠传输模拟.md",
+        "10_代码案例/Traceroute模拟.md"
+      ],
+      "resource_types": ["代码案例"]
+    },
+    {
+      "chapter_id": "cn11",
+      "title": "媒体资源",
+      "description": "PPT 大纲、动画脚本、图示说明和板书提纲。",
+      "estimated_hours": 2,
+      "difficulty": 2,
+      "files": [
+        "11_媒体资源/PPT大纲/TCP三次握手PPT.md",
+        "11_媒体资源/PPT大纲/TLS握手过程PPT.md",
+        "11_媒体资源/PPT大纲/网络安全概述PPT.md",
+        "11_媒体资源/动画脚本/DNS解析动画.md",
+        "11_媒体资源/动画脚本/TCP三次握手动画.md",
+        "11_媒体资源/动画脚本/TLS握手动画.md",
+        "11_媒体资源/动画脚本/防火墙工作原理动画.md",
+        "11_媒体资源/图示说明/TCP状态转换图.md",
+        "11_媒体资源/图示说明/WPA2四次握手图.md",
+        "11_媒体资源/图示说明/网络安全威胁模型图.md",
+        "11_媒体资源/板书提纲/子网划分板书.md",
+        "11_媒体资源/板书提纲/TLS握手板书.md"
+      ],
+      "resource_types": ["PPT 大纲", "动画脚本", "图示说明", "板书提纲"]
+    },
+    {
+      "chapter_id": "cn99",
+      "title": "附录与治理",
+      "description": "事实卡、知识图谱、质量检查、版本记录和 RAG 检索测试资源。",
+      "estimated_hours": 2,
+      "difficulty": 2,
+      "files": [
+        "99_附录/事实卡/TCP三次握手.md",
+        "99_附录/事实卡/TCP四次挥手.md",
+        "99_附录/事实卡/TCP与UDP区别.md",
+        "99_附录/事实卡/TCP可靠传输.md",
+        "99_附录/事实卡/流量控制.md",
+        "99_附录/事实卡/拥塞控制.md",
+        "99_附录/事实卡/IP协议.md",
+        "99_附录/事实卡/IP分片.md",
+        "99_附录/事实卡/子网划分.md",
+        "99_附录/事实卡/CIDR.md",
+        "99_附录/事实卡/ARP.md",
+        "99_附录/事实卡/ICMP.md",
+        "99_附录/事实卡/MAC地址.md",
+        "99_附录/事实卡/交换机转发.md",
+        "99_附录/事实卡/CRC校验.md",
+        "99_附录/事实卡/CSMA_CA.md",
+        "99_附录/事实卡/DNS解析过程.md",
+        "99_附录/事实卡/HTTP请求响应.md",
+        "99_附录/事实卡/HTTP与HTTPS.md",
+        "99_附录/事实卡/TLS握手过程.md",
+        "99_附录/事实卡/数字证书.md",
+        "99_附录/事实卡/网络安全三元组.md",
+        "99_附录/事实卡/防火墙类型.md",
+        "99_附录/事实卡/DMZ.md",
+        "99_附录/事实卡/WPA2与WPA3.md",
+        "99_附录/事实卡/ping与traceroute.md",
+        "99_附录/事实卡/Wireshark抓包流程.md",
+        "99_附录/图谱/核心主题树.md",
+        "99_附录/图谱/高频易混淆图谱.md",
+        "99_附录/图谱/题库覆盖图谱.md",
+        "99_附录/图谱/节点类型说明.md",
+        "99_附录/图谱/关系类型说明.md",
+        "99_附录/图谱/图谱质量检查清单.md",
+        "99_附录/质量检查清单/入库检查清单.md",
+        "99_附录/质量检查清单/事实卡审核清单.md",
+        "99_附录/质量检查清单/RAG检索测试集.md",
+        "99_附录/质量检查清单/BrokenLinks检查记录.md",
+        "99_附录/质量检查清单/Agent输出评估表.md",
+        "99_附录/质量检查清单/发布验收报告.md",
+        "99_附录/质量检查清单/冲突记录.md",
+        "99_附录/质量检查清单/知识缺口记录.md",
+        "99_附录/版本记录/版本变更.md",
+        "99_附录/版本记录/发布记录.md",
+        "99_附录/版本记录/文档状态记录.md"
+      ],
+      "resource_types": ["事实卡", "知识图谱", "质量检查", "版本记录"]
+    }
+  ]
+}

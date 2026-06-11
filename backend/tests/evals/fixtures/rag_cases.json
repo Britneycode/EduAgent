@@ -1,0 +1,18 @@
+[
+  {
+    "id": "rag_backprop_lexical_hit",
+    "query": "链式法则 反向传播",
+    "course_id": "ai_intro",
+    "expected_top_chunk": "ai_intro:ch5_backprop",
+    "expected_phrase": "链式法则",
+    "min_score": 0.1
+  },
+  {
+    "id": "rag_course_isolation_hit",
+    "query": "解释器 脚本",
+    "course_id": "python_basics",
+    "expected_top_chunk": "python_basics:py1_runtime",
+    "expected_phrase": "Python 解释器",
+    "min_score": 0.1
+  }
+]

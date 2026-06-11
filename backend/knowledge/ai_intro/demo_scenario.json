@@ -1,0 +1,100 @@
+{
+  "scenario_id": "ai_intro_backprop_learning_loop",
+  "title": "10分钟演示：反向传播个性化学习闭环",
+  "course_id": "ai_intro",
+  "course_name": "人工智能导论",
+  "duration_minutes": 10,
+  "demo_account": {
+    "email": "demo.student@eduagent.local",
+    "password": "EduAgentDemo2026!",
+    "display_name": "演示学生"
+  },
+  "course_context": {
+    "target_chapter_id": "ch07",
+    "target_knowledge_point_id": "kp07_03_backpropagation",
+    "target_knowledge_point": "反向传播算法",
+    "prerequisite_knowledge_point_ids": [
+      "kp05_01_ml_definition",
+      "kp06_01_linear_regression",
+      "kp07_01_perceptron",
+      "kp07_02_mlp"
+    ],
+    "follow_up_knowledge_point_ids": [
+      "kp07_05_loss_optimization",
+      "kp08_01_nlp_overview"
+    ]
+  },
+  "demo_inputs": {
+    "profile_prompt": "我是计算机专业大三学生，机器学习基础一般，数学里的链式法则有点薄弱，每周大概能学6小时，想用图文结合的方式复习深度学习。",
+    "resource_prompt": "请围绕人工智能导论里的反向传播算法，给我生成一套复习资料：先讲清楚直觉和链式法则，再给练习题、代码例子、思维导图和PPT。",
+    "study_mode_prompt": "我还是不理解反向传播为什么要从输出层往前算，请用辅导模式一步步提示我。",
+    "path_goal": "两周内掌握反向传播和损失函数优化",
+    "wiki_search_query": "反向传播 链式法则 梯度"
+  },
+  "expected_quiz": {
+    "questions": [
+      {
+        "id": "q1",
+        "type": "choice",
+        "question": "反向传播算法最核心的用途是什么？",
+        "options": ["A. 高效计算各层参数梯度", "B. 随机生成训练样本", "C. 替代所有优化器", "D. 删除损失函数"],
+        "answer": "A",
+        "knowledge_point": "反向传播算法"
+      },
+      {
+        "id": "q2",
+        "type": "judge",
+        "question": "反向传播本质上依赖链式法则。",
+        "options": ["A. 错误", "B. 正确"],
+        "answer": "B",
+        "knowledge_point": "链式法则"
+      },
+      {
+        "id": "q3",
+        "type": "short_answer",
+        "question": "简述反向传播和梯度下降的关系。",
+        "options": [],
+        "answer": "反向传播负责计算梯度，梯度下降使用梯度更新参数。",
+        "knowledge_point": "损失函数与优化器"
+      }
+    ],
+    "demo_answers": {
+      "q1": "A",
+      "q2": "A",
+      "q3": "反向传播先算梯度，梯度下降再根据梯度调整参数。"
+    },
+    "expected_weak_points": ["链式法则"],
+    "expected_review_item_count": 1
+  },
+  "expected_pages": [
+    {
+      "path": "/chat",
+      "checkpoint": "SSE 状态流出现 Router/Profile/Planner/Doc/Quiz/Code/Media/Tutor 等 Agent 状态，资源卡包含可信来源面板。"
+    },
+    {
+      "path": "/profile",
+      "checkpoint": "画像页显示计算机专业、大三、图文结合、每周 6 小时、机器学习一般或链式法则薄弱。"
+    },
+    {
+      "path": "/path",
+      "checkpoint": "学习路径以 ai_intro 课程生成，包含反向传播、损失函数与优化器等节点。"
+    },
+    {
+      "path": "/analytics",
+      "checkpoint": "仪表盘显示待复习错题、测验结果、近期活动和 Agent 可观测面板。"
+    },
+    {
+      "path": "/wiki",
+      "checkpoint": "搜索反向传播和链式法则能命中 ch07 相关知识片段，课程筛选为人工智能导论。"
+    },
+    {
+      "path": "/teacher",
+      "checkpoint": "教师视图能看到学生路径进度、薄弱点和教学建议。"
+    }
+  ],
+  "fallback_notes": [
+    "若未配置真实讯飞星火凭证，可临时启用 SPARK_DEV_MODE=true 完成 UI 和闭环演示，但输出内容会是模拟文本。",
+    "若未启用 TTS 或安全护栏，资源朗读和讯飞审核会显示不可用或回退本地规则，演示时按 README 边界说明即可。",
+    "若真实 LLM 输出的题目与样例题不同，仍按页面上的实际答案提交；样例题用于路演口径和回归检查。"
+  ]
+}

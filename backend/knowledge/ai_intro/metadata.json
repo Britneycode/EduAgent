@@ -1,0 +1,354 @@
+{
+  "course_id": "AI101",
+  "course_name": "人工智能导论",
+  "course_name_en": "Introduction to Artificial Intelligence",
+  "version": "1.0.0",
+  "last_updated": "2026-04-29",
+  "target_audience": "大学本科低年级至中年级学生（大一至大三）",
+  "prerequisites": [
+    "高等数学（微积分、线性代数基础）",
+    "概率论与数理统计基础",
+    "Python 编程基础"
+  ],
+  "course_objectives": [
+    "了解人工智能的发展历程、核心分支与前沿趋势",
+    "掌握智能体、搜索、知识表示等经典AI方法的基本原理",
+    "理解机器学习与深度学习的核心思想和常用算法",
+    "了解自然语言处理、计算机视觉、强化学习等主要应用方向",
+    "认识生成式AI与大语言模型的工作原理与应用场景",
+    "具备AI伦理与安全意识，能批判性地看待AI技术",
+    "能够动手完成一个简单的AI应用项目"
+  ],
+  "total_chapters": 13,
+  "total_estimated_hours": 64,
+  "resource_types": [
+    "讲解文档",
+    "思维导图",
+    "练习题",
+    "拓展阅读",
+    "代码实操",
+    "PPT",
+    "动画脚本"
+  ],
+  "difficulty_levels": {
+    "1": "入门（无需AI背景）",
+    "2": "基础（需编程和数学基础）",
+    "3": "进阶（需理解前置AI概念）",
+    "4": "综合应用（需整合多个知识点）"
+  },
+  "chapters": [
+    {
+      "chapter_id": "ch01",
+      "title": "人工智能概述与发展史",
+      "description": "介绍人工智能的定义、发展历程、主要学派与核心分支，帮助学生建立对AI领域的全景认知。",
+      "learning_objectives": [
+        "能够用自己的话解释什么是人工智能",
+        "了解AI发展的三次浪潮与关键里程碑",
+        "区分强AI与弱AI的概念",
+        "认识AI的主要研究分支与应用领域"
+      ],
+      "difficulty": 1,
+      "estimated_hours": 3,
+      "prerequisites": [],
+      "knowledge_points": [
+        "kp01_01_ai_definition",
+        "kp01_02_ai_history",
+        "kp01_03_ai_schools",
+        "kp01_04_ai_branches",
+        "kp01_05_ai_applications"
+      ],
+      "resource_types": ["讲解文档", "思维导图", "练习题", "拓展阅读", "PPT", "动画脚本"]
+    },
+    {
+      "chapter_id": "ch02",
+      "title": "智能体与问题求解",
+      "description": "讲解智能体的概念、分类与环境类型，介绍问题求解的基本框架。",
+      "learning_objectives": [
+        "理解什么是智能体及其与环境的交互方式",
+        "能够区分不同类型的智能体（简单反射型、基于模型型、目标型、效用型）",
+        "掌握PEAS描述方法",
+        "理解问题形式化的基本步骤"
+      ],
+      "difficulty": 1,
+      "estimated_hours": 4,
+      "prerequisites": ["ch01"],
+      "knowledge_points": [
+        "kp02_01_agent_definition",
+        "kp02_02_agent_types",
+        "kp02_03_environment_types",
+        "kp02_04_peas_framework",
+        "kp02_05_problem_formulation"
+      ],
+      "resource_types": ["讲解文档", "思维导图", "练习题", "拓展阅读", "代码实操", "PPT"]
+    },
+    {
+      "chapter_id": "ch03",
+      "title": "搜索算法基础",
+      "description": "系统讲解无信息搜索和有信息搜索的核心算法，分析其时间与空间复杂度。",
+      "learning_objectives": [
+        "理解状态空间与搜索树的概念",
+        "掌握BFS、DFS、UCS等无信息搜索算法",
+        "掌握贪婪最佳优先搜索和A*搜索",
+        "能够分析不同搜索算法的完备性和最优性",
+        "了解启发式函数的设计原则"
+      ],
+      "difficulty": 2,
+      "estimated_hours": 6,
+      "prerequisites": ["ch02"],
+      "knowledge_points": [
+        "kp03_01_state_space",
+        "kp03_02_bfs_dfs",
+        "kp03_03_ucs",
+        "kp03_04_informed_search",
+        "kp03_05_astar",
+        "kp03_06_heuristics",
+        "kp03_07_complexity_analysis"
+      ],
+      "resource_types": ["讲解文档", "思维导图", "练习题", "拓展阅读", "代码实操", "PPT", "动画脚本"]
+    },
+    {
+      "chapter_id": "ch04",
+      "title": "知识表示与逻辑推理",
+      "description": "介绍知识表示的主要方法和基于逻辑的自动推理技术。",
+      "learning_objectives": [
+        "了解知识表示在AI中的核心地位",
+        "掌握命题逻辑和一阶谓词逻辑的基本语法与语义",
+        "理解归结推理的基本原理",
+        "了解语义网络、框架、本体等知识表示方法",
+        "认识知识图谱的基本概念"
+      ],
+      "difficulty": 2,
+      "estimated_hours": 5,
+      "prerequisites": ["ch02"],
+      "knowledge_points": [
+        "kp04_01_knowledge_types",
+        "kp04_02_propositional_logic",
+        "kp04_03_first_order_logic",
+        "kp04_04_resolution",
+        "kp04_05_semantic_networks",
+        "kp04_06_ontologies",
+        "kp04_07_knowledge_graphs"
+      ],
+      "resource_types": ["讲解文档", "思维导图", "练习题", "拓展阅读", "代码实操", "PPT"]
+    },
+    {
+      "chapter_id": "ch05",
+      "title": "机器学习基础",
+      "description": "介绍机器学习的核心思想、基本分类和学习范式，为后续深入学习打下基础。",
+      "learning_objectives": [
+        "用自己的话解释什么是机器学习",
+        "区分监督学习、无监督学习和强化学习",
+        "理解训练集、验证集、测试集的划分意义",
+        "了解特征工程的基本概念",
+        "认识过拟合与欠拟合问题"
+      ],
+      "difficulty": 2,
+      "estimated_hours": 5,
+      "prerequisites": ["ch01"],
+      "knowledge_points": [
+        "kp05_01_ml_definition",
+        "kp05_02_learning_paradigms",
+        "kp05_03_data_splitting",
+        "kp05_04_feature_engineering",
+        "kp05_05_overfitting_underfitting",
+        "kp05_06_bias_variance_tradeoff"
+      ],
+      "resource_types": ["讲解文档", "思维导图", "练习题", "拓展阅读", "代码实操", "PPT"]
+    },
+    {
+      "chapter_id": "ch06",
+      "title": "监督学习与模型评估",
+      "description": "深入讲解常见监督学习算法及模型评估与选择方法。",
+      "learning_objectives": [
+        "掌握线性回归、逻辑回归的基本原理",
+        "理解决策树和K近邻算法的工作机制",
+        "掌握交叉验证、混淆矩阵等评估方法",
+        "理解精确率、召回率、F1分数的含义与适用场景",
+        "了解ROC曲线和AUC的概念"
+      ],
+      "difficulty": 2,
+      "estimated_hours": 6,
+      "prerequisites": ["ch05"],
+      "knowledge_points": [
+        "kp06_01_linear_regression",
+        "kp06_02_logistic_regression",
+        "kp06_03_decision_tree",
+        "kp06_04_knn",
+        "kp06_05_cross_validation",
+        "kp06_06_metrics",
+        "kp06_07_roc_auc"
+      ],
+      "resource_types": ["讲解文档", "思维导图", "练习题", "拓展阅读", "代码实操", "PPT", "动画脚本"]
+    },
+    {
+      "chapter_id": "ch07",
+      "title": "神经网络与深度学习基础",
+      "description": "从感知机出发，逐步讲解多层神经网络、反向传播和卷积神经网络的基本原理。",
+      "learning_objectives": [
+        "理解感知机模型及其局限性",
+        "掌握多层前馈神经网络的结构与训练过程",
+        "理解反向传播算法的核心思想",
+        "了解常见激活函数的特点与选择",
+        "认识卷积神经网络的基本组件",
+        "了解深度学习的常用框架"
+      ],
+      "difficulty": 3,
+      "estimated_hours": 7,
+      "prerequisites": ["ch05", "ch06"],
+      "knowledge_points": [
+        "kp07_01_perceptron",
+        "kp07_02_mlp",
+        "kp07_03_backpropagation",
+        "kp07_04_activation_functions",
+        "kp07_05_loss_optimization",
+        "kp07_06_cnn_basics",
+        "kp07_07_frameworks"
+      ],
+      "resource_types": ["讲解文档", "思维导图", "练习题", "拓展阅读", "代码实操", "PPT", "动画脚本"]
+    },
+    {
+      "chapter_id": "ch08",
+      "title": "自然语言处理基础",
+      "description": "介绍自然语言处理的核心任务、经典方法和现代技术。",
+      "learning_objectives": [
+        "了解NLP的主要任务与应用场景",
+        "掌握文本预处理的基本流程（分词、去停用词、词干化）",
+        "理解词袋模型和TF-IDF的原理",
+        "了解词嵌入（Word2Vec）的基本思想",
+        "认识RNN和Transformer的基本架构"
+      ],
+      "difficulty": 3,
+      "estimated_hours": 6,
+      "prerequisites": ["ch07"],
+      "knowledge_points": [
+        "kp08_01_nlp_overview",
+        "kp08_02_text_preprocessing",
+        "kp08_03_bow_tfidf",
+        "kp08_04_word_embedding",
+        "kp08_05_rnn",
+        "kp08_06_transformer",
+        "kp08_07_nlp_tasks"
+      ],
+      "resource_types": ["讲解文档", "思维导图", "练习题", "拓展阅读", "代码实操", "PPT", "动画脚本"]
+    },
+    {
+      "chapter_id": "ch09",
+      "title": "计算机视觉基础",
+      "description": "介绍计算机视觉的核心任务和基于深度学习的图像处理方法。",
+      "learning_objectives": [
+        "了解计算机视觉的主要任务（分类、检测、分割）",
+        "理解图像在计算机中的表示方式",
+        "掌握经典CNN架构（LeNet、VGG、ResNet）的核心思想",
+        "了解目标检测和图像分割的基本方法",
+        "认识迁移学习在视觉任务中的应用"
+      ],
+      "difficulty": 3,
+      "estimated_hours": 5,
+      "prerequisites": ["ch07"],
+      "knowledge_points": [
+        "kp09_01_cv_overview",
+        "kp09_02_image_representation",
+        "kp09_03_classic_cnns",
+        "kp09_04_object_detection",
+        "kp09_05_segmentation",
+        "kp09_06_transfer_learning"
+      ],
+      "resource_types": ["讲解文档", "思维导图", "练习题", "拓展阅读", "代码实操", "PPT", "动画脚本"]
+    },
+    {
+      "chapter_id": "ch10",
+      "title": "强化学习基础",
+      "description": "讲解强化学习的核心概念、基本算法和典型应用。",
+      "learning_objectives": [
+        "理解强化学习的基本框架（智能体、环境、状态、动作、奖励）",
+        "掌握马尔可夫决策过程的数学描述",
+        "理解策略、价值函数和Q函数的概念",
+        "了解Q-learning和策略梯度的基本思想",
+        "认识强化学习的典型应用场景"
+      ],
+      "difficulty": 3,
+      "estimated_hours": 5,
+      "prerequisites": ["ch02", "ch05"],
+      "knowledge_points": [
+        "kp10_01_rl_framework",
+        "kp10_02_mdp",
+        "kp10_03_value_function",
+        "kp10_04_q_learning",
+        "kp10_05_policy_gradient",
+        "kp10_06_rl_applications"
+      ],
+      "resource_types": ["讲解文档", "思维导图", "练习题", "拓展阅读", "代码实操", "PPT", "动画脚本"]
+    },
+    {
+      "chapter_id": "ch11",
+      "title": "生成式AI与大语言模型",
+      "description": "介绍生成式AI的发展、大语言模型的原理、训练方法和应用。",
+      "learning_objectives": [
+        "理解生成式AI与判别式AI的区别",
+        "了解GPT、BERT等大语言模型的基本架构",
+        "理解预训练与微调的训练范式",
+        "认识提示工程的基本方法",
+        "了解大模型的能力边界与局限性"
+      ],
+      "difficulty": 3,
+      "estimated_hours": 6,
+      "prerequisites": ["ch08"],
+      "knowledge_points": [
+        "kp11_01_generative_ai",
+        "kp11_02_llm_architecture",
+        "kp11_03_pretraining_finetuning",
+        "kp11_04_prompt_engineering",
+        "kp11_05_rag",
+        "kp11_06_llm_limitations",
+        "kp11_07_multimodal"
+      ],
+      "resource_types": ["讲解文档", "思维导图", "练习题", "拓展阅读", "代码实操", "PPT", "动画脚本"]
+    },
+    {
+      "chapter_id": "ch12",
+      "title": "AI伦理、安全与未来趋势",
+      "description": "探讨AI技术带来的伦理挑战、安全风险和未来发展方向。",
+      "learning_objectives": [
+        "认识AI系统中的偏见与公平性问题",
+        "理解AI可解释性的重要性",
+        "了解AI安全的核心挑战",
+        "认识隐私保护在AI中的意义",
+        "能够批判性地讨论AI的未来发展趋势"
+      ],
+      "difficulty": 1,
+      "estimated_hours": 3,
+      "prerequisites": ["ch01"],
+      "knowledge_points": [
+        "kp12_01_bias_fairness",
+        "kp12_02_explainability",
+        "kp12_03_ai_safety",
+        "kp12_04_privacy",
+        "kp12_05_regulation",
+        "kp12_06_future_trends"
+      ],
+      "resource_types": ["讲解文档", "思维导图", "练习题", "拓展阅读", "PPT"]
+    },
+    {
+      "chapter_id": "ch13",
+      "title": "综合实践项目：构建一个简单AI应用",
+      "description": "通过一个完整的项目实践，将前面所学知识串联应用，培养动手能力。",
+      "learning_objectives": [
+        "能够独立完成一个简单的AI应用项目",
+        "掌握数据收集、预处理、模型训练、评估的完整流程",
+        "具备基本的项目文档撰写能力",
+        "能够展示和讲解自己的项目成果"
+      ],
+      "difficulty": 4,
+      "estimated_hours": 4,
+      "prerequisites": ["ch06", "ch07"],
+      "knowledge_points": [
+        "kp13_01_project_planning",
+        "kp13_02_data_pipeline",
+        "kp13_03_model_development",
+        "kp13_04_evaluation_deployment",
+        "kp13_05_project_demonstration"
+      ],
+      "resource_types": ["讲解文档", "练习题", "代码实操"]
+    }
+  ]
+}
