@@ -3,8 +3,13 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { BrainCircuit, Check, Send, Sparkles, UserRoundCheck, X } from "lucide-react";
 import { streamChat } from "@/lib/sse";
-import { fetchSessionDetail, fetchWikiCourses } from "@/lib/api";
+import {
+  confirmAgentProfileUpdate,
+  fetchSessionDetail,
+  fetchWikiCourses,
+} from "@/lib/api";
 import { consumePendingMessage } from "@/lib/pendingMessage";
 import { setLastSessionId } from "@/lib/lastSession";
 import { ChatMessage } from "@/components/chat/ChatMessage";
@@ -19,6 +24,7 @@ import {
 } from "@/store/chatStreamStore";
 import type {
   ChatMessage as ChatMsg,
+  ProfileUpdateProposedPayload,
   ResourceCard as ResourceCardType,
   ResourceResponse,
   SessionDetail,
@@ -31,9 +37,17 @@ const STARTER_PROMPTS = [
   "给我出一组神经网络入门练习题",
 ];
 
-type CourseSelection = {
-  sessionId: number | null;
-  courseId: string | null;
+const PROFILE_FIELD_LABELS: Record<string, string> = {
+  major: "专业",
+  grade: "年级",
+  knowledge_base: "知识基础",
+  cognitive_style: "认知风格",
+  learning_goal: "学习目标",
+  weak_points: "薄弱点",
+  learning_pace: "学习节奏",
+  interest_areas: "兴趣方向",
+  coding_level: "编程水平",
+  weekly_hours: "每周学习时间",
 };
 
 function toResourceCard(resource: ResourceResponse): ResourceCardType {
@@ -129,13 +143,22 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const [studyMode, setStudyMode] = useState(true);
   const [courses, setCourses] = useState<WikiCourse[]>([]);
-  const [manualCourseSelection, setManualCourseSelection] =
-    useState<CourseSelection | null>(null);
-  const [sessionCourse, setSessionCourse] = useState<CourseSelection>({
+  const [sessionCourse, setSessionCourse] = useState<{
+    sessionId: number | null;
+    courseId: string | null;
+  }>({
     sessionId: currentSessionId,
     courseId: null,
   });
   const [loading, setLoading] = useState(hasValidSessionId);
+  const [profileProposal, setProfileProposal] =
+    useState<ProfileUpdateProposedPayload | null>(null);
+  const [profileConfirmState, setProfileConfirmState] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
+  const [profileConfirmMessage, setProfileConfirmMessage] = useState<string | null>(
+    null
+  );
   const lastUserMessageRef = useRef<string>("");
   const lastStudyModeRef = useRef(true);
   const lastCourseIdRef = useRef<string | null>(null);
@@ -158,6 +181,7 @@ export default function ChatPage() {
   const setAgentStatus = useChatStreamStore((state) => state.setAgentStatus);
   const clearAgentStatus = useChatStreamStore((state) => state.clearAgentStatus);
   const setResources = useChatStreamStore((state) => state.setResources);
+  const setProgress = useChatStreamStore((state) => state.setProgress);
   const setWikiFallback = useChatStreamStore((state) => state.setWikiFallback);
   const setStreamError = useChatStreamStore((state) => state.setError);
   const finishStream = useChatStreamStore((state) => state.finishStream);
@@ -167,10 +191,7 @@ export default function ChatPage() {
   const defaultCourseId = useMemo(() => getDefaultCourseId(courses), [courses]);
   const sessionCourseId =
     sessionCourse.sessionId === currentSessionId ? sessionCourse.courseId : null;
-  const selectedCourseId =
-    manualCourseSelection?.sessionId === currentSessionId
-      ? manualCourseSelection.courseId
-      : sessionCourseId || defaultCourseId;
+  const selectedCourseId = sessionCourseId || defaultCourseId;
 
   useEffect(() => {
     activeSessionIdRef.current = currentSessionId;
@@ -233,6 +254,9 @@ export default function ChatPage() {
     };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
+    setProfileProposal(null);
+    setProfileConfirmState("idle");
+    setProfileConfirmMessage(null);
     clearStream(parsedSessionId);
     startStream(parsedSessionId);
 
@@ -259,11 +283,20 @@ export default function ChatPage() {
           if (targetSessionId === null) return;
           setAgentStatus(targetSessionId, payload.agent || "", payload.message);
         },
-        onProfileUpdated: (sessionId) => {
+        onProfileUpdateProposed: (payload, sessionId) => {
           const targetSessionId = sessionId ?? activeSessionIdRef.current;
           if (targetSessionId === null) return;
+          setProfileProposal(payload);
+          setProfileConfirmState("idle");
+          setProfileConfirmMessage(null);
           clearAgentStatus(targetSessionId);
         },
+        onProgress: (payload, sessionId) => {
+          const targetSessionId = sessionId ?? activeSessionIdRef.current;
+          if (targetSessionId === null) return;
+          setProgress(targetSessionId, payload);
+        },
+        onHeartbeat: () => {},
         onToken: (payload, sessionId) => {
           const targetSessionId = sessionId ?? activeSessionIdRef.current;
           if (targetSessionId === null) return;
@@ -345,6 +378,9 @@ export default function ChatPage() {
     });
 
     clearStream(parsedSessionId);
+    setProfileProposal(null);
+    setProfileConfirmState("idle");
+    setProfileConfirmMessage(null);
     startStream(parsedSessionId);
 
     const collectedResources: ResourceCardType[] = [];
@@ -368,11 +404,20 @@ export default function ChatPage() {
           if (targetSessionId === null) return;
           setAgentStatus(targetSessionId, payload.agent || "", payload.message);
         },
-        onProfileUpdated: (sessionId) => {
+        onProfileUpdateProposed: (payload, sessionId) => {
           const targetSessionId = sessionId ?? activeSessionIdRef.current;
           if (targetSessionId === null) return;
+          setProfileProposal(payload);
+          setProfileConfirmState("idle");
+          setProfileConfirmMessage(null);
           clearAgentStatus(targetSessionId);
         },
+        onProgress: (payload, sessionId) => {
+          const targetSessionId = sessionId ?? activeSessionIdRef.current;
+          if (targetSessionId === null) return;
+          setProgress(targetSessionId, payload);
+        },
+        onHeartbeat: () => {},
         onToken: (payload, sessionId) => {
           const targetSessionId = sessionId ?? activeSessionIdRef.current;
           if (targetSessionId === null) return;
@@ -424,10 +469,33 @@ export default function ChatPage() {
     clearAgentStatus,
     appendToken,
     setResources,
+    setProgress,
     setWikiFallback,
     setStreamError,
     finishStream,
   ]);
+
+  const handleConfirmProfileProposal = useCallback(async () => {
+    if (!profileProposal || profileConfirmState === "saving") return;
+    const targetSessionId = profileProposal.session_id ?? currentSessionId;
+    setProfileConfirmState("saving");
+    setProfileConfirmMessage(null);
+    try {
+      await confirmAgentProfileUpdate(targetSessionId, profileProposal.update);
+      setProfileProposal(null);
+      setProfileConfirmState("saved");
+      setProfileConfirmMessage("学习画像已更新");
+      window.setTimeout(() => {
+        setProfileConfirmMessage(null);
+        setProfileConfirmState("idle");
+      }, 2400);
+    } catch (error) {
+      setProfileConfirmState("error");
+      setProfileConfirmMessage(
+        error instanceof Error ? error.message : "确认画像更新失败"
+      );
+    }
+  }, [currentSessionId, profileConfirmState, profileProposal]);
 
   if (loading) {
     return (
@@ -505,17 +573,71 @@ export default function ChatPage() {
             </ChatMessage>
           ))}
 
+          {profileProposal && (
+            <div className="mx-3 mb-3 rounded-xl bg-[var(--color-ivory)] px-4 py-3 text-sm shadow-[var(--shadow-ring)]">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p className="font-medium text-[var(--color-warm-gray-800)]">
+                    Agent 建议更新学习画像
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-[var(--color-warm-gray-600)]">
+                    变更项：
+                    {profileProposal.changed_fields
+                      .map((field) => PROFILE_FIELD_LABELS[field] ?? field)
+                      .join("、") || "画像字段"}
+                  </p>
+                  {profileConfirmMessage && (
+                    <p
+                      className={`mt-1 text-xs ${
+                        profileConfirmState === "error"
+                          ? "text-red-600"
+                          : "text-[var(--color-terracotta)]"
+                      }`}
+                    >
+                      {profileConfirmMessage}
+                    </p>
+                  )}
+                </div>
+                <div className="flex shrink-0 gap-2">
+                  <button
+                    type="button"
+                    onClick={handleConfirmProfileProposal}
+                    disabled={profileConfirmState === "saving"}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[var(--color-terracotta)] px-3 text-xs text-white hover:bg-[var(--color-terracotta-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                    {profileConfirmState === "saving" ? "保存中" : "确认"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProfileProposal(null);
+                      setProfileConfirmState("idle");
+                      setProfileConfirmMessage(null);
+                    }}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs text-[var(--color-warm-gray-600)] ring-1 ring-[var(--color-warm-gray-200)] hover:text-[var(--color-terracotta)]"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    忽略
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {streamState.isStreaming && (
             <div className="mb-4">
               <AgentFlow
                 timeline={streamState.agentTimeline}
                 resources={streamState.resources}
                 isStreaming={streamState.isStreaming}
+                progress={streamState.progress}
               />
               {streamState.agentStatus && (
                 <AgentStatus
                   agent={streamState.agentName}
                   message={streamState.agentStatus}
+                  progress={streamState.progress}
                 />
               )}
               {streamState.wikiFallback && (
@@ -525,14 +647,36 @@ export default function ChatPage() {
               )}
               {streamState.streamingContent && (
                 <div className="flex justify-start">
-                  <div className="max-w-[88%] rounded-xl rounded-bl-sm bg-[var(--color-ivory)] px-5 py-4 ring-1 ring-[var(--color-warm-gray-200)] md:max-w-[78%]">
-                    <StreamingText content={streamState.streamingContent} />
-                    {streamState.resources.map((resource) => (
-                      <ResourceCard key={resource.id ?? resource.title} resource={resource} sessionId={currentSessionId} />
-                    ))}
+                  <div className="relative w-full max-w-[840px] pl-5">
+                    <span className="absolute left-0 top-2 h-[calc(100%-0.5rem)] w-px bg-[var(--color-warm-gray-200)]" />
+                    <span className="absolute left-[-3px] top-2 h-2 w-2 rounded-full bg-[var(--color-terracotta)]" />
+                    <div className="mb-2 rounded-xl bg-[var(--color-parchment)]/65 px-3 py-2 text-sm leading-6 text-[var(--color-warm-gray-700)] shadow-[var(--shadow-ring)]">
+                      <StreamingText content={streamState.streamingContent} />
+                    </div>
+                    {streamState.resources.length > 0 && (
+                      <div className="space-y-2">
+                        {streamState.resources.map((resource) => (
+                          <ResourceCard key={resource.id ?? resource.title} resource={resource} sessionId={currentSessionId} />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {!streamState.isStreaming && profileConfirmMessage && (
+            <div className="py-2 text-center">
+              <p
+                className={`inline-block rounded-lg bg-[var(--color-parchment)] px-4 py-2 text-sm ${
+                  profileConfirmState === "error"
+                    ? "text-red-600"
+                    : "text-[var(--color-terracotta)]"
+                } ring-1 ring-[var(--color-warm-gray-200)]`}
+              >
+                {profileConfirmMessage}
+              </p>
             </div>
           )}
 
@@ -570,8 +714,9 @@ export default function ChatPage() {
             </div>
             <Link
               href={`/profile${hasValidSessionId ? `?session_id=${parsedSessionId}` : ""}`}
-              className="shrink-0 text-xs text-[var(--color-terracotta)] hover:underline"
+              className="inline-flex shrink-0 items-center gap-1.5 text-xs text-[var(--color-terracotta)] hover:underline"
             >
+              <UserRoundCheck className="h-3.5 w-3.5" />
               查看学习画像
             </Link>
           </div>
@@ -580,53 +725,30 @@ export default function ChatPage() {
               <button
                 type="button"
                 onClick={() => setStudyMode(true)}
-                className={`rounded-md px-3 py-1.5 text-xs transition-colors ${
+                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs transition-colors ${
                   studyMode
                     ? "bg-[var(--color-warm-gray-800)] text-white"
                     : "text-[var(--color-warm-gray-500)] hover:text-[var(--color-terracotta)]"
                 }`}
               >
+                <BrainCircuit className="h-3.5 w-3.5" />
                 辅导模式
               </button>
               <button
                 type="button"
                 onClick={() => setStudyMode(false)}
-                className={`rounded-md px-3 py-1.5 text-xs transition-colors ${
+                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs transition-colors ${
                   !studyMode
                     ? "bg-[var(--color-warm-gray-800)] text-white"
                     : "text-[var(--color-warm-gray-500)] hover:text-[var(--color-terracotta)]"
                 }`}
               >
+                <Sparkles className="h-3.5 w-3.5" />
                 直接回答
               </button>
             </div>
-            <label className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-ivory)] px-2.5 py-1.5 text-xs text-[var(--color-warm-gray-500)] ring-1 ring-[var(--color-warm-gray-200)]">
-              <span className="shrink-0">课程</span>
-              <select
-                value={selectedCourseId || ""}
-                onChange={(event) => {
-                  setManualCourseSelection({
-                    sessionId: currentSessionId,
-                    courseId: event.target.value || null,
-                  });
-                }}
-                disabled={courses.length === 0 || streamState.isStreaming}
-                className="max-w-[180px] bg-transparent text-[var(--color-warm-gray-700)] outline-none disabled:opacity-60"
-                aria-label="选择课程知识库"
-              >
-                {courses.length === 0 ? (
-                  <option value="">默认课程</option>
-                ) : (
-                  courses.map((course) => (
-                    <option key={course.id} value={course.id}>
-                      {course.title}
-                    </option>
-                  ))
-                )}
-              </select>
-            </label>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <textarea
               ref={inputRef}
               value={input}
@@ -638,17 +760,20 @@ export default function ChatPage() {
               className="flex-1 resize-none rounded-xl bg-[var(--color-ivory)] px-4 py-3 text-sm ring-1 ring-[var(--color-warm-gray-200)] placeholder:text-[var(--color-warm-gray-400)] focus:outline-none focus:ring-[var(--color-terracotta)]"
               disabled={streamState.isStreaming}
             />
-            <VoiceInput
-              onResult={(text) => { setInput((prev) => prev + text); inputRef.current?.focus(); }}
-              disabled={streamState.isStreaming}
-            />
-            <button
-              onClick={() => handleSend()}
-              disabled={!input.trim() || streamState.isStreaming}
-              className="rounded-xl bg-[var(--color-terracotta)] px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-[var(--color-terracotta-hover)] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              发送
-            </button>
+            <div className="flex gap-3 sm:contents">
+              <VoiceInput
+                onResult={(text) => { setInput((prev) => prev + text); inputRef.current?.focus(); }}
+                disabled={streamState.isStreaming}
+              />
+              <button
+                onClick={() => handleSend()}
+                disabled={!input.trim() || streamState.isStreaming}
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--color-terracotta)] px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-[var(--color-terracotta-hover)] disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
+              >
+                发送
+                <Send className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
       </div>

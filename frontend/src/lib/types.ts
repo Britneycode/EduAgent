@@ -8,6 +8,7 @@ export type ResourceType =
   | "ppt"
   | "ppt_images"
   | "animation"
+  | "video"
   | "reading";
 
 export interface Profile {
@@ -43,7 +44,7 @@ export interface ProfileHistoryItem {
   id: number;
   user_id: number;
   session_id: number | null;
-  source: "agent" | "manual" | string;
+  source: "agent_confirmed" | "manual" | string;
   changed_fields: string[];
   profile_data: Profile;
   created_at: string;
@@ -52,14 +53,24 @@ export interface ProfileHistoryItem {
 export interface SSEEvent {
   type:
     | "agent_status"
-    | "profile_updated"
+    | "profile_update_proposed"
+    | "progress"
+    | "heartbeat"
     | "token"
     | "resource_card"
     | "wiki_fallback"
     | "done"
     | "error";
   session_id: number | null;
-  payload: AgentStatusPayload | TokenPayload | ResourceCard | WikiFallbackPayload | ErrorPayload | Record<string, unknown>;
+  payload:
+    | AgentStatusPayload
+    | ProfileUpdateProposedPayload
+    | ProgressPayload
+    | TokenPayload
+    | ResourceCard
+    | WikiFallbackPayload
+    | ErrorPayload
+    | Record<string, unknown>;
 }
 
 export interface AgentStatusPayload {
@@ -70,6 +81,20 @@ export interface AgentStatusPayload {
 
 export interface TokenPayload {
   token: string;
+}
+
+export interface ProfileUpdateProposedPayload {
+  update: ProfileUpdate;
+  changed_fields: string[];
+  session_id: number | null;
+}
+
+export interface ProgressPayload {
+  stage: string;
+  completed: number;
+  total: number;
+  percent: number;
+  message: string;
 }
 
 export interface ResourceCard {
@@ -350,41 +375,6 @@ export interface AgentObservability {
     event_metadata: Record<string, unknown>;
     created_at: string;
   }[];
-}
-
-export interface TeacherDashboard {
-  summary: {
-    student_count: number;
-    active_path_count: number;
-    quiz_count: number;
-    average_quiz_score: number;
-    pending_review_count: number;
-  };
-  weak_points: {
-    knowledge_point: string;
-    affected_students: number;
-    review_count: number;
-    average_score: number;
-  }[];
-  quiz_performance: {
-    knowledge_point: string;
-    attempts: number;
-    average_score: number;
-  }[];
-  students: {
-    user_id: number;
-    username: string;
-    display_name: string | null;
-    major: string | null;
-    grade: string | null;
-    active_paths: number;
-    completed_nodes: number;
-    total_nodes: number;
-    average_quiz_score: number;
-    pending_reviews: number;
-    weak_points: string[];
-  }[];
-  recommendations: string[];
 }
 
 export interface ReviewItem {

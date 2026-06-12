@@ -11,7 +11,9 @@ from app.core.llm import (
     BaseLLMClient,
     DeepSeekLLMClient,
     FallbackLLMClient,
+    OpenAICompatibleLLMClient,
     get_llm_configuration_warning,
+    get_llm_mode,
 )
 
 
@@ -68,6 +70,54 @@ def test_deepseek_client_sends_openai_compatible_request(
     }
 
 
+def test_openai_compatible_client_sends_optional_thinking_flag(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("OPENAI_COMPATIBLE_API_KEY", "dashscope-key")
+    monkeypatch.setenv(
+        "OPENAI_COMPATIBLE_API_BASE_URL",
+        "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    )
+    monkeypatch.setenv("OPENAI_COMPATIBLE_MODEL", "qwen3.6-plus")
+    monkeypatch.setenv("OPENAI_COMPATIBLE_ENABLE_THINKING", "false")
+    get_settings.cache_clear()
+    captured: dict[str, object] = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["url"] = str(request.url)
+        captured["authorization"] = request.headers.get("authorization")
+        captured["body"] = json.loads(request.content.decode("utf-8"))
+        return httpx.Response(
+            200,
+            json={"choices": [{"message": {"content": "百炼模型响应"}}]},
+        )
+
+    async def run() -> str:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+            client = OpenAICompatibleLLMClient(http_client=http)
+            return await client.generate_text("请生成学习讲义")
+
+    try:
+        result = asyncio.run(run())
+    finally:
+        get_settings.cache_clear()
+
+    assert result == "百炼模型响应"
+    assert (
+        captured["url"]
+        == "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+    )
+    assert captured["authorization"] == "Bearer dashscope-key"
+    assert captured["body"] == {
+        "model": "qwen3.6-plus",
+        "messages": [{"role": "user", "content": "请生成学习讲义"}],
+        "max_tokens": 4096,
+        "temperature": 0.7,
+        "stream": False,
+        "enable_thinking": False,
+    }
+
+
 def test_fallback_llm_uses_backup_when_primary_fails() -> None:
     client = FallbackLLMClient(
         primary=FailingLLMClient(),
@@ -88,5 +138,31 @@ def test_llm_warning_is_suppressed_when_deepseek_is_configured(
 
     try:
         assert get_llm_configuration_warning() is None
+    finally:
+        get_settings.cache_clear()
+
+
+def test_llm_mode_reports_dev_mode(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SPARK_DEV_MODE", "true")
+    get_settings.cache_clear()
+
+    try:
+        assert get_llm_mode() == "dev"
+    finally:
+        get_settings.cache_clear()
+
+
+def test_llm_mode_reports_spark_when_spark_is_configured(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("SPARK_DEV_MODE", "false")
+    monkeypatch.setenv("OPENAI_COMPATIBLE_ENABLED", "false")
+    monkeypatch.setenv("DEEPSEEK_ENABLED", "false")
+    monkeypatch.setenv("SPARK_APP_ID", "spark-app")
+    monkeypatch.setenv("SPARK_API_PASSWORD", "spark-password")
+    get_settings.cache_clear()
+
+    try:
+        assert get_llm_mode() == "spark"
     finally:
         get_settings.cache_clear()

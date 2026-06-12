@@ -4,6 +4,11 @@ import json
 import logging
 from typing import TYPE_CHECKING, Any
 
+from app.agents.common import (
+    build_profile_lines,
+    build_wiki_context_with_sources,
+    parse_json_object,
+)
 from app.agents.resource_types import AgentResource
 from app.core.llm import BaseLLMClient, get_llm_client
 
@@ -220,7 +225,7 @@ class QuizAgent:
         if start != -1 and end != -1:
             cleaned = cleaned[start : end + 1]
 
-        return json.loads(cleaned)
+        return parse_json_object(cleaned)
 
     def build_prompt(
         self,
@@ -259,40 +264,20 @@ class QuizAgent:
         return "\n".join(parts)
 
     def _build_profile_lines(self, profile: dict[str, Any]) -> list[str]:
-        return [
-            f"- 学习目标：{profile.get('learning_goal') or '未提供'}",
-            f"- 认知风格：{profile.get('cognitive_style') or '未提供'}",
-            f"- 学习节奏：{profile.get('learning_pace') or '未提供'}",
-            f"- 编程水平：{profile.get('coding_level') or '未提供'}",
-        ]
+        return build_profile_lines(
+            profile,
+            ("learning_goal", "cognitive_style", "learning_pace", "coding_level"),
+        )
 
     async def _build_wiki_context(
         self, topic: str, course_id: str | None = None
     ) -> tuple[str, bool, float, list[dict[str, Any]]]:
-        if self.wiki_service is None:
-            return "", True, 0.0, []
-        try:
-            ctx_with_sources = await self.wiki_service.build_context_with_sources(
-                query=topic, top_k=3, course_id=course_id
-            )
-            if not ctx_with_sources.context.strip():
-                return "", True, 0.0, []
-            sources = [
-                {
-                    "chapter": s.chapter,
-                    "section": s.section,
-                    "title": s.title,
-                    "score": s.score,
-                    "chunk_id": s.chunk_id,
-                    "snippet": s.snippet,
-                    "source_name": s.source_name,
-                }
-                for s in ctx_with_sources.sources
-            ]
-            return ctx_with_sources.context, False, ctx_with_sources.confidence, sources
-        except Exception:
-            logger.warning("Wiki 检索失败，将不使用知识库上下文", exc_info=True)
-            return "", True, 0.0, []
+        return await build_wiki_context_with_sources(
+            self.wiki_service,
+            query=topic,
+            course_id=course_id,
+            logger=logger,
+        )
 
     def _normalize_content(self, topic: str, content: str) -> str:
         normalized = content.strip()

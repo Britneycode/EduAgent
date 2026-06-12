@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { ResourceCard } from "@/lib/types";
+import type { ProgressPayload, ResourceCard } from "@/lib/types";
 
 export interface AgentTimelineItem {
   agent: string;
@@ -14,6 +14,7 @@ export interface ChatStreamState {
   agentStatus: string | null;
   agentTimeline: AgentTimelineItem[];
   resources: ResourceCard[];
+  progress: ProgressPayload | null;
   wikiFallback: string | null;
   error: string | null;
 }
@@ -30,6 +31,7 @@ interface ChatStreamStoreState {
   ) => void;
   clearAgentStatus: (sessionId: number) => void;
   setResources: (sessionId: number, resources: ResourceCard[]) => void;
+  setProgress: (sessionId: number, progress: ProgressPayload | null) => void;
   setWikiFallback: (sessionId: number, wikiFallback: string | null) => void;
   setError: (sessionId: number, error: string | null) => void;
   finishStream: (sessionId: number) => void;
@@ -45,6 +47,7 @@ const EMPTY_STREAM_STATE: ChatStreamState = {
   agentStatus: null,
   agentTimeline: [],
   resources: [],
+  progress: null,
   wikiFallback: null,
   error: null,
 };
@@ -54,6 +57,7 @@ function createEmptyStreamState(): ChatStreamState {
     ...EMPTY_STREAM_STATE,
     agentTimeline: [],
     resources: [],
+    progress: null,
   };
 }
 
@@ -142,6 +146,13 @@ export function createChatStreamStore() {
         streams: updateStream(state.streams, sessionId, (stream) => ({
           ...stream,
           resources,
+        })),
+      })),
+    setProgress: (sessionId, progress) =>
+      set((state) => ({
+        streams: updateStream(state.streams, sessionId, (stream) => ({
+          ...stream,
+          progress,
         })),
       })),
     setWikiFallback: (sessionId, wikiFallback) =>

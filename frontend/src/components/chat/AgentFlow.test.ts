@@ -62,4 +62,23 @@ describe("buildAgentFlowSteps", () => {
     ]);
     expect(steps.at(-1)?.message).toBe("已生成 2 个资源");
   });
+
+  it("maps video resource cards to VideoAgent", () => {
+    const steps = buildAgentFlowSteps(
+      [],
+      [
+        {
+          id: 1,
+          resource_type: "video",
+          title: "反向传播相关视频",
+          content: "[视频](https://www.bilibili.com/video/BV123)",
+        },
+      ],
+      false
+    );
+
+    expect(steps.map((step) => [step.agent, step.message])).toEqual([
+      ["VideoAgent", "已生成：反向传播相关视频"],
+    ]);
+  });
 });

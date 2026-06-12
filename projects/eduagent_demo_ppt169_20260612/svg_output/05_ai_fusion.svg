@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <g id="background">
+    <rect x="0" y="0" width="1280" height="720" fill="#f5f4ed"/>
+    <rect x="0" y="0" width="1280" height="8" fill="#c96442"/>
+    <circle cx="640" cy="390" r="255" fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5"/>
+    <circle cx="640" cy="390" r="175" fill="#1565C0" fill-opacity="0.04" stroke="#1565C0" stroke-width="1" stroke-dasharray="8,6" stroke-opacity="0.35"/>
+  </g>
+  <g id="header">
+    <text x="56" y="68" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="34" fill="#141413" font-weight="800">前沿 AI 能力被拆成可控组件，而不是堆在一个大模型调用里</text>
+    <text x="56" y="101" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#5e5d59">讯飞星火、RAG、知识图谱、多智能体、安全/TTS 与 image2 共同服务教学闭环。</text>
+  </g>
+  <g id="center-claim">
+    <circle cx="640" cy="390" r="96" fill="#30302e"/>
+    <text x="640" y="360" text-anchor="middle" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="28" fill="#ffffff" font-weight="800">EduAgent</text>
+    <text x="640" y="394" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" fill="#ffffff">可控 AI 教学闭环</text>
+    <text x="640" y="424" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#ffffff">知识边界 + 任务分工 + 安全评估</text>
+  </g>
+  <g id="connector-lines">
+    <line x1="640" y1="390" x2="306" y2="210" stroke="#e8e6dc" stroke-width="2"/>
+    <line x1="640" y1="390" x2="640" y2="190" stroke="#e8e6dc" stroke-width="2"/>
+    <line x1="640" y1="390" x2="974" y2="210" stroke="#e8e6dc" stroke-width="2"/>
+    <line x1="640" y1="390" x2="306" y2="548" stroke="#e8e6dc" stroke-width="2"/>
+    <line x1="640" y1="390" x2="640" y2="574" stroke="#e8e6dc" stroke-width="2"/>
+    <line x1="640" y1="390" x2="974" y2="548" stroke="#e8e6dc" stroke-width="2"/>
+  </g>
+  <g id="tile-spark">
+    <rect x="132" y="154" width="348" height="112" rx="8" fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5"/>
+    <rect x="132" y="154" width="8" height="112" rx="4" fill="#c96442"/>
+    <path d="M182,198 L204,198 L190,228 L216,228 L174,258 L188,228 L166,228 Z" fill="#c96442"/>
+    <text x="238" y="194" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="22" fill="#141413" font-weight="800">讯飞星火 LLM</text>
+    <text x="238" y="225" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#5e5d59">
+      <tspan x="238" dy="0">主推理与教学表达生成，</tspan>
+      <tspan x="238" dy="23">开发模式支持可回退内容。</tspan>
+    </text>
+  </g>
+  <g id="tile-rag">
+    <rect x="466" y="134" width="348" height="112" rx="8" fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5"/>
+    <rect x="466" y="134" width="8" height="112" rx="4" fill="#1565C0"/>
+    <circle cx="522" cy="190" r="24" fill="#1565C0" fill-opacity="0.12"/>
+    <path d="M508,190 L536,190 M522,176 L522,204 M512,180 L532,200 M532,180 L512,200" stroke="#1565C0" stroke-width="3"/>
+    <text x="574" y="174" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="22" fill="#141413" font-weight="800">RAG 语义检索</text>
+    <text x="574" y="205" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#5e5d59">
+      <tspan x="574" dy="0">先检索课程材料，</tspan>
+      <tspan x="574" dy="23">再限制生成事实边界。</tspan>
+    </text>
+  </g>
+  <g id="tile-kg">
+    <rect x="800" y="154" width="348" height="112" rx="8" fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5"/>
+    <rect x="800" y="154" width="8" height="112" rx="4" fill="#6b8e6b"/>
+    <circle cx="852" cy="192" r="8" fill="#6b8e6b"/>
+    <circle cx="884" cy="214" r="8" fill="#6b8e6b"/>
+    <circle cx="850" cy="238" r="8" fill="#6b8e6b"/>
+    <line x1="858" y1="196" x2="876" y2="209" stroke="#6b8e6b" stroke-width="3"/>
+    <line x1="878" y1="219" x2="858" y2="234" stroke="#6b8e6b" stroke-width="3"/>
+    <text x="920" y="194" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="22" fill="#141413" font-weight="800">知识图谱</text>
+    <text x="920" y="225" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#5e5d59">
+      <tspan x="920" dy="0">课程前置关系、关联概念</tspan>
+      <tspan x="920" dy="23">和路径节点可计算。</tspan>
+    </text>
+  </g>
+  <g id="tile-agent">
+    <rect x="132" y="492" width="348" height="112" rx="8" fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5"/>
+    <rect x="132" y="492" width="8" height="112" rx="4" fill="#1565C0"/>
+    <circle cx="188" cy="548" r="26" fill="#1565C0" fill-opacity="0.12"/>
+    <rect x="174" y="532" width="28" height="24" rx="6" fill="none" stroke="#1565C0" stroke-width="3"/>
+    <circle cx="182" cy="544" r="3" fill="#1565C0"/>
+    <circle cx="194" cy="544" r="3" fill="#1565C0"/>
+    <text x="238" y="532" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="22" fill="#141413" font-weight="800">多智能体分工</text>
+    <text x="238" y="563" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#5e5d59">
+      <tspan x="238" dy="0">Router、Planner、Doc、Quiz</tspan>
+      <tspan x="238" dy="23">等节点按任务协同。</tspan>
+    </text>
+  </g>
+  <g id="tile-safety">
+    <rect x="466" y="534" width="348" height="112" rx="8" fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5"/>
+    <rect x="466" y="534" width="8" height="112" rx="4" fill="#c4a35a"/>
+    <path d="M522,558 L552,568 L552,590 C552,612 535,624 522,630 C509,624 492,612 492,590 L492,568 Z" fill="none" stroke="#c4a35a" stroke-width="3"/>
+    <path d="M508,591 L518,601 L538,578" fill="none" stroke="#c4a35a" stroke-width="3"/>
+    <text x="574" y="574" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="22" fill="#141413" font-weight="800">安全护栏 + TTS</text>
+    <text x="574" y="605" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#5e5d59">
+      <tspan x="574" dy="0">内容风险过滤，</tspan>
+      <tspan x="574" dy="23">并扩展语音学习体验。</tspan>
+    </text>
+  </g>
+  <g id="tile-image2">
+    <rect x="800" y="492" width="348" height="112" rx="8" fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5"/>
+    <rect x="800" y="492" width="8" height="112" rx="4" fill="#b07d62"/>
+    <rect x="832" y="526" width="52" height="42" rx="8" fill="none" stroke="#b07d62" stroke-width="3"/>
+    <circle cx="848" cy="540" r="6" fill="#b07d62"/>
+    <path d="M836,562 L852,548 L864,558 L876,542 L882,568 L836,568 Z" fill="#b07d62" fill-opacity="0.24" stroke="#b07d62" stroke-width="2"/>
+    <text x="920" y="532" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="22" fill="#141413" font-weight="800">image2 多模态视觉</text>
+    <text x="920" y="563" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#5e5d59">
+      <tspan x="920" dy="0">生成教学视觉资产，</tspan>
+      <tspan x="920" dy="23">正文标签保持可编辑。</tspan>
+    </text>
+  </g>
+  <g id="footer">
+    <text x="56" y="690" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#87867f">EduAgent | 前沿 AI 融合</text>
+    <text x="1224" y="690" text-anchor="end" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#87867f">05</text>
+  </g>
+</svg>

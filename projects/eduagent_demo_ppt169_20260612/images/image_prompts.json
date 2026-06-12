@@ -1,0 +1,90 @@
+{
+  "project": "eduagent_demo",
+  "generated_at": "2026-06-12T00:00:00+08:00",
+  "deck_rendering": "vector-illustration",
+  "deck_palette": "warm-earth",
+  "color_scheme": {
+    "primary": "#c96442",
+    "secondary": "#f5f4ed",
+    "accent": "#1565C0"
+  },
+  "items": [
+    {
+      "filename": "cover_bg.png",
+      "purpose": "Cover background (Slide 01)",
+      "page_role": "hero_page",
+      "text_policy": "none",
+      "aspect_ratio": "16:9",
+      "image_size": "2K",
+      "model": "gpt-image-2",
+      "prompt": "Clean flat vector illustration with bold geometric shapes and confident solid fills. Crisp outlines define every form, with no gradients within shapes and only a very subtle soft shadow where depth helps. Color behavior is warm-grounded: secondary warm parchment #f5f4ed occupies most of the canvas as calm breathing space, primary terracotta #c96442 carries a few grounded geometric forms, and accent technology blue #1565C0 appears as sparse connective signal lines. Compose a full-bleed 1280x720 atmospheric backdrop for a higher-education AI learning system: abstract knowledge graph nodes, a student learning path, and a quiet central learning hub suggested by circles and routes. The center 60 percent must stay calm for SVG title overlay. No text, letters, numbers, signs, labels, captions, or watermarks anywhere. Color values are rendering guidance only.",
+      "alt_text": "Warm vector abstract learning hub background",
+      "status": "Generated"
+    },
+    {
+      "filename": "architecture_bg.png",
+      "purpose": "System architecture atmosphere (Slide 04)",
+      "type": "framework",
+      "page_role": "local",
+      "text_policy": "none",
+      "aspect_ratio": "16:9",
+      "image_size": "2K",
+      "model": "gpt-image-2",
+      "prompt": "Clean flat vector illustration with bold geometric shapes, crisp outlines, flat fills, and confident negative space. Warm-grounded palette behavior: parchment #f5f4ed as the main field, ivory #faf9f5 as large calm surfaces, terracotta #c96442 for emphasis, and technology blue #1565C0 as sparse engineering signal. Create an abstract multi-layer software architecture atmosphere: stacked horizontal zones suggesting frontend, API gateway, agent orchestration, knowledge wiki, and data stores. Use simple symbolic shapes only, with no readable labels because all exact architecture labels will be added as SVG. Keep the middle-right region calm enough for native diagram overlays. No text, letters, numbers, labels, captions, signs, or watermarks.",
+      "alt_text": "Abstract layered software architecture illustration",
+      "status": "Generated"
+    },
+    {
+      "filename": "agents_hub.png",
+      "purpose": "Multi-agent hub illustration (Slide 06)",
+      "type": "framework",
+      "page_role": "local",
+      "text_policy": "none",
+      "aspect_ratio": "16:9",
+      "image_size": "1K",
+      "model": "gpt-image-2",
+      "prompt": "Clean flat vector illustration with bold geometric shapes, crisp 2px-equivalent outlines, flat fills, and generous radial breathing room. Use warm parchment #f5f4ed as the background, ivory #faf9f5 for panels, terracotta #c96442 for the central orchestrator node, technology blue #1565C0 for connector lines, and education green #6b8e6b as small success accents. Compose a hub-and-spokes framework: one central rounded-square AI coordinator, surrounded by eight specialist agent nodes distributed evenly around it. Each node contains only a simple symbolic icon shape, no letters or labels. Lines show controlled orchestration rather than chaotic brainstorm. No text, numbers, labels, signs, captions, or watermarks.",
+      "alt_text": "Hub and spoke multi-agent orchestration illustration",
+      "status": "Generated"
+    },
+    {
+      "filename": "wiki_graph.png",
+      "purpose": "Knowledge graph and RAG retrieval atmosphere (Slide 07)",
+      "type": "framework",
+      "page_role": "local",
+      "text_policy": "none",
+      "aspect_ratio": "16:9",
+      "image_size": "1K",
+      "model": "gpt-image-2",
+      "prompt": "Clean flat vector illustration in a warm-earth palette. The image is a calm knowledge graph environment: course nodes, prerequisite links, document fragments, vector retrieval paths, and citation cards shown as symbolic shapes. Parchment #f5f4ed dominates, ivory #faf9f5 forms document surfaces, terracotta #c96442 highlights the trusted source path, technology blue #1565C0 marks retrieval routes, and green #6b8e6b marks verified knowledge. Leave all labels to SVG; the artwork must contain no readable text, no letters, no numbers, no signs, no captions, and no watermarks. The composition should feel like a trustworthy academic knowledge system, not a generic network background.",
+      "alt_text": "Knowledge graph and retrieval illustration",
+      "status": "Generated"
+    },
+    {
+      "filename": "learning_loop.png",
+      "purpose": "Closed-loop learning journey visual (Slide 10)",
+      "type": "cycle",
+      "page_role": "local",
+      "text_policy": "none",
+      "aspect_ratio": "16:9",
+      "image_size": "1K",
+      "model": "gpt-image-2",
+      "prompt": "Clean flat vector illustration, no gradients, warm education palette. Create a closed circular learning loop with seven symbolic stations: learner profile, resource generation, quiz, mistake review, learning path, analytics dashboard, and teacher insight. Use parchment #f5f4ed as the main field, ivory #faf9f5 for node surfaces, terracotta #c96442 for the current focus, green #6b8e6b for progress, and blue #1565C0 for data flow connectors. The loop must feel continuous and purposeful, with directional arrows returning to the start. Nodes contain only simple icons, no labels. No text, numbers, letters, captions, signs, or watermarks.",
+      "alt_text": "Closed-loop personalized learning journey",
+      "status": "Generated"
+    },
+    {
+      "filename": "multimodal_resources.png",
+      "purpose": "Multimodal resource gallery (Slide 09)",
+      "type": "infographic",
+      "page_role": "local",
+      "text_policy": "none",
+      "aspect_ratio": "16:9",
+      "image_size": "1K",
+      "model": "gpt-image-2",
+      "prompt": "Clean flat vector illustration with a warm-grounded educational palette. Compose a row of six consistent resource objects in an evenly spaced gallery: a document sheet, quiz card, code window, mind map, presentation slide, and animation storyboard. Use parchment #f5f4ed as the background, ivory #faf9f5 as card surfaces, terracotta #c96442 for the primary resource emphasis, technology blue #1565C0 for code and digital elements, and green #6b8e6b for learning progress. The image must be purely visual; all exact Chinese labels will be added in SVG. No text, letters, numbers, labels, captions, signs, or watermarks.",
+      "alt_text": "Gallery of multimodal learning resource objects",
+      "status": "Generated"
+    }
+  ]
+}

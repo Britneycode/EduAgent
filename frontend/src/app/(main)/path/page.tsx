@@ -193,9 +193,9 @@ export default function PathPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-[280px_1fr]">
+      <div className="grid gap-6 md:grid-cols-[280px_minmax(0,1fr)]">
         {/* 路径列表 */}
-        <div className="rounded-xl bg-[var(--color-ivory)] p-4 ring-1 ring-[var(--color-warm-gray-200)]">
+        <div className="min-w-0 rounded-xl bg-[var(--color-ivory)] p-4 ring-1 ring-[var(--color-warm-gray-200)]">
           <h2 className="mb-3 text-sm font-medium text-[var(--color-warm-gray-700)]">
             我的学习路径
           </h2>
@@ -246,7 +246,7 @@ export default function PathPage() {
         </div>
 
         {/* 路径详情 */}
-        <div>
+        <div className="min-w-0">
           {activePath ? (
             <>
               {/* 进度条 */}

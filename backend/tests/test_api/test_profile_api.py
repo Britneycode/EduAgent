@@ -162,3 +162,44 @@ async def test_profile_history_endpoint_returns_snapshots(
     assert items[0]["changed_fields"] == ["weak_points"]
     assert items[0]["profile_data"]["weak_points"] == ["搜索算法"]
     assert set(items[1]["changed_fields"]) == {"grade", "major"}
+
+
+@pytest.mark.asyncio
+async def test_confirm_agent_profile_update_writes_agent_confirmed_snapshot(
+    reset_database,
+) -> None:
+    from app.main import app
+    from app.services.chat_service import ChatService
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        token, user_id = await _register_and_get_auth(client, "profile_confirm_user")
+        async with AsyncSessionLocal() as session:
+            session_id = await ChatService(session=session).create_session(
+                user_id=user_id
+            )
+
+        response = await client.post(
+            "/api/profile/confirm-agent-update",
+            headers={"Authorization": f"Bearer {token}"},
+            json={
+                "session_id": session_id,
+                "update": {
+                    "learning_goal": "系统复习反向传播",
+                    "weak_points": ["链式法则"],
+                },
+            },
+        )
+        history_response = await client.get(
+            "/api/profile/history?limit=1",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["learning_goal"] == "系统复习反向传播"
+    assert data["weak_points"] == ["链式法则"]
+    assert history_response.status_code == 200
+    history = history_response.json()
+    assert history[0]["source"] == "agent_confirmed"
+    assert set(history[0]["changed_fields"]) == {"learning_goal", "weak_points"}

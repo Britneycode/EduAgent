@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <g id="background">
+    <rect x="0" y="0" width="1280" height="720" fill="#f5f4ed" />
+    <rect x="0" y="0" width="1280" height="8" fill="#c96442" />
+  </g>
+  <g id="header">
+    <text x="56" y="68" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="34" fill="#141413" font-weight="800">工程实现围绕可运行、可观测、可回退来设计</text>
+    <text x="56" y="101" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#5e5d59">流式体验、并行生成、资源导出和 Agent 可观测让系统具备演示稳定性。</text>
+  </g>
+  <g id="kpi-stream">
+    <path fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5" d="M64,142 H406 A8,8 0 0 1 414,150 V284 A8,8 0 0 1 406,292 H64 A8,8 0 0 1 56,284 V150 A8,8 0 0 1 64,142 Z" />
+    <path fill="#1565C0" d="M83,166 H83 A3,3 0 0 1 86,169 V227 A3,3 0 0 1 83,230 H83 A3,3 0 0 1 80,227 V169 A3,3 0 0 1 83,166 Z" />
+    <text x="106" y="188" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#5e5d59">Streaming UX</text>
+    <text x="106" y="236" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="42" fill="#1565C0" font-weight="800">SSE</text>
+    <text x="106" y="266" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#5e5d59">避免白屏等待，逐步展示 Agent 输出。</text>
+  </g>
+  <g id="kpi-parallel">
+    <path fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5" d="M468,142 H810 A8,8 0 0 1 818,150 V284 A8,8 0 0 1 810,292 H468 A8,8 0 0 1 460,284 V150 A8,8 0 0 1 468,142 Z" />
+    <path fill="#6b8e6b" d="M487,166 H487 A3,3 0 0 1 490,169 V227 A3,3 0 0 1 487,230 H487 A3,3 0 0 1 484,227 V169 A3,3 0 0 1 487,166 Z" />
+    <text x="510" y="188" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#5e5d59">Resource Pipeline</text>
+    <text x="510" y="236" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="42" fill="#6b8e6b" font-weight="800">并行</text>
+    <text x="510" y="266" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#5e5d59">讲义、题目、代码和媒体可分工产出。</text>
+  </g>
+  <g id="kpi-observe">
+    <path fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5" d="M872,142 H1216 A8,8 0 0 1 1224,150 V284 A8,8 0 0 1 1216,292 H872 A8,8 0 0 1 864,284 V150 A8,8 0 0 1 872,142 Z" />
+    <path fill="#c96442" d="M891,166 H891 A3,3 0 0 1 894,169 V227 A3,3 0 0 1 891,230 H891 A3,3 0 0 1 888,227 V169 A3,3 0 0 1 891,166 Z" />
+    <text x="914" y="188" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#5e5d59">Agent Trace</text>
+    <text x="914" y="236" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="42" fill="#c96442" font-weight="800">可观测</text>
+    <text x="914" y="266" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#5e5d59">节点耗时、输入输出、置信度可追踪。</text>
+  </g>
+  <g id="implementation-stack">
+    <path fill="#30302e" d="M64,326 H618 A8,8 0 0 1 626,334 V576 A8,8 0 0 1 618,584 H64 A8,8 0 0 1 56,576 V334 A8,8 0 0 1 64,326 Z" />
+    <text x="92" y="376" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="26" fill="#ffffff" font-weight="800">当前边界与兜底</text>
+    <text font-size="18" fill="#ffffff" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" x="92" y="420">前端：Next.js / React / TypeScript / Tailwind</text><text font-size="18" fill="#ffffff" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" x="92" y="454">后端：FastAPI / SQLAlchemy / LangGraph</text><text font-size="18" fill="#ffffff" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" x="92" y="488">边界：PPTX 为大纲型导出，图片型 PPT 单独展示</text><text font-size="18" fill="#ffffff" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" x="92" y="522">动画：HTML+字幕+可选音频包，MP4/OCR/生产存储后续增强</text><path fill="#faf9f5" d="M100,536 H524 A8,8 0 0 1 532,544 V558 A8,8 0 0 1 524,566 H100 A8,8 0 0 1 92,558 V544 A8,8 0 0 1 100,536 Z" />
+    <text x="312" y="557" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#141413" font-weight="700">动画：HTML+字幕+可选音频包，MP4/OCR/生产存储后续增强</text>
+  </g>
+  <g id="resilience-panel">
+    <path fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5" d="M674,326 H1216 A8,8 0 0 1 1224,334 V576 A8,8 0 0 1 1216,584 H674 A8,8 0 0 1 666,576 V334 A8,8 0 0 1 674,326 Z" />
+    <text x="702" y="376" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="26" fill="#141413" font-weight="800">演示稳定性的三个设计</text>
+    <g id="resilience-1">
+      <circle cx="724" cy="430" r="10" fill="#1565C0" />
+      <text x="750" y="436" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#141413" font-weight="700">资源局部重生成</text>
+      <text x="910" y="436" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#5e5d59">失败只影响单一资源卡。</text>
+    </g>
+    <g id="resilience-2">
+      <circle cx="724" cy="486" r="10" fill="#6b8e6b" />
+      <text x="750" y="492" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#141413" font-weight="700">大纲PPTX/动画包</text>
+      <text x="942" y="492" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#5e5d59">导出可复查，边界清晰。</text>
+    </g>
+    <g id="resilience-3">
+      <circle cx="724" cy="542" r="10" fill="#c96442" />
+      <text x="750" y="548" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#141413" font-weight="700">Eval 与本地规则</text>
+      <text x="942" y="548" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#5e5d59">降低演示偶发风险。</text>
+    </g>
+  </g>
+  <g id="footer">
+    <text x="56" y="690" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#87867f">EduAgent | 工程实现亮点</text>
+    <text x="1224" y="690" text-anchor="end" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#87867f">12</text>
+  </g>
+</svg>

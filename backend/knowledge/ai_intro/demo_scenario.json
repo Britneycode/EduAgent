@@ -88,8 +88,8 @@
       "checkpoint": "搜索反向传播和链式法则能命中 ch07 相关知识片段，课程筛选为人工智能导论。"
     },
     {
-      "path": "/teacher",
-      "checkpoint": "教师视图能看到学生路径进度、薄弱点和教学建议。"
+      "path": "/resources",
+      "checkpoint": "资源中心能查看已生成的讲义、练习、代码、思维导图、PPT、拓展阅读或相关视频资源。"
     }
   ],
   "fallback_notes": [

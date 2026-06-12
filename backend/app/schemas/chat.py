@@ -89,7 +89,14 @@ class SessionDetailResponse(BaseModel):
 class ResourceCardPayload(BaseModel):
     id: int | None = Field(default=None, description="资源 ID（落库后可填）")
     resource_type: Literal[
-        "document", "quiz", "code", "mindmap", "ppt", "ppt_images", "animation", "reading"
+        "document",
+        "quiz",
+        "code",
+        "mindmap",
+        "ppt",
+        "animation",
+        "reading",
+        "video",
     ]
     title: str
     content: str
@@ -103,7 +110,9 @@ class ResourceCardPayload(BaseModel):
 class SSEEvent(BaseModel):
     type: Literal[
         "agent_status",
-        "profile_updated",
+        "profile_update_proposed",
+        "progress",
+        "heartbeat",
         "token",
         "resource_card",
         "wiki_fallback",
@@ -128,8 +137,53 @@ def agent_status_event(
     )
 
 
-def profile_updated_event(*, session_id: int | None = None) -> SSEEvent:
-    return SSEEvent(type="profile_updated", session_id=session_id, payload={})
+def profile_update_proposed_event(
+    *,
+    update: dict[str, Any],
+    changed_fields: list[str],
+    session_id: int | None = None,
+) -> SSEEvent:
+    return SSEEvent(
+        type="profile_update_proposed",
+        session_id=session_id,
+        payload={
+            "update": update,
+            "changed_fields": changed_fields,
+            "session_id": session_id,
+        },
+    )
+
+
+def progress_event(
+    *,
+    stage: str,
+    completed: int,
+    total: int,
+    message: str,
+    session_id: int | None = None,
+) -> SSEEvent:
+    bounded_total = max(total, 0)
+    bounded_completed = min(max(completed, 0), bounded_total) if bounded_total else 0
+    percent = (
+        round((bounded_completed / bounded_total) * 100)
+        if bounded_total
+        else 0
+    )
+    return SSEEvent(
+        type="progress",
+        session_id=session_id,
+        payload={
+            "stage": stage,
+            "completed": bounded_completed,
+            "total": bounded_total,
+            "percent": percent,
+            "message": message,
+        },
+    )
+
+
+def heartbeat_event(*, session_id: int | None = None) -> SSEEvent:
+    return SSEEvent(type="heartbeat", session_id=session_id, payload={})
 
 
 def token_event(*, token: str, session_id: int | None = None) -> SSEEvent:

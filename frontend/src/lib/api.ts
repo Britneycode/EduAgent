@@ -14,7 +14,6 @@ import type {
   QuizSubmitResponse,
   LearningDashboard,
   AgentObservability,
-  TeacherDashboard,
   ReviewItem,
   CodeExecutionResponse,
   WikiCourse,
@@ -223,6 +222,22 @@ export async function updateProfile(
   return parseJSON<Profile>(response);
 }
 
+export async function confirmAgentProfileUpdate(
+  sessionId: number | null,
+  update: ProfileUpdate
+): Promise<Profile> {
+  const response = await fetch(`${API_BASE}/api/profile/confirm-agent-update`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ session_id: sessionId, update }),
+  });
+  if (!response.ok) {
+    const detail = await response.json().catch(() => ({}));
+    throw new Error(formatErrorDetail(detail.detail, "确认画像更新失败"));
+  }
+  return parseJSON<Profile>(response);
+}
+
 export async function renameSession(sessionId: number, title: string): Promise<ChatSession> {
   const response = await fetch(`${API_BASE}/api/chat/sessions/${sessionId}/title`, {
     method: "PATCH",
@@ -377,6 +392,18 @@ export async function createAnimationExportAsset(
   return parseJSON<ResourceAssetResponse>(response);
 }
 
+export async function fetchAssetBlob(asset: ResourceAssetResponse): Promise<Blob> {
+  const url = resolveAssetUrl(asset.url);
+  const response = await fetch(url, {
+    headers: { ...authHeaders() },
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(formatErrorDetail(data.detail, "获取资产失败"));
+  }
+  return response.blob();
+}
+
 async function exportResource(
   resourceId: number,
   format: "markdown" | "pptx"
@@ -396,6 +423,13 @@ async function exportResource(
 
 export function getChatStreamUrl(): string {
   return `${API_BASE}/api/chat/stream`;
+}
+
+function resolveAssetUrl(url: string): string {
+  if (/^https?:\/\//i.test(url)) {
+    return url;
+  }
+  return `${API_BASE}${url.startsWith("/") ? url : `/${url}`}`;
 }
 
 // ---- Wiki API ----
@@ -547,16 +581,6 @@ export async function fetchAgentObservability(
     throw new Error("获取 Agent 运行数据失败");
   }
   return parseJSON<AgentObservability>(response);
-}
-
-export async function fetchTeacherDashboard(): Promise<TeacherDashboard> {
-  const response = await fetch(`${API_BASE}/api/learning/teacher-dashboard`, {
-    headers: { ...authHeaders() },
-  });
-  if (!response.ok) {
-    throw new Error("获取教师分析数据失败");
-  }
-  return parseJSON<TeacherDashboard>(response);
 }
 
 export async function fetchReviewQueue(limit: number = 20): Promise<ReviewItem[]> {

@@ -3,11 +3,10 @@ from __future__ import annotations
 import json
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import get_current_user
-from app.core.config import get_settings
 from app.core.database import get_db
 from app.core.llm import get_llm_client, get_llm_configuration_warning
 from app.models.user import User
@@ -25,7 +24,6 @@ from app.schemas.learning import (
     RecordActivityRequest,
     ReviewItemResponse,
     ReviewItemUpdateRequest,
-    TeacherDashboardResponse,
     UpdateNodeStatusRequest,
 )
 from app.services.chat_service import ChatService
@@ -76,35 +74,6 @@ def _path_course_id(path) -> str | None:
     return None
 
 
-def _csv_values(value: str) -> set[str]:
-    return {item.strip() for item in value.split(",") if item.strip()}
-
-
-def _csv_int_values(value: str) -> set[int]:
-    values: set[int] = set()
-    for item in _csv_values(value):
-        try:
-            values.add(int(item))
-        except ValueError:
-            continue
-    return values
-
-
-def _has_teacher_dashboard_access(user: User) -> bool:
-    settings = get_settings()
-    allowed_usernames = _csv_values(settings.teacher_dashboard_allowed_usernames)
-    allowed_user_ids = _csv_int_values(settings.teacher_dashboard_allowed_user_ids)
-    return user.username in allowed_usernames or user.id in allowed_user_ids
-
-
-def _require_teacher_dashboard_access(user: User) -> None:
-    if not _has_teacher_dashboard_access(user):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="需要教师或管理员权限",
-        )
-
-
 @router.get("/dashboard", response_model=LearningDashboardResponse)
 async def get_learning_dashboard(
     db: AsyncSession = Depends(get_db),
@@ -113,17 +82,6 @@ async def get_learning_dashboard(
     """获取学习效果评估仪表盘数据。"""
     svc = LearningPathService(session=db)
     return LearningDashboardResponse(**await svc.get_dashboard(user_id=user.id))
-
-
-@router.get("/teacher-dashboard", response_model=TeacherDashboardResponse)
-async def get_teacher_dashboard(
-    db: AsyncSession = Depends(get_db),
-    _user: User = Depends(get_current_user),
-) -> TeacherDashboardResponse:
-    """获取教师/助教视角的多用户学习概况。"""
-    _require_teacher_dashboard_access(_user)
-    svc = LearningPathService(session=db)
-    return TeacherDashboardResponse(**await svc.get_teacher_dashboard())
 
 
 @router.get("/agent-observability", response_model=AgentObservabilityResponse)

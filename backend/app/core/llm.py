@@ -12,6 +12,7 @@ import tenacity
 from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
+_UNSET = object()
 
 
 class LLMClientError(RuntimeError):
@@ -172,14 +173,32 @@ class SparkLLMClient(BaseLLMClient):
         return f"讯飞星火请求失败（HTTP {status_code}），请稍后重试"
 
 
-class DeepSeekLLMClient(BaseLLMClient):
-    """DeepSeek OpenAI 兼容 Chat Completions 客户端。"""
+class OpenAICompatibleLLMClient(BaseLLMClient):
+    """通用 OpenAI 兼容 Chat Completions 客户端。"""
 
-    def __init__(self, http_client: httpx.AsyncClient | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        api_key: str | None = None,
+        api_base_url: str | None = None,
+        model: str | None = None,
+        provider_name: str | None = None,
+        api_key_setting_name: str = "OPENAI_COMPATIBLE_API_KEY",
+        enable_thinking: bool | None | object = _UNSET,
+        http_client: httpx.AsyncClient | None = None,
+    ) -> None:
         settings = get_settings()
-        self.api_key = settings.deepseek_api_key
-        self.api_url = f"{settings.deepseek_api_base_url.rstrip('/')}/chat/completions"
-        self.model = settings.deepseek_model
+        self.provider_name = provider_name or settings.openai_compatible_provider
+        self.api_key_setting_name = api_key_setting_name
+        self.api_key = api_key if api_key is not None else settings.openai_compatible_api_key
+        base_url = api_base_url or settings.openai_compatible_api_base_url
+        self.api_url = f"{base_url.rstrip('/')}/chat/completions"
+        self.model = model or settings.openai_compatible_model
+        self.enable_thinking = (
+            settings.openai_compatible_enable_thinking
+            if enable_thinking is _UNSET
+            else enable_thinking
+        )
         self._http_client = http_client
 
     async def generate_text(self, prompt: str) -> str:
@@ -203,20 +222,20 @@ class DeepSeekLLMClient(BaseLLMClient):
                     )
             response.raise_for_status()
         except httpx.TimeoutException as exc:
-            raise LLMClientError("DeepSeek 请求超时，请稍后重试") from exc
+            raise LLMClientError(f"{self.provider_name} 请求超时，请稍后重试") from exc
         except httpx.HTTPStatusError as exc:
             raise LLMClientError(self._build_http_error_message(exc)) from exc
         except httpx.HTTPError as exc:
-            raise LLMClientError("DeepSeek 网络连接失败，请检查网络") from exc
+            raise LLMClientError(f"{self.provider_name} 网络连接失败，请检查网络") from exc
 
         try:
             data = response.json()
             content = data["choices"][0]["message"].get("content", "")
         except (ValueError, KeyError, IndexError, AttributeError) as exc:
-            raise LLMClientError("DeepSeek 返回数据格式异常") from exc
+            raise LLMClientError(f"{self.provider_name} 返回数据格式异常") from exc
 
         if not content.strip():
-            raise LLMClientError("DeepSeek 返回内容为空")
+            raise LLMClientError(f"{self.provider_name} 返回内容为空")
         return content.strip()
 
     async def generate_stream(self, prompt: str) -> AsyncGenerator[str, None]:
@@ -248,11 +267,11 @@ class DeepSeekLLMClient(BaseLLMClient):
                     async for token in self._iter_sse_tokens(response):
                         yield token
         except httpx.TimeoutException as exc:
-            raise LLMClientError("DeepSeek 请求超时，请稍后重试") from exc
+            raise LLMClientError(f"{self.provider_name} 请求超时，请稍后重试") from exc
         except httpx.HTTPStatusError as exc:
             raise LLMClientError(self._build_http_error_message(exc)) from exc
         except httpx.HTTPError as exc:
-            raise LLMClientError("DeepSeek 网络连接失败，请检查网络") from exc
+            raise LLMClientError(f"{self.provider_name} 网络连接失败，请检查网络") from exc
 
     def _build_request(self, prompt: str, *, stream: bool) -> tuple[dict[str, str], dict]:
         headers = {
@@ -266,6 +285,8 @@ class DeepSeekLLMClient(BaseLLMClient):
             "temperature": 0.7,
             "stream": stream,
         }
+        if self.enable_thinking is not None:
+            payload["enable_thinking"] = self.enable_thinking
         return headers, payload
 
     async def _iter_sse_tokens(
@@ -291,7 +312,9 @@ class DeepSeekLLMClient(BaseLLMClient):
 
     def _validate_credentials(self) -> None:
         if not self.api_key:
-            raise LLMClientError("DeepSeek API Key 未配置，请设置 DEEPSEEK_API_KEY")
+            raise LLMClientError(
+                f"{self.provider_name} API Key 未配置，请设置 {self.api_key_setting_name}"
+            )
 
     def _timeout(self) -> httpx.Timeout:
         return httpx.Timeout(connect=10.0, read=180.0, write=10.0, pool=10.0)
@@ -305,10 +328,29 @@ class DeepSeekLLMClient(BaseLLMClient):
 
         message = str(error_data.get("message", "")).strip()
         if status_code == 401:
-            return "DeepSeek 鉴权失败，请检查 DEEPSEEK_API_KEY 是否正确"
+            return (
+                f"{self.provider_name} 鉴权失败，"
+                f"请检查 {self.api_key_setting_name} 是否正确"
+            )
         if message:
-            return f"DeepSeek 请求失败（HTTP {status_code}）：{message}"
-        return f"DeepSeek 请求失败（HTTP {status_code}），请稍后重试"
+            return f"{self.provider_name} 请求失败（HTTP {status_code}）：{message}"
+        return f"{self.provider_name} 请求失败（HTTP {status_code}），请稍后重试"
+
+
+class DeepSeekLLMClient(OpenAICompatibleLLMClient):
+    """DeepSeek OpenAI 兼容 Chat Completions 客户端。"""
+
+    def __init__(self, http_client: httpx.AsyncClient | None = None) -> None:
+        settings = get_settings()
+        super().__init__(
+            api_key=settings.deepseek_api_key,
+            api_base_url=settings.deepseek_api_base_url,
+            model=settings.deepseek_model,
+            provider_name="DeepSeek",
+            api_key_setting_name="DEEPSEEK_API_KEY",
+            enable_thinking=None,
+            http_client=http_client,
+        )
 
 
 class FallbackLLMClient(BaseLLMClient):
@@ -371,13 +413,39 @@ def get_llm_configuration_warning() -> str | None:
         and (settings.spark_api_password or settings.spark_api_key)
     )
     has_deepseek = bool(settings.deepseek_enabled and settings.deepseek_api_key)
-    if has_credentials or settings.spark_dev_mode or has_deepseek:
+    has_openai_compatible = bool(
+        settings.openai_compatible_enabled and settings.openai_compatible_api_key
+    )
+    if has_credentials or settings.spark_dev_mode or has_deepseek or has_openai_compatible:
         return None
     return (
         "讯飞星火未配置，当前为真实调用模式，聊天时会失败。"
         "请设置 SPARK_APP_ID、SPARK_API_PASSWORD，"
-        "或启用 SPARK_DEV_MODE=true / DEEPSEEK_ENABLED=true。"
+        "或启用 SPARK_DEV_MODE=true / DEEPSEEK_ENABLED=true / "
+        "OPENAI_COMPATIBLE_ENABLED=true。"
     )
+
+
+def get_llm_mode() -> str:
+    settings = get_settings()
+    has_spark_credentials = bool(
+        settings.spark_app_id
+        and (settings.spark_api_password or settings.spark_api_key)
+    )
+    has_deepseek = bool(settings.deepseek_enabled and settings.deepseek_api_key)
+    has_openai_compatible = bool(
+        settings.openai_compatible_enabled and settings.openai_compatible_api_key
+    )
+
+    if settings.spark_dev_mode:
+        return "dev"
+    if has_openai_compatible:
+        return "openai_compatible"
+    if has_spark_credentials:
+        return "spark"
+    if has_deepseek:
+        return "deepseek"
+    return "unconfigured"
 
 
 def get_llm_client() -> BaseLLMClient:
@@ -392,6 +460,12 @@ def get_llm_client() -> BaseLLMClient:
         and (settings.spark_api_password or settings.spark_api_key)
     )
     has_deepseek = bool(settings.deepseek_enabled and settings.deepseek_api_key)
+    has_openai_compatible = bool(
+        settings.openai_compatible_enabled and settings.openai_compatible_api_key
+    )
+
+    if has_openai_compatible:
+        return OpenAICompatibleLLMClient()
 
     if has_spark_credentials and has_deepseek:
         return FallbackLLMClient(SparkLLMClient(), DeepSeekLLMClient())

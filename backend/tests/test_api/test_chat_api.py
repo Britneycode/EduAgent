@@ -13,7 +13,8 @@ from app.schemas.chat import (
     agent_status_event,
     done_event,
     error_event,
-    profile_updated_event,
+    profile_update_proposed_event,
+    progress_event,
     resource_card_event,
     token_event,
 )
@@ -218,7 +219,11 @@ async def _success_events(session_id: int) -> AsyncGenerator[SSEEvent, None]:
         message="正在更新学习画像",
         session_id=session_id,
     )
-    yield profile_updated_event(session_id=session_id)
+    yield profile_update_proposed_event(
+        update={"learning_goal": "系统复习反向传播"},
+        changed_fields=["learning_goal"],
+        session_id=session_id,
+    )
 
     yield agent_status_event(
         agent="DocAgent",
@@ -227,6 +232,13 @@ async def _success_events(session_id: int) -> AsyncGenerator[SSEEvent, None]:
         session_id=session_id,
     )
     yield token_event(token="反向传播讲义", session_id=session_id)
+    yield progress_event(
+        stage="resources",
+        completed=1,
+        total=3,
+        message="学习文档已生成",
+        session_id=session_id,
+    )
     yield resource_card_event(
         resource=ResourceCardPayload(
             id=1,

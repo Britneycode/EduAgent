@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { Children, useMemo } from "react";
+import { MessageCircleQuestion, RefreshCw } from "lucide-react";
 import { MarkdownRenderer } from "@/components/ui/MarkdownRenderer";
 
 interface ChatMessageProps {
@@ -46,33 +47,89 @@ export function ChatMessage({
   onFollowUp,
 }: ChatMessageProps) {
   const isUser = role === "user";
+  const isResourceTurn = !isUser && Children.count(children) > 0;
   const suggestions = useMemo(
     () => (!isUser && isLast && !isStreaming && content ? generateSuggestions(content) : []),
     [isUser, isLast, isStreaming, content]
   );
 
-  return (
-    <div className={`mb-5 flex ${isUser ? "justify-end" : "justify-start"}`}>
-      <div
-        className={`max-w-[88%] rounded-xl px-5 py-4 md:max-w-[78%] ${
-          isUser
-            ? "rounded-br-sm bg-[var(--color-terracotta)] text-white"
-            : "rounded-bl-sm bg-[var(--color-ivory)] text-[var(--color-warm-gray-800)] ring-1 ring-[var(--color-warm-gray-200)]"
-        }`}
-      >
-        {isUser ? (
+  if (isUser) {
+    return (
+      <div className="mb-4 flex justify-end">
+        <div className="max-w-[70%] rounded-2xl rounded-br-md bg-[var(--color-sand)] px-4 py-3 text-[var(--color-near-black)] shadow-[var(--shadow-ring)] max-md:max-w-[86%]">
           <div className="whitespace-pre-wrap text-[15px] leading-7 md:text-base">
             {content}
           </div>
-        ) : (
-          <MarkdownRenderer content={content} />
-        )}
-        {children}
+        </div>
+      </div>
+    );
+  }
+
+  if (isResourceTurn) {
+    return (
+      <div className="mb-4 flex justify-start">
+        <div className="relative w-full max-w-[840px] pl-5">
+          <span className="absolute left-0 top-2 h-[calc(100%-0.5rem)] w-px bg-[var(--color-warm-gray-200)]" />
+          <span className="absolute left-[-3px] top-2 h-2 w-2 rounded-full bg-[var(--color-terracotta)]" />
+          {content && (
+            <div className="mb-2 rounded-xl bg-[var(--color-parchment)]/65 px-3 py-2 text-sm leading-6 text-[var(--color-warm-gray-700)] shadow-[var(--shadow-ring)]">
+              <MarkdownRenderer content={content} />
+            </div>
+          )}
+          <div className="space-y-2">{children}</div>
+
+          {suggestions.length > 0 && onFollowUp && (
+            <div className="mt-3 border-t border-[var(--color-warm-gray-200)] pt-3">
+              <p className="mb-2 inline-flex items-center gap-1.5 text-[11px] text-[var(--color-warm-gray-400)]">
+                <MessageCircleQuestion className="h-3.5 w-3.5" />
+                继续追问
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {suggestions.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => onFollowUp(s)}
+                    className="rounded-full bg-[var(--color-parchment)] px-3 py-1 text-xs text-[var(--color-warm-gray-600)] ring-1 ring-[var(--color-warm-gray-200)] transition-colors hover:bg-[var(--color-terracotta)]/10 hover:text-[var(--color-terracotta)] hover:ring-[var(--color-terracotta)]/30"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {isLast && !isStreaming && onRegenerate && (
+            <div className="mt-3 flex items-center gap-2 border-t border-[var(--color-warm-gray-200)] pt-3">
+              <button
+                type="button"
+                onClick={onRegenerate}
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-[var(--color-warm-gray-500)] ring-1 ring-[var(--color-warm-gray-200)] transition-colors hover:text-[var(--color-terracotta)] hover:ring-[var(--color-terracotta)]"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                重新生成
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mb-5 flex justify-start">
+      <div
+        className="max-w-[88%] rounded-2xl rounded-bl-md bg-[var(--color-ivory)] px-5 py-4 text-[var(--color-warm-gray-800)] shadow-[var(--shadow-ring)] md:max-w-[78%]"
+      >
+        <MarkdownRenderer content={content} />
 
         {/* 追问建议 */}
         {suggestions.length > 0 && onFollowUp && (
           <div className="mt-3 border-t border-[var(--color-warm-gray-200)] pt-3">
-            <p className="mb-2 text-[11px] text-[var(--color-warm-gray-400)]">💬 继续追问</p>
+            <p className="mb-2 inline-flex items-center gap-1.5 text-[11px] text-[var(--color-warm-gray-400)]">
+              <MessageCircleQuestion className="h-3.5 w-3.5" />
+              继续追问
+            </p>
             <div className="flex flex-wrap gap-1.5">
               {suggestions.map((s) => (
                 <button
@@ -93,8 +150,9 @@ export function ChatMessage({
             <button
               type="button"
               onClick={onRegenerate}
-              className="rounded-lg px-3 py-1.5 text-xs text-[var(--color-warm-gray-500)] ring-1 ring-[var(--color-warm-gray-200)] transition-colors hover:text-[var(--color-terracotta)] hover:ring-[var(--color-terracotta)]"
+              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-[var(--color-warm-gray-500)] ring-1 ring-[var(--color-warm-gray-200)] transition-colors hover:text-[var(--color-terracotta)] hover:ring-[var(--color-terracotta)]"
             >
+              <RefreshCw className="h-3.5 w-3.5" />
               重新生成
             </button>
           </div>

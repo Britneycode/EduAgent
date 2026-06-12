@@ -25,11 +25,11 @@ EduAgent 从架构设计之初就围绕赛题硬性约束展开，重点覆盖�
 
 - **多智能体协同**：采用 Router + Planner + 多专业 Agent 的协同模式，而非单一 Agent 生成
 - **学生画像维度不少于 6 个**：设计为 8 维动态学习画像
-- **资源类型不少于 5 种**：覆盖文档、思维导图、练习题、代码、PPT、动画分镜、拓展阅读等 7 类资源
+- **资源类型不少于 5 种**：覆盖文档、思维导图、练习题、代码、PPT、动画分镜、拓展阅读、相关视频等 8 类资源
 - **使用讯飞相关工具**：主模型方案采用讯飞星火，并可按配置启用讯飞安全护栏与在线语音合成 TTS
 - **防幻觉机制**：以 LLM Wiki、RAG 检索、知识图谱和内容过滤构成多层防线
 - **流式交互体验**：核心对话接口采用 SSE 流式输出，并提供阶段状态提示
-- **初始知识库构建**：以《人工智能导论》为主课程，自建课程知识体系与知识图谱，并提供 Python 程序设计基础样例课程用于多课程切换
+- **初始知识库构建**：以《人工智能导论》为主课程，自建课程知识体系与知识图谱，并提供《计算机网络》课程用于多课程切换
 
 ---
 
@@ -93,28 +93,27 @@ LLM Wiki 提供知识检索、前置知识追踪、关联知识支撑
 - 聊天会话创建、历史会话查看与 SSE 流式对话输出
 - 多轮上下文：Tutor 答疑可携带最近对话历史
 - Router LLM 路由：支持结构化决策输出，并提供规则兜底
-- Profile LLM 画像抽取：支持从自然语言中提取画像更新，并提供规则兜底
+- Profile LLM 画像抽取：支持从自然语言中提取画像候选更新，学生确认后才写入画像，并提供规则兜底
 - 资源生成并行化：文档先行，其余资源并行生成
 - Agent 可观测面板：编排节点和资源 Agent 运行事件会写入事件表，`/api/learning/agent-observability` 聚合展示耗时、状态、资源类型、LLM 调用、token 估算与错误信息；学习分析页已接入该面板
 - 自动评测集：`backend/tests/evals` 用固定样例覆盖画像抽取、路由、RAG 命中、题目结构和内容安全；`docs/evaluation.md` 说明评测命令、样例文件和扩展规则
 - 稳定演示脚本与样例数据：`docs/demo-script.md` 固化 10 分钟演示路线，`backend/knowledge/ai_intro/demo_scenario.json` 固化演示账号、画像输入、生成主题、测验答案和页面检查点
 - 课程资料上传入库：支持 Markdown/TXT/PDF/PPTX 上传、解析、切分、向量化和 Wiki 检索
-- 多课程模板：后端自动发现 `backend/knowledge/*/metadata.json` 课程目录，Wiki 检索、章节树、资料上传和学习路径生成支持按 `course_id` 隔离；当前内置《人工智能导论》和《Python 程序设计基础》两门课程
+- 多课程模板：后端自动发现 `backend/knowledge/*/metadata.json` 课程目录，Wiki 检索、章节树、资料上传和学习路径生成支持按 `course_id` 隔离；当前内置《人工智能导论》和《计算机网络》两门课程
 - 练习题结构化输出 + 前端训练模式（题型、题量、难度、限时、章节混合、成绩报告）
 - 错题本与间隔复习：答错客观题自动进入复习队列，仪表盘展示待复习数量
 - Study Mode 辅导模式：Tutor 支持分步提示、理解检查和错误归因，避免直接给最终答案
-- 教师/助教分析视图：汇总学生进度、班级薄弱点、测验表现、待复习错题和教学建议
 - 前端能力：会话搜索、快捷键（新建/聚焦输入）、流式中断（Esc）、最后一条助手消息“重新生成”
 - 学生画像接口与画像驱动的对话编排能力
 - Wiki 检索、知识树、关联知识、前置知识查询与内容回写接口
 - 可信引用：资源卡展示来源覆盖率、相关度、来源片段和低置信度提示，可跳转 Wiki 搜索来源
 - 资源局部重生成：可只重生成单张资源卡，不必重跑整轮资源包
 - 本地资产存储：导出的 Markdown/PPTX 可生成持久访问 URL，后续可替换为 MinIO/S3 适配器
+- 相关视频搜索：可按配置通过 Tavily 联网检索 B站学习视频，生成“相关视频”资源卡；未配置 Key 时会生成清晰的不可用提示
 - 讯飞能力：星火 LLM 真实调用 / 开发模式回退、安全护栏内容审核（未启用时使用本地规则）、TTS 资源朗读（未启用时朗读接口返回不可用）
 - 多模态展示：Mermaid 思维导图、PPTX 导出、前端动画分镜播放器、动画导出包与资源 TTS 朗读；当前导出的是 HTML 播放页 + 字幕 + 可选旁白音频，不生成完整 MP4/WebM 视频文件
 - 前端聊天页、学习画像页、资源中心、知识 Wiki、学习路径页等核心页面框架；Wiki 和学习路径页支持课程切换
-- 教师视图页：用于观察多用户学习情况和助教干预重点
-- 以《人工智能导论》为核心、以《Python 程序设计基础》为样例扩展的课程知识库初始化能力
+- 以《人工智能导论》为核心、以《计算机网络》为样例扩展的课程知识库初始化能力
 
 ### 规划中 / 持续完善中
 
@@ -153,6 +152,7 @@ LLM Wiki（知识图谱 + RAG 检索 + 内容回写）
 - **Quiz Agent**：生成练习题、解析与针对性训练内容
 - **Code Agent**：生成可运行的代码实操案例
 - **Media Agent**：面向 PPT、思维导图、动画分镜与后续视频导出等多模态内容扩展
+- **Video Agent**：根据学习主题联网检索 B站相关视频并组织为资源卡
 - **Tutor Agent**：进行即时答疑与苏格拉底式学习引导
 
 ---
@@ -191,6 +191,7 @@ EduAgent 面向高校学习过程，支持或规划支持以下资源类型：
 - PPT 学习资料
 - 教学动画分镜（前端播放器 + ZIP 动画导出包：HTML 播放页、字幕、可选 TTS 旁白；完整 MP4/WebM 视频文件导出仍属增强项）
 - 拓展阅读材料
+- B站相关视频学习清单（通过 Tavily 搜索，默认限定 `bilibili.com`）
 
 相比单一答案输出，EduAgent 更关注“**围绕同一学习目标组织一组资源**”，以满足不同学生对内容深度、形式与节奏的差异化需求。
 
@@ -247,7 +248,7 @@ LLM Wiki 不是普通文档库，而是所有 Agent 的共享知识底座，包�
 ### 4. 知识 Wiki 页
 
 - 展示课程知识结构、知识树与知识点关联关系
-- 支持在《人工智能导论》和《Python 程序设计基础》等课程之间切换，检索结果按课程隔离
+- 支持在《人工智能导论》和《计算机网络》等课程之间切换，检索结果按课程隔离
 - 体现系统的知识中枢设计
 
 > 截图占位：`docs/images/wiki-page.png`
@@ -266,15 +267,6 @@ LLM Wiki 不是普通文档库，而是所有 Agent 的共享知识底座，包�
 - 新增 Agent 可观测面板，可查看最近对话的 Router/Profile/Planner/Doc/Quiz/Code/Media/Tutor 等节点耗时、状态、LLM 调用和错误信息
 
 > 截图占位：`docs/images/analytics-page.png`
-
-### 7. 教师分析页
-
-- 汇总学生路径进度、测验表现、错题复习负担和班级薄弱知识点
-- 输出面向助教备课和课后提醒的教学建议
-
-> 截图占位：`docs/images/teacher-page.png`
-
----
 
 ## 技术栈
 
@@ -390,6 +382,7 @@ SPARK_API_PASSWORD=xxx
 SPARK_MODEL=lite
 SPARK_API_BASE_URL=https://spark-api-open.xf-yun.com/v1
 SPARK_DEV_MODE=false
+RESOURCE_CONCURRENCY=2
 
 # 讯飞安全护栏（可选；未启用时仅使用本地规则）
 XUNFEI_SAFETY_ENABLED=false
@@ -411,10 +404,25 @@ XUNFEI_TTS_VOICE=xiaoyan
 DEEPSEEK_ENABLED=false
 DEEPSEEK_API_KEY=xxx
 
+# 相关视频联网搜索（可选；用于生成 B站相关视频资源卡）
+VIDEO_SEARCH_ENABLED=true
+VIDEO_SEARCH_PROVIDER=tavily
+TAVILY_API_KEY=xxx
+TAVILY_API_BASE_URL=https://api.tavily.com
+VIDEO_SEARCH_DOMAINS=["bilibili.com"]
+VIDEO_SEARCH_MAX_RESULTS=5
+
+# DashScope（语音识别 / 图片生成，必须使用独立 Key）
+DASHSCOPE_API_KEY=xxx
+
 # JWT
+APP_ENV=development
 JWT_SECRET_KEY=xxx
 JWT_ALGORITHM=HS256
 JWT_EXPIRE_MINUTES=1440
+
+# CORS：生产环境只填写真实前端域名，不要使用 "*"
+BACKEND_CORS_ORIGINS=["http://localhost:3000","http://127.0.0.1:3000"]
 ```
 
 前端开发环境建议在 `frontend/.env.local` 中配置：
@@ -428,7 +436,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 - 后端默认开发数据库为 `sqlite+aiosqlite:///./eduagent.db`，如未配置 `DATABASE_URL` 会回落到 SQLite
 - 前端默认请求 `http://localhost:8000`，如需改地址，请在 `frontend/.env.local` 中设置 `NEXT_PUBLIC_API_URL`
 - 默认允许的前端开发来源包含 `http://localhost:3000` 与 `http://127.0.0.1:3000`
-- `/health` 会返回 `llm_warning`、`safety_warning`、`tts_warning`。星火未配置且未启用 `SPARK_DEV_MODE=true` / `DEEPSEEK_ENABLED=true` 时，真实聊天会失败；安全护栏未启用时回退本地规则；TTS 未启用时资源朗读接口返回不可用。
+- `/health` 会返回 `llm_mode`、`llm_warning`、`dashscope_warning`、`video_search_warning`、`safety_warning`、`tts_warning`。星火未配置且未启用 `SPARK_DEV_MODE=true` / `DEEPSEEK_ENABLED=true` 时，真实聊天会失败；`llm_mode=dev` 表示当前使用模拟内容；DashScope 未配置时语音识别和图片生成不可用；Tavily 未配置时相关视频资源会提示不可用；安全护栏未启用时回退本地规则；TTS 未启用时资源朗读接口返回不可用。
 
 ### 4. 安装后端依赖并执行数据库迁移（必须）
 
@@ -599,12 +607,12 @@ EduAgent/
 | 赛题要求 | EduAgent 方案 |
 |---|---|
 | 画像维度 ≥ 6 | 设计 8 维动态学生画像 |
-| 至少 5 类个性化资源 | 支持文档、导图、题目、代码、PPT、动画分镜、拓展阅读等 7 类 |
+| 至少 5 类个性化资源 | 支持文档、导图、题目、代码、PPT、动画分镜、拓展阅读、相关视频等 8 类 |
 | 必须体现多智能体 | 采用 Router + Planner + 多专业 Agent 协同架构 |
 | 使用讯飞相关工具 | 星火 LLM 为主；安全护栏和 TTS 可按凭证启用 |
 | 防幻觉与内容安全 | 采用 LLM Wiki + RAG + 知识图谱 + 讯飞安全护栏/本地规则 |
 | 流式输出 | 聊天核心接口基于 SSE 输出 |
-| 初始知识库 | 以《人工智能导论》为切入，自建课程知识库，并提供 Python 基础样例课程验证多课程模板 |
+| 初始知识库 | 以《人工智能导论》为切入，自建课程知识库，并提供《计算机网络》课程验证多课程模板 |
 | 开源协议声明 | 已在 `OPEN_SOURCE_LICENSES.md` 标注主要第三方依赖与协议 |
 
 ---

@@ -39,6 +39,13 @@ class ProfileUpdateRequest(BaseModel):
     weekly_hours: int | None = Field(default=None, ge=0, le=168)
 
 
+class AgentProfileUpdateConfirmRequest(BaseModel):
+    """学生确认 Agent 候选画像变更后提交的请求。"""
+
+    session_id: int | None = None
+    update: ProfileUpdateRequest
+
+
 class ProfileHistoryItem(BaseModel):
     """单条画像历史快照。"""
 

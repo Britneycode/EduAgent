@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import base64
 from enum import Enum
 from typing import Any, Literal
 
@@ -19,10 +20,13 @@ from app.agents.media_agent import MediaAgent
 from app.agents.quiz_agent import QuizAgent
 from app.agents.reading_agent import ReadingAgent
 from app.agents.resource_types import AgentResource
-from app.api.chat import encode_sse_event
+from app.agents.video_agent import VideoAgent
+from app.api.chat import encode_sse_event, iter_with_heartbeat
 from app.core.speech import SpeechRecognitionClient, SpeechRecognitionError
 from app.core.auth import get_current_user
+from app.core.cache import get_cache_backend, make_cache_key
 from app.core.code_sandbox import CodeSandboxError, execute_python_code, extract_python_code
+from app.core.config import get_settings
 from app.core.database import get_db
 from app.core.pptx_export import build_pptx
 from app.core.storage import get_asset_storage
@@ -41,6 +45,7 @@ from app.schemas.chat import (
     ResourceResponse,
 )
 from app.services.chat_service import ChatService
+from app.services.learning_path_service import LearningPathService
 from app.services.profile_service import ProfileService
 from app.wiki import get_wiki_service
 
@@ -56,6 +61,7 @@ class ResourceType(str, Enum):
     ppt = "ppt"
     animation = "animation"
     reading = "reading"
+    video = "video"
 
 
 @router.get("", response_model=list[ResourceResponse])
@@ -105,7 +111,7 @@ async def synthesize_resource_speech(
         resource_type=resource.resource_type,
     )
     try:
-        audio = await tts_client.synthesize(text)
+        audio = await _synthesize_tts_with_cache(text)
     except XunfeiTTSError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
@@ -140,7 +146,7 @@ async def create_resource_speech_asset(
         resource_type=resource.resource_type,
     )
     try:
-        audio = await tts_client.synthesize(text)
+        audio = await _synthesize_tts_with_cache(text)
     except XunfeiTTSError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
@@ -332,7 +338,7 @@ async def create_animation_export_asset(
             resource_type=resource.resource_type,
         )
         try:
-            audio = await tts_client.synthesize(text)
+            audio = await _synthesize_tts_with_cache(text)
         except XunfeiTTSError as exc:
             raise HTTPException(status_code=502, detail=str(exc)) from exc
 
@@ -368,16 +374,34 @@ async def execute_resource_code(
     try:
         code = extract_python_code(resource.content, code_index=code_index)
     except CodeSandboxError as exc:
-        return CodeExecutionResponse(status="blocked", stderr=str(exc))
+        response = CodeExecutionResponse(status="blocked", stderr=str(exc))
+        await _record_code_practice_activity(
+            db=db,
+            user_id=user.id,
+            resource_id=resource.id,
+            knowledge_point=resource.knowledge_point,
+            code_index=code_index,
+            response=response,
+        )
+        return response
 
     result = await execute_python_code(code)
-    return CodeExecutionResponse(
+    response = CodeExecutionResponse(
         status=result.status,  # type: ignore[arg-type]
         stdout=result.stdout,
         stderr=result.stderr,
         exit_code=result.exit_code,
         duration_ms=result.duration_ms,
     )
+    await _record_code_practice_activity(
+        db=db,
+        user_id=user.id,
+        resource_id=resource.id,
+        knowledge_point=resource.knowledge_point,
+        code_index=code_index,
+        response=response,
+    )
+    return response
 
 
 @router.get("/{resource_id}", response_model=ResourceResponse)
@@ -417,7 +441,10 @@ async def _generate_replacement_resource(
     )
     profile_dict = profile.model_dump()
     topic = resource.knowledge_point or resource.title
-    wiki_service = get_wiki_service(session=db)
+    try:
+        wiki_service = get_wiki_service(session=db)
+    except RuntimeError:
+        wiki_service = None
     session_resources = await chat_service.list_resources(resource.session_id)
     chat_session = await chat_service.get_session(resource.session_id, user_id=user.id)
     course_id = chat_session.course_id if chat_session is not None else None
@@ -471,6 +498,13 @@ async def _generate_replacement_resource(
             document_content=document_content,
             course_id=course_id,
         )
+    if resource.resource_type == ResourceType.video.value:
+        return await VideoAgent().generate_videos(
+            topic,
+            profile_dict,
+            document_content=document_content,
+            course_id=course_id,
+        )
 
     raise ValueError("该资源类型暂不支持重生成")
 
@@ -488,7 +522,10 @@ async def _finalize_regenerated_content(
     for warning in audit_warnings:
         logger.info("讯飞安全护栏警告 [%s]: %s", resource.title, warning)
 
-    if audit_allowed and resource.resource_type != ResourceType.quiz.value:
+    if audit_allowed and resource.resource_type not in {
+        ResourceType.quiz.value,
+        ResourceType.video.value,
+    }:
         guarded, warnings = guard_content(
             content,
             wiki_context=resource.wiki_context,
@@ -521,6 +558,36 @@ def _find_context_content(
     return None
 
 
+async def _record_code_practice_activity(
+    *,
+    db: AsyncSession,
+    user_id: int,
+    resource_id: int,
+    knowledge_point: str | None,
+    code_index: int,
+    response: CodeExecutionResponse,
+) -> None:
+    try:
+        await LearningPathService(session=db).record_activity(
+            user_id=user_id,
+            activity_type="code_practice",
+            knowledge_point=knowledge_point,
+            resource_id=resource_id,
+            result={
+                "status": response.status,
+                "exit_code": response.exit_code,
+                "duration_ms": response.duration_ms,
+                "stdout_chars": len(response.stdout),
+                "stderr_chars": len(response.stderr),
+                "code_index": code_index,
+            },
+            duration_sec=round(response.duration_ms / 1000),
+            detail=f"代码实践运行结果：{response.status}",
+        )
+    except Exception:
+        logger.warning("记录代码实践学习活动失败", exc_info=True)
+
+
 @router.post("/ppt-images")
 async def generate_ppt_images_endpoint(
     topic: str = Query(..., description="PPT 主题"),
@@ -529,7 +596,6 @@ async def generate_ppt_images_endpoint(
     """直接生成 PPT 风格知识图片，不受编排器影响。"""
     from app.schemas.chat import (
         ResourceCardPayload,
-        agent_status_event,
         done_event,
         error_event,
         resource_card_event,
@@ -551,13 +617,17 @@ async def generate_ppt_images_endpoint(
                 confidence=resource.confidence,
                 sources=resource.sources,
             )
-            yield encode_sse_event(resource_card_event(resource=payload))
-            yield encode_sse_event(done_event())
+            yield resource_card_event(resource=payload)
+            yield done_event()
         except Exception as exc:
             logger.exception("PPT 图片生成失败")
-            yield encode_sse_event(error_event(message=str(exc) or "PPT 图片生成失败"))
+            yield error_event(message=str(exc) or "PPT 图片生成失败")
 
-    return StreamingResponse(event_stream(), media_type="text/event-stream")
+    async def heartbeat_stream():
+        async for event in iter_with_heartbeat(event_stream()):
+            yield encode_sse_event(event)
+
+    return StreamingResponse(heartbeat_stream(), media_type="text/event-stream")
 
 
 @router.post("/speech-recognize")
@@ -593,6 +663,32 @@ def _build_resource_markdown(resource: Any) -> str:
         lines.append(f"- 生成 Agent：{resource.agent_name}")
     lines.extend(["", "---", "", resource.content])
     return "\n".join(lines)
+
+
+async def _synthesize_tts_with_cache(text: str) -> bytes:
+    cache = get_cache_backend()
+    cache_key = make_cache_key("tts_binary", text)
+    try:
+        cached = await cache.get(cache_key)
+        if cached:
+            return base64.b64decode(cached.encode("ascii"))
+    except Exception:
+        logger.debug("读取 TTS 缓存失败，继续实时合成", exc_info=True)
+
+    tts_client = get_xunfei_tts_client()
+    if tts_client is None:
+        raise HTTPException(status_code=503, detail="讯飞 TTS 未启用")
+    audio = await tts_client.synthesize(text)
+
+    try:
+        await cache.set(
+            cache_key,
+            base64.b64encode(audio).decode("ascii"),
+            ttl_seconds=get_settings().cache_ttl_seconds,
+        )
+    except Exception:
+        logger.debug("写入 TTS 缓存失败", exc_info=True)
+    return audio
 
 
 def _asset_response(asset: Any) -> ResourceAssetResponse:

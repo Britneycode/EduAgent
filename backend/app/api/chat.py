@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, AsyncIterator
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
@@ -19,6 +20,7 @@ from app.agents.quiz_agent import QuizAgent
 from app.agents.reading_agent import ReadingAgent
 from app.agents.router_agent import RouterAgent
 from app.agents.tutor_agent import TutorAgent
+from app.agents.video_agent import VideoAgent
 from app.core.auth import get_current_user
 from app.core.database import AsyncSessionLocal, get_db
 from app.core.llm import LLMClientError
@@ -33,6 +35,7 @@ from app.schemas.chat import (
     SessionDetailResponse,
     SSEEvent,
     error_event,
+    heartbeat_event,
 )
 from app.services.chat_service import ChatService
 from app.services.learning_path_service import LearningPathService
@@ -40,6 +43,7 @@ from app.services.profile_service import ProfileService
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 logger = logging.getLogger(__name__)
+HEARTBEAT_INTERVAL_SECONDS = 15.0
 
 
 def build_orchestrator(db_session: AsyncSession) -> Orchestrator:
@@ -63,6 +67,7 @@ def build_orchestrator(db_session: AsyncSession) -> Orchestrator:
         code_agent=CodeAgent(wiki_service=wiki_service),
         media_agent=MediaAgent(wiki_service=wiki_service),
         reading_agent=ReadingAgent(wiki_service=wiki_service),
+        video_agent=VideoAgent(),
         tutor_agent=TutorAgent(wiki_service=wiki_service),
         profile_service=ProfileService(session=db_session),
         chat_service=ChatService(session=db_session),
@@ -72,6 +77,29 @@ def build_orchestrator(db_session: AsyncSession) -> Orchestrator:
 
 def encode_sse_event(event: SSEEvent) -> str:
     return f"data: {json.dumps(event.model_dump(exclude_none=True), ensure_ascii=False, separators=(',', ':'))}\n\n"
+
+
+async def iter_with_heartbeat(
+    events: AsyncIterator[SSEEvent],
+    *,
+    session_id: int | None = None,
+    interval_seconds: float = HEARTBEAT_INTERVAL_SECONDS,
+) -> AsyncGenerator[SSEEvent, None]:
+    iterator = events.__aiter__()
+    while True:
+        try:
+            event = await asyncio.wait_for(
+                iterator.__anext__(),
+                timeout=interval_seconds,
+            )
+        except asyncio.TimeoutError:
+            yield heartbeat_event(session_id=session_id)
+        except StopAsyncIteration:
+            break
+        else:
+            if event.session_id is not None:
+                session_id = event.session_id
+            yield event
 
 
 @router.post("/session")
@@ -126,6 +154,7 @@ async def stream_chat(
                     limit=10,
                 )
             except Exception:
+                logger.debug("读取聊天历史失败，继续空历史审核", exc_info=True)
                 history = []
 
             audited_message, audit_warnings, allowed = await audit_user_input(
@@ -162,13 +191,16 @@ async def stream_chat(
 
             orchestrator = build_orchestrator(db)
             try:
-                async for event in orchestrator.run(
+                async for event in iter_with_heartbeat(
+                    orchestrator.run(
+                        session_id=session_id,
+                        user_message=audited_message,
+                        user_id=user_id,
+                        history=history,
+                        study_mode=request.study_mode,
+                        course_id=active_course_id,
+                    ),
                     session_id=session_id,
-                    user_message=audited_message,
-                    user_id=user_id,
-                    history=history,
-                    study_mode=request.study_mode,
-                    course_id=active_course_id,
                 ):
                     yield encode_sse_event(event)
             except LLMClientError as exc:

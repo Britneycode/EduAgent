@@ -38,7 +38,7 @@ def test_ai_intro_demo_scenario_covers_full_learning_loop() -> None:
     assert "链式法则" in demo_inputs["wiki_search_query"]
 
     pages = {item["path"] for item in scenario["expected_pages"]}
-    assert {"/chat", "/profile", "/path", "/analytics", "/wiki", "/teacher"} <= pages
+    assert {"/chat", "/profile", "/path", "/analytics", "/wiki", "/resources"} <= pages
 
     expected_quiz = scenario["expected_quiz"]
     question_ids = {question["id"] for question in expected_quiz["questions"]}

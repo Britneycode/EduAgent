@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+import json
 import re
+from collections.abc import Callable
+from typing import Any
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.auth import get_current_user
+from app.core.cache import get_cache_backend, make_cache_key
+from app.core.config import get_settings
 from app.models.user import User
 from app.schemas.wiki import (
     CourseTemplateResponse,
@@ -135,7 +140,11 @@ async def get_knowledge_tree(
 ) -> KnowledgeTreeResponse:
     """获取章节知识树。"""
     wiki = get_wiki_service()
-    tree = wiki.get_knowledge_tree(chapter_id, course_id=course_id)
+    tree = await _cached_graph_query(
+        "wiki_graph_tree",
+        (chapter_id, course_id),
+        lambda: wiki.get_knowledge_tree(chapter_id, course_id=course_id),
+    )
     concepts = [KnowledgeTreeNode(**node) for node in tree]
     return KnowledgeTreeResponse(
         course_id=course_id,
@@ -152,7 +161,11 @@ async def get_prerequisites(
 ) -> PrerequisitesResponse:
     """获取前置知识列表。"""
     wiki = get_wiki_service()
-    prerequisites = wiki.get_prerequisites(topic, course_id=course_id)
+    prerequisites = await _cached_graph_query(
+        "wiki_graph_prerequisites",
+        (topic, course_id),
+        lambda: wiki.get_prerequisites(topic, course_id=course_id),
+    )
     return PrerequisitesResponse(topic=topic, prerequisites=prerequisites)
 
 
@@ -164,7 +177,11 @@ async def get_related(
 ) -> RelatedResponse:
     """获取关联知识。"""
     wiki = get_wiki_service()
-    related = wiki.get_related(topic, course_id=course_id)
+    related = await _cached_graph_query(
+        "wiki_graph_related",
+        (topic, course_id),
+        lambda: wiki.get_related(topic, course_id=course_id),
+    )
     return RelatedResponse(topic=topic, related=related)
 
 
@@ -190,3 +207,29 @@ async def write_back(
 
 def _parse_tags(value: str) -> list[str]:
     return [item.strip() for item in re.split(r"[,，、\n]", value) if item.strip()]
+
+
+async def _cached_graph_query(
+    namespace: str,
+    parts: tuple[Any, ...],
+    loader: Callable[[], Any],
+) -> Any:
+    cache = get_cache_backend()
+    cache_key = make_cache_key(namespace, *parts)
+    try:
+        cached = await cache.get(cache_key)
+        if cached is not None:
+            return json.loads(cached)
+    except Exception:
+        pass
+
+    value = loader()
+    try:
+        await cache.set(
+            cache_key,
+            json.dumps(value, ensure_ascii=False),
+            ttl_seconds=get_settings().cache_ttl_seconds,
+        )
+    except Exception:
+        pass
+    return value

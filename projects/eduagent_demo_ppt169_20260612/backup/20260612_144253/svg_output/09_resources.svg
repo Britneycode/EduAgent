@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <g id="background">
+    <rect x="0" y="0" width="1280" height="720" fill="#f5f4ed"/>
+    <rect x="0" y="0" width="1280" height="8" fill="#c96442"/>
+  </g>
+  <g id="header">
+    <text x="56" y="68" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="34" fill="#141413" font-weight="800">同一学习目标可以生成一组互补资源，而不是一段孤立文本</text>
+    <text x="56" y="101" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#5e5d59">至少 8 类资源覆盖理解、练习、实践、展示和拓展。</text>
+  </g>
+  <g id="resource-visual">
+    <rect x="56" y="132" width="1168" height="330" rx="8" fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5"/>
+    <image href="../images/multimodal_resources.png" x="76" y="152" width="1128" height="290" preserveAspectRatio="xMidYMid slice"/>
+    <rect x="76" y="152" width="1128" height="290" fill="#f5f4ed" fill-opacity="0.12"/>
+    <rect x="88" y="168" width="408" height="60" rx="8" fill="#f5f4ed" fill-opacity="0.84"/>
+    <text x="112" y="205" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="26" fill="#141413" font-weight="800">资源不是越多越好，而是互补</text>
+  </g>
+  <g id="resource-tags-row1">
+    <g id="tag-doc">
+      <rect x="76" y="500" width="132" height="62" rx="8" fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5"/>
+      <rect x="76" y="500" width="8" height="62" rx="4" fill="#c96442"/>
+      <text x="112" y="526" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#141413" font-weight="700">讲义</text>
+      <text x="112" y="548" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5e5d59">概念解释</text>
+    </g>
+    <g id="tag-map">
+      <rect x="224" y="500" width="132" height="62" rx="8" fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5"/>
+      <rect x="224" y="500" width="8" height="62" rx="4" fill="#6b8e6b"/>
+      <text x="260" y="526" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#141413" font-weight="700">导图</text>
+      <text x="260" y="548" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5e5d59">结构梳理</text>
+    </g>
+    <g id="tag-quiz">
+      <rect x="372" y="500" width="132" height="62" rx="8" fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5"/>
+      <rect x="372" y="500" width="8" height="62" rx="4" fill="#1565C0"/>
+      <text x="408" y="526" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#141413" font-weight="700">题目</text>
+      <text x="408" y="548" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5e5d59">即时练习</text>
+    </g>
+    <g id="tag-code">
+      <rect x="520" y="500" width="132" height="62" rx="8" fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5"/>
+      <rect x="520" y="500" width="8" height="62" rx="4" fill="#30302e"/>
+      <text x="556" y="526" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#141413" font-weight="700">代码</text>
+      <text x="556" y="548" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5e5d59">实践任务</text>
+    </g>
+  </g>
+  <g id="resource-tags-row2">
+    <g id="tag-ppt">
+      <rect x="668" y="500" width="132" height="62" rx="8" fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5"/>
+      <rect x="668" y="500" width="8" height="62" rx="4" fill="#b07d62"/>
+      <text x="704" y="526" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#141413" font-weight="700">PPT</text>
+      <text x="704" y="548" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5e5d59">展示材料</text>
+    </g>
+    <g id="tag-animation">
+      <rect x="816" y="500" width="132" height="62" rx="8" fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5"/>
+      <rect x="816" y="500" width="8" height="62" rx="4" fill="#c4a35a"/>
+      <text x="852" y="526" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#141413" font-weight="700">动画</text>
+      <text x="852" y="548" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5e5d59">过程演示</text>
+    </g>
+    <g id="tag-reading">
+      <rect x="964" y="500" width="132" height="62" rx="8" fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5"/>
+      <rect x="964" y="500" width="8" height="62" rx="4" fill="#6b8e6b"/>
+      <text x="1000" y="526" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#141413" font-weight="700">阅读</text>
+      <text x="1000" y="548" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5e5d59">拓展资料</text>
+    </g>
+    <g id="tag-video">
+      <rect x="1112" y="500" width="92" height="62" rx="8" fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5"/>
+      <rect x="1112" y="500" width="8" height="62" rx="4" fill="#1565C0"/>
+      <text x="1142" y="526" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#141413" font-weight="700">视频</text>
+      <text x="1142" y="548" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5e5d59">关联推荐</text>
+    </g>
+  </g>
+  <g id="bottom-takeaway">
+    <rect x="76" y="592" width="1128" height="38" rx="8" fill="#30302e"/>
+    <text x="640" y="617" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" fill="#ffffff" font-weight="700">同一个学习目标，同时获得“讲解 + 练习 + 实践 + 展示 + 拓展”的组合支持</text>
+  </g>
+  <g id="footer">
+    <text x="56" y="690" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#87867f">EduAgent | 多模态资源生成</text>
+    <text x="1224" y="690" text-anchor="end" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#87867f">09</text>
+  </g>
+</svg>

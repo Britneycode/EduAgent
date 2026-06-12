@@ -10,9 +10,12 @@ from app.agents.planner_agent import PlannerAgent
 from app.agents.profile_agent import ProfileAgent
 from app.agents.quiz_agent import QuizAgent
 from app.agents.reading_agent import ReadingAgent
-from app.agents.router_agent import RouterAgent
+from app.agents.resource_types import AgentResource
+from app.agents.router_agent import RouteDecision, RouterAgent
 from app.agents.tutor_agent import TutorAgent
+from app.agents.video_agent import VideoAgent
 from app.core.llm import BaseLLMClient
+from app.core.video_search import VideoSearchResult
 from app.schemas.chat import SSEEvent
 from app.services.chat_service import ChatService
 from app.services.profile_service import ProfileService
@@ -41,6 +44,18 @@ class RecordingLearningService:
     async def record_agent_run_event(self, **kwargs):
         self.events.append(kwargs)
         return kwargs
+
+
+class StubVideoSearchClient:
+    async def search(self, query: str) -> list[VideoSearchResult]:
+        return [
+            VideoSearchResult(
+                title="反向传播视频讲解",
+                url="https://www.bilibili.com/video/BV123",
+                snippet="链式法则和梯度计算。",
+                score=0.9,
+            )
+        ]
 
 
 def _build_orchestrator(
@@ -73,6 +88,7 @@ def _build_orchestrator(
         reading_agent=ReadingAgent(
             llm_client=reading_llm or StubLLMClient("拓展阅读内容")
         ),
+        video_agent=VideoAgent(search_client=StubVideoSearchClient()),
         tutor_agent=TutorAgent(
             llm_client=tutor_llm or StubLLMClient("这是 Tutor 回答")
         ),
@@ -131,12 +147,13 @@ def test_orchestrator_yields_expected_event_sequence() -> None:
     assert event_types[0:5] == [
         "agent_status",
         "agent_status",
-        "profile_updated",
+        "profile_update_proposed",
         "agent_status",
-        "token",
+        "progress",
     ]
     assert events[0].payload["agent"] == "RouterAgent"
     assert events[3].payload["agent"] == "PlannerAgent"
+    assert "token" in event_types
     assert event_types[-1] == "done"
     assert set(_resource_types(events)) == {
         "document",
@@ -190,7 +207,7 @@ def test_orchestrator_stops_when_document_generation_fails() -> None:
     assert "done" not in event_types
 
 
-def test_orchestrator_stops_when_quiz_generation_fails() -> None:
+def test_orchestrator_skips_failed_quiz_and_finishes_other_resources() -> None:
     orchestrator = _build_orchestrator(
         quiz_llm=ErrorLLMClient("练习题生成失败"),
     )
@@ -198,13 +215,17 @@ def test_orchestrator_stops_when_quiz_generation_fails() -> None:
     events = asyncio.run(_collect_events(orchestrator, "帮我复习反向传播"))
 
     event_types = [event.type for event in events]
-    assert event_types[-1] == "error"
-    # quiz 和 code 并行，quiz 失败会导致整个并行批次失败，只保留 document
-    assert _resource_types(events) == ["document"]
-    assert "done" not in event_types
+    assert event_types[-1] == "done"
+    assert set(_resource_types(events)) == {
+        "document",
+        "code",
+        "mindmap",
+        "reading",
+    }
+    assert "quiz" not in _resource_types(events)
 
 
-def test_orchestrator_stops_when_code_generation_fails() -> None:
+def test_orchestrator_skips_failed_code_and_finishes_other_resources() -> None:
     orchestrator = _build_orchestrator(
         code_llm=ErrorLLMClient("代码实践生成失败"),
     )
@@ -212,10 +233,118 @@ def test_orchestrator_stops_when_code_generation_fails() -> None:
     events = asyncio.run(_collect_events(orchestrator, "帮我复习反向传播"))
 
     event_types = [event.type for event in events]
-    assert event_types[-1] == "error"
-    # code 和 quiz 并行，code 失败会导致整个并行批次失败
-    assert _resource_types(events) == ["document"]
-    assert "done" not in event_types
+    assert event_types[-1] == "done"
+    assert set(_resource_types(events)) == {
+        "document",
+        "quiz",
+        "mindmap",
+        "reading",
+    }
+    assert "code" not in _resource_types(events)
+
+
+def test_parallel_resources_preserve_quiz_before_code_dependency() -> None:
+    orchestrator = _build_orchestrator()
+    orchestrator._resource_concurrency = 2
+    starts: list[str] = []
+    active_first_layer: set[str] = set()
+    peak_first_layer = 0
+
+    async def fake_generate_resource(
+        *,
+        resource_type: str,
+        topic: str,
+        profile: dict,
+        generated_resources: dict[str, AgentResource],
+        state: dict,
+    ) -> AgentResource:
+        nonlocal peak_first_layer
+        if resource_type == "code":
+            assert "quiz" in generated_resources
+        else:
+            active_first_layer.add(resource_type)
+            peak_first_layer = max(peak_first_layer, len(active_first_layer))
+
+        starts.append(resource_type)
+        await asyncio.sleep(0.01)
+        active_first_layer.discard(resource_type)
+        return AgentResource(
+            title=f"{resource_type} title",
+            resource_type=resource_type,
+            content=f"{resource_type} content",
+            knowledge_point=topic,
+            agent_name="TestAgent",
+        )
+
+    async def fake_save_and_emit_resource(
+        session_id: int,
+        resource: AgentResource,
+        *,
+        turn_id: str | None = None,
+    ) -> SSEEvent:
+        return SSEEvent(
+            type="resource_card",
+            session_id=session_id,
+            payload={"resource_type": resource.resource_type},
+        )
+
+    orchestrator._generate_resource = fake_generate_resource  # type: ignore[method-assign]
+    orchestrator._save_and_emit_resource = fake_save_and_emit_resource  # type: ignore[method-assign]
+    state = {
+        "session_id": 1,
+        "user_id": 1,
+        "run_id": "test-run",
+        "decision": RouteDecision(
+            update_profile=False,
+            generate_document=True,
+            is_tutor_question=False,
+            topic="反向传播",
+            resource_types=["quiz", "mindmap", "code"],
+        ),
+        "resource_types": ["quiz", "mindmap", "code"],
+        "profile": {},
+        "generated_resources": {
+            "document": AgentResource(
+                title="document title",
+                resource_type="document",
+                content="document content",
+                knowledge_point="反向传播",
+                agent_name="DocAgent",
+            )
+        },
+    }
+
+    result = asyncio.run(orchestrator._parallel_resources_node(state))
+
+    assert peak_first_layer == 2
+    assert starts.index("code") > starts.index("quiz")
+    assert set(result["generated_resources"]) == {
+        "document",
+        "quiz",
+        "mindmap",
+        "code",
+    }
+
+
+def test_orchestrator_generates_video_resource_for_video_request() -> None:
+    orchestrator = _build_orchestrator()
+
+    events = asyncio.run(_collect_events(orchestrator, "帮我找反向传播相关视频学习"))
+
+    assert events[-1].type == "done"
+    streamed_text = "".join(
+        event.payload["token"] for event in events if event.type == "token"
+    )
+    status_messages = [
+        event.payload["message"] for event in events if event.type == "agent_status"
+    ]
+    assert "相关视频" in streamed_text
+    assert "练习题" not in streamed_text
+    assert "正在搜索相关视频..." in status_messages
+    assert _resource_types(events) == ["video"]
+    video_card = next(event for event in events if event.type == "resource_card")
+    assert "反向传播视频讲解" in video_card.payload["content"]
+    assert video_card.payload["agent_name"] == "VideoAgent"
 
 
 def test_tutor_answer_is_guarded_before_streaming_to_client() -> None:

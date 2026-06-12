@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <g id="background">
+    <rect x="0" y="0" width="1280" height="720" fill="#f5f4ed"/>
+    <rect x="0" y="0" width="1280" height="8" fill="#c96442"/>
+  </g>
+  <g id="header">
+    <text x="56" y="68" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="34" fill="#141413" font-weight="800">多 Agent 不是概念展示，而是一次请求中的真实分工</text>
+    <text x="56" y="101" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#5e5d59">Router 识别意图，Planner 拆解任务，专业 Agent 并行产出并记录状态。</text>
+  </g>
+  <g id="agent-visual">
+    <rect x="56" y="134" width="724" height="490" rx="8" fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5"/>
+    <image href="../images/agents_hub.png" x="74" y="152" width="688" height="454" preserveAspectRatio="xMidYMid slice"/>
+    <rect x="74" y="152" width="688" height="454" fill="#f5f4ed" fill-opacity="0.16"/>
+    <circle cx="418" cy="380" r="74" fill="#30302e"/>
+    <text x="418" y="370" text-anchor="middle" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="24" fill="#ffffff" font-weight="800">Orchestrator</text>
+    <text x="418" y="402" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#ffffff">LangGraph 状态图</text>
+  </g>
+  <g id="agent-labels">
+    <rect x="330" y="164" width="176" height="44" rx="8" fill="#faf9f5" stroke="#1565C0" stroke-width="2"/>
+    <text x="418" y="192" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#141413" font-weight="700">Router 意图路由</text>
+    <rect x="120" y="252" width="178" height="44" rx="8" fill="#faf9f5" stroke="#6b8e6b" stroke-width="2"/>
+    <text x="209" y="280" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#141413" font-weight="700">Profile 画像</text>
+    <rect x="536" y="252" width="178" height="44" rx="8" fill="#faf9f5" stroke="#c96442" stroke-width="2"/>
+    <text x="625" y="280" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#141413" font-weight="700">Planner 规划</text>
+    <rect x="106" y="410" width="158" height="42" rx="8" fill="#faf9f5" stroke="#b07d62" stroke-width="2"/>
+    <text x="185" y="437" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" fill="#141413" font-weight="700">Doc 讲义</text>
+    <rect x="570" y="410" width="158" height="42" rx="8" fill="#faf9f5" stroke="#b07d62" stroke-width="2"/>
+    <text x="649" y="437" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" fill="#141413" font-weight="700">Quiz 题目</text>
+    <rect x="160" y="548" width="150" height="42" rx="8" fill="#faf9f5" stroke="#1565C0" stroke-width="2"/>
+    <text x="235" y="575" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" fill="#141413" font-weight="700">Code 实践</text>
+    <rect x="342" y="548" width="152" height="42" rx="8" fill="#faf9f5" stroke="#6b8e6b" stroke-width="2"/>
+    <text x="418" y="575" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" fill="#141413" font-weight="700">Media 媒体</text>
+    <rect x="526" y="548" width="150" height="42" rx="8" fill="#faf9f5" stroke="#c96442" stroke-width="2"/>
+    <text x="601" y="575" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" fill="#141413" font-weight="700">Tutor 辅导</text>
+  </g>
+  <g id="right-panel">
+    <rect x="820" y="134" width="404" height="490" rx="8" fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5"/>
+    <text x="852" y="182" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="26" fill="#141413" font-weight="800">一次请求内的协作链路</text>
+    <g id="flow-1">
+      <circle cx="872" cy="236" r="18" fill="#1565C0"/>
+      <text x="872" y="243" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#ffffff" font-weight="700">1</text>
+      <text x="910" y="232" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#141413" font-weight="700">识别意图与学生上下文</text>
+      <text x="910" y="258" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5e5d59">Router 判断是问答、资源、测验还是路径。</text>
+    </g>
+    <g id="flow-2">
+      <circle cx="872" cy="318" r="18" fill="#6b8e6b"/>
+      <text x="872" y="325" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#ffffff" font-weight="700">2</text>
+      <text x="910" y="314" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#141413" font-weight="700">更新画像与拆解任务</text>
+      <text x="910" y="340" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5e5d59">Profile 与 Planner 把需求转成资源计划。</text>
+    </g>
+    <g id="flow-3">
+      <circle cx="872" cy="400" r="18" fill="#c96442"/>
+      <text x="872" y="407" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#ffffff" font-weight="700">3</text>
+      <text x="910" y="396" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#141413" font-weight="700">专业 Agent 并行产出</text>
+      <text x="910" y="422" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5e5d59">讲义、题目、代码、媒体和视频分别生成。</text>
+    </g>
+    <g id="flow-4">
+      <circle cx="872" cy="482" r="18" fill="#b07d62"/>
+      <text x="872" y="489" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#ffffff" font-weight="700">4</text>
+      <text x="910" y="478" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#141413" font-weight="700">记录状态与可观测事件</text>
+      <text x="910" y="504" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5e5d59">每个节点保留耗时、输入、输出和置信度。</text>
+    </g>
+    <rect x="852" y="552" width="332" height="44" rx="8" fill="#30302e"/>
+    <text x="1018" y="580" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" fill="#ffffff" font-weight="700">价值：分工明确，失败可定位，资源可重生成</text>
+  </g>
+  <g id="footer">
+    <text x="56" y="690" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#87867f">EduAgent | 多 Agent 协同</text>
+    <text x="1224" y="690" text-anchor="end" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#87867f">06</text>
+  </g>
+</svg>

@@ -48,6 +48,14 @@ _FABRICATION_PATTERNS: list[re.Pattern[str]] = [
     re.compile(r"根据\S{2,20}期刊.{0,10}论文"),
     re.compile(r"最新(研究|数据|统计)?(表明|显示|证明)"),
     re.compile(r"\d{4}年.{0,6}(发表|出版|发布)的"),
+    re.compile(r"(?:IEEE|ACM|Nature|Science|arXiv).{0,18}(?:指出|表明|证明)", re.IGNORECASE),
+    re.compile(r"(?:权威机构|官方数据显示|大量实验表明).{0,30}(?:提升|下降|超过|达到)\s*\d+(?:\.\d+)?%"),
+]
+
+_DATE_STAT_RISK_PATTERNS: list[re.Pattern[str]] = [
+    re.compile(r"(?:截至|截止|到)\s*\d{4}年\d{0,2}月?.{0,30}\d+(?:\.\d+)?%"),
+    re.compile(r"\d{4}年(?:全球|全国|行业|市场).{0,30}\d+(?:\.\d+)?%"),
+    re.compile(r"(?:增长|降低|提升|减少)\s*\d+(?:\.\d+)?%\s*(?:以上|左右)?"),
 ]
 
 _DISCLAIMER_SUFFIX = "\n\n> 注意：以上内容由 AI 基于知识库生成，建议结合教材和课堂内容进行验证。"
@@ -93,6 +101,12 @@ def verify_content(
             warnings.append(f"检测到可能的虚构引用：{match.group()}")
             break
 
+    for pattern in _DATE_STAT_RISK_PATTERNS:
+        match = pattern.search(stripped)
+        if match:
+            warnings.append(f"检测到日期或统计数字风险：{match.group()}")
+            break
+
     if wiki_context and wiki_context.strip():
         context_keywords = _extract_keywords(wiki_context)
         content_keywords = _extract_keywords(stripped)
@@ -104,20 +118,30 @@ def verify_content(
             elif overlap_ratio < 0.2:
                 warnings.append("生成内容与知识库参考内容相关度偏低")
 
-    if confidence is not None and confidence < 0.3:
+    if not wiki_context and confidence is None:
+        warnings.append("本段内容未附带知识库来源，请结合教材或课程材料核对")
+
+    if confidence is not None and confidence < 0.45:
         warnings.append(f"知识库检索置信度较低（{confidence:.0%}），内容可靠性有限")
 
     return stripped, warnings
 
 
-def filter_content(content: str) -> str:
-    """内容过滤：移除不安全内容，添加必要的免责声明。"""
+def filter_unsafe_fragments(content: str) -> str:
+    """移除不安全片段，不追加免责声明，适合流式分段发送前使用。"""
     filtered = content
 
     for pattern in _UNSAFE_PATTERNS:
         if pattern.search(filtered):
             filtered = pattern.sub("[已过滤]", filtered)
             logger.warning("内容过滤：移除了不安全内容片段")
+
+    return filtered
+
+
+def filter_content(content: str) -> str:
+    """内容过滤：移除不安全内容，添加必要的免责声明。"""
+    filtered = filter_unsafe_fragments(content)
 
     if not filtered.rstrip().endswith(_DISCLAIMER_SUFFIX.strip()):
         filtered = filtered.rstrip() + _DISCLAIMER_SUFFIX
@@ -213,7 +237,7 @@ def format_source_citations(
     lines = ["\n\n---\n**参考来源：**"]
     if confidence is not None:
         lines.append(f"> 来源覆盖率：{confidence:.0%}")
-        if confidence < 0.3:
+        if confidence < 0.45:
             lines.append("> 置信提示：知识库命中置信度较低，请优先核对原文片段。")
     for i, src in enumerate(sources, 1):
         chapter = src.get("chapter", "未知")

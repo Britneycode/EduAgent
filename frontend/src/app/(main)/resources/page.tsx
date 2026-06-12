@@ -14,8 +14,9 @@ const RESOURCE_TYPE_LABELS: Record<ResourceType, string> = {
   code: "代码实践",
   mindmap: "思维导图",
   ppt: "教学演示",
-  ppt_images: "PPT演示",
+  ppt_images: "教学演示",
   animation: "算法动画",
+  video: "相关视频",
   reading: "拓展阅读",
 };
 
@@ -25,8 +26,9 @@ const RESOURCE_TYPE_COLORS: Record<ResourceType, string> = {
   code: "bg-[#7a6e5d]",
   mindmap: "bg-[#8b7355]",
   ppt: "bg-[#9b6b4a]",
-  ppt_images: "bg-[#6b7a8e]",
+  ppt_images: "bg-[#9b6b4a]",
   animation: "bg-[#6b7a8e]",
+  video: "bg-[#6b7a8e]",
   reading: "bg-[#8e6b7a]",
 };
 
@@ -36,8 +38,8 @@ const ALL_TYPES: ResourceType[] = [
   "code",
   "mindmap",
   "ppt",
-  "ppt_images",
   "animation",
+  "video",
   "reading",
 ];
 

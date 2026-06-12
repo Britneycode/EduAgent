@@ -4,6 +4,7 @@ import logging
 from collections.abc import AsyncGenerator
 from typing import TYPE_CHECKING, Any
 
+from app.agents.common import build_plain_wiki_context, build_profile_lines
 from app.core.llm import BaseLLMClient, get_llm_client
 
 if TYPE_CHECKING:
@@ -74,16 +75,12 @@ class TutorAgent:
     async def _build_wiki_context(
         self, query: str, course_id: str | None = None
     ) -> str:
-        if self.wiki_service is None:
-            return ""
-        try:
-            context = await self.wiki_service.build_context(
-                query=query, top_k=3, course_id=course_id
-            )
-            return context.strip()
-        except Exception:
-            logger.warning("Wiki 检索失败", exc_info=True)
-            return ""
+        return await build_plain_wiki_context(
+            self.wiki_service,
+            query=query,
+            course_id=course_id,
+            logger=logger,
+        )
 
     def _build_prompt(
         self,
@@ -133,12 +130,10 @@ class TutorAgent:
         return "\n".join(parts)
 
     def _build_profile_lines(self, profile: dict[str, Any]) -> list[str]:
-        return [
-            f"- 学习目标：{profile.get('learning_goal') or '未提供'}",
-            f"- 认知风格：{profile.get('cognitive_style') or '未提供'}",
-            f"- 学习节奏：{profile.get('learning_pace') or '未提供'}",
-            f"- 编程水平：{profile.get('coding_level') or '未提供'}",
-        ]
+        return build_profile_lines(
+            profile,
+            ("learning_goal", "cognitive_style", "learning_pace", "coding_level"),
+        )
 
     def _build_answer_requirements(self, study_mode: bool) -> list[str]:
         if study_mode:

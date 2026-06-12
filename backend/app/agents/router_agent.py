@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-import json
 import logging
 import re
 from dataclasses import dataclass
 from typing import Any
 
+from app.agents.common import parse_json_object
+from app.agents.resource_types import DEFAULT_RESOURCE_TYPES
 from app.core.llm import BaseLLMClient
 
 logger = logging.getLogger(__name__)
@@ -40,6 +41,9 @@ TUTOR_KEYWORDS = (
     "如何",
     "不理解",
     "不明白",
+    "看不懂",
+    "没看懂",
+    "没懂",
     "区别",
     "解释",
     "请问",
@@ -66,9 +70,65 @@ PPT_KEYWORDS = (
 
 ANIMATION_KEYWORDS = (
     "动画",
-    "视频",
+    "动画脚本",
+    "视频脚本",
+    "短视频脚本",
+    "分镜",
     "可视化演示",
     "动态演示",
+)
+
+VIDEO_KEYWORDS = (
+    "相关视频",
+    "推荐视频",
+    "搜索视频",
+    "找视频",
+    "视频学习",
+    "学习视频",
+    "视频教程",
+    "教程视频",
+    "视频资源",
+    "B站",
+    "b站",
+    "哔哩哔哩",
+    "bilibili",
+)
+
+VIDEO_SEARCH_VERBS = (
+    "找",
+    "搜",
+    "搜索",
+    "推荐",
+    "看看",
+    "看",
+    "学习",
+    "教程",
+    "资源",
+    "相关",
+)
+
+ANIMATION_SCRIPT_KEYWORDS = (
+    "视频脚本",
+    "短视频脚本",
+    "动画脚本",
+    "分镜",
+    "可视化演示",
+    "动态演示",
+)
+
+CODE_ONLY_KEYWORDS = (
+    "代码示例",
+    "代码例子",
+    "代码实践",
+    "代码实操",
+    "代码案例",
+    "实操案例",
+    "python 示例",
+    "python示例",
+    "python 代码",
+    "python代码",
+    "写代码",
+    "编程案例",
 )
 
 # 纯出题意图关键词：用户只想做题，不需要文档/代码/导图等其他资源
@@ -115,6 +175,7 @@ EXACT_ONLY_KEYWORDS = (
     "判断题",
     "动画",
     "视频",
+    "相关视频",
     "导图",
     "脑图",
     "思维导图",
@@ -133,8 +194,6 @@ FULL_RESOURCE_VERBS = (
     "帮我复习",
     "梳理",
 )
-
-DEFAULT_RESOURCE_TYPES = ["document", "quiz", "code", "mindmap", "reading"]
 
 TOPIC_PATTERNS = (
     re.compile(r"想(?:复习|讲解|整理)(?P<topic>[一-龥A-Za-z0-9]+)"),
@@ -166,11 +225,13 @@ _ROUTE_PROMPT = """\
   "is_tutor_question": true/false,
   "generate_document": true/false,
   "topic": "提取的学习主题",
-  "resource_types": ["document", "quiz", "code", "mindmap", "reading"],
+  "resource_types": ["document", "quiz", "code", "mindmap", "reading", "video"],
   "quiz_only": true/false,
   "need_mindmap": true/false,
   "need_ppt": true/false,
-  "need_animation": true/false
+  "need_animation": true/false,
+  "need_video": true/false,
+  "need_code": true/false
 }}
 
 判断规则：
@@ -181,8 +242,10 @@ _ROUTE_PROMPT = """\
 5. 如果学生既要求讲解又要求出题（如"讲解一下神经网络再出几道题"），quiz_only=false，正常规划所有资源
 6. 如果学生只是闲聊打招呼，is_tutor_question=true，topic 设为学生说的内容
 7. topic: 从学生输入中提取核心学习主题
-8. resource_types: generate_document 为 true 时默认 ["document","quiz","code","mindmap","reading"]；quiz_only 为 true 时只需 ["quiz"]
-9. need_mindmap/need_ppt/need_animation: 学生明确要求思维导图、PPT、动画或视频时为 true"""
+8. resource_types: generate_document 为 true 时默认 ["document","quiz","code","mindmap","reading"]；quiz_only 为 true 时只需 ["quiz"]；需要相关视频时加入 "video"
+9. need_mindmap/need_ppt/need_animation: 学生明确要求思维导图、PPT、动画或视频脚本时为 true
+10. need_video: 学生明确要求找、搜、推荐、观看相关学习视频或 B站教程时为 true，resource_types 可包含 "video"
+11. need_code: 学生明确要求代码示例、代码实践、实操案例、Python 示例时为 true；若没有要求讲解/复习/整理完整学习资料，则 resource_types 只保留 ["code"]"""
 
 
 @dataclass(slots=True)
@@ -224,31 +287,43 @@ class RouterAgent:
         has_quiz = self._contains_any(text, QUIZ_ONLY_KEYWORDS)
         has_mindmap = self._contains_any(text, MINDMAP_KEYWORDS)
         has_animation = self._contains_any(text, ANIMATION_KEYWORDS)
+        has_video = self._has_video_search_intent(text)
+        has_code = self._contains_any(text, CODE_ONLY_KEYWORDS)
 
         # 用户明确只想要某个特定资源（没有说"讲解"、"复习"等）
         if not wants_full:
-            if has_quiz:
+            if has_code:
                 quiz_only = True
-            elif has_ppt or has_mindmap or has_animation:
+            elif has_quiz:
+                quiz_only = True
+            elif has_ppt or has_mindmap or has_animation or has_video:
                 quiz_only = True  # 复用 quiz_only 逻辑：不强制加 document
 
         resource_types: list[str] = []
         if parsed.get("generate_document"):
             if quiz_only:
-                if has_ppt:
+                if has_code:
+                    resource_types = ["code"]
+                elif has_ppt:
                     resource_types = ["ppt"]
                 elif has_mindmap:
                     resource_types = ["mindmap"]
                 elif has_animation:
                     resource_types = ["animation"]
+                elif has_video:
+                    resource_types = ["video"]
                 else:
                     resource_types = ["quiz"]
             else:
                 resource_types = list(parsed.get("resource_types") or DEFAULT_RESOURCE_TYPES)
+                if parsed.get("need_code") and "code" not in resource_types:
+                    resource_types.append("code")
                 if parsed.get("need_ppt") and "ppt" not in resource_types:
                     resource_types.append("ppt")
                 if parsed.get("need_animation") and "animation" not in resource_types:
                     resource_types.append("animation")
+                if (parsed.get("need_video") or has_video) and "video" not in resource_types:
+                    resource_types.append("video")
 
         return RouteDecision(
             update_profile=bool(parsed.get("update_profile")),
@@ -272,7 +347,7 @@ class RouterAgent:
         if start != -1 and end != -1:
             cleaned = cleaned[start : end + 1]
 
-        return json.loads(cleaned)
+        return parse_json_object(cleaned)
 
     def route(self, text: str) -> RouteDecision:
         """正则规则路由（同步，用于 dev mode 或 LLM 失败时的 fallback）。"""
@@ -288,12 +363,16 @@ class RouterAgent:
         has_quiz = self._contains_any(normalized_text, QUIZ_ONLY_KEYWORDS)
         has_mindmap = self._contains_any(normalized_text, MINDMAP_KEYWORDS)
         has_animation = self._contains_any(normalized_text, ANIMATION_KEYWORDS)
+        has_video = self._has_video_search_intent(normalized_text)
+        has_code = self._contains_any(normalized_text, CODE_ONLY_KEYWORDS)
 
         quiz_only = False
         if not wants_full:
-            if has_quiz:
+            if has_code:
                 quiz_only = True
-            elif has_ppt or has_mindmap or has_animation:
+            elif has_quiz:
+                quiz_only = True
+            elif has_ppt or has_mindmap or has_animation or has_video:
                 quiz_only = True
 
         generate_document = self._contains_any(
@@ -305,12 +384,16 @@ class RouterAgent:
         resource_types: list[str] = []
         if generate_document:
             if quiz_only:
-                if has_ppt:
+                if has_code:
+                    resource_types = ["code"]
+                elif has_ppt:
                     resource_types = ["ppt"]
                 elif has_mindmap:
                     resource_types = ["mindmap"]
                 elif has_animation:
                     resource_types = ["animation"]
+                elif has_video:
+                    resource_types = ["video"]
                 else:
                     resource_types = ["quiz"]
             else:
@@ -319,6 +402,8 @@ class RouterAgent:
                     resource_types.append("ppt")
                 if self._contains_any(normalized_text, ANIMATION_KEYWORDS):
                     resource_types.append("animation")
+                if has_video:
+                    resource_types.append("video")
 
         return RouteDecision(
             update_profile=update_profile,
@@ -326,12 +411,21 @@ class RouterAgent:
             is_tutor_question=is_tutor,
             topic=topic,
             resource_types=resource_types,
-            quiz_only=quiz_only or ppt_only,  # 纯出题或纯PPT都不强制加 document
+            quiz_only=quiz_only,  # 单资源模式复用该字段，避免强制加 document
         )
 
     def _contains_any(self, text: str, keywords: tuple[str, ...]) -> bool:
         text_lower = text.lower()
         return any(keyword.lower() in text_lower for keyword in keywords)
+
+    def _has_video_search_intent(self, text: str) -> bool:
+        if self._contains_any(text, VIDEO_KEYWORDS):
+            return True
+        if "视频" not in text:
+            return False
+        if self._contains_any(text, ANIMATION_SCRIPT_KEYWORDS):
+            return False
+        return self._contains_any(text, VIDEO_SEARCH_VERBS)
 
     def _is_learning_request(self, text: str) -> bool:
         return bool(text) and len(text) > 2

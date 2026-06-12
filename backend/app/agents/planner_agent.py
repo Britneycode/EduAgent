@@ -4,11 +4,10 @@ import json
 import logging
 from typing import Any
 
+from app.agents.common import parse_json_object
+from app.agents.resource_types import DEFAULT_RESOURCE_TYPES, SUPPORTED_RESOURCE_TYPES
 from app.core.llm import BaseLLMClient
 from app.agents.router_agent import RouteDecision
-
-DEFAULT_RESOURCE_TYPES = ("document", "quiz", "code", "mindmap", "reading")
-SUPPORTED_RESOURCE_TYPES = (*DEFAULT_RESOURCE_TYPES, "ppt", "animation")
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +27,7 @@ _PLANNER_PROMPT = """\
 - reading：拓展阅读
 - ppt：教学演示
 - animation：动画分镜
+- video：相关视频
 
 请只输出 JSON，不要输出其他内容：
 {{
@@ -40,8 +40,9 @@ _PLANNER_PROMPT = """\
 2. 如果需要生成学习资料（quiz_only=false），document 必须保留。
 3. 练习复习类请求通常保留 quiz、mindmap、reading。
 4. 编程水平或代码实践相关画像明显时保留 code。
-5. 图文结合、视觉型学习者可加入 ppt；明确要求动画/视频时加入 animation。
-6. 只能使用可选资源类型，最多 7 个。"""
+5. 图文结合、视觉型学习者可加入 ppt；明确要求动画脚本时加入 animation。
+6. 明确要求找、搜、推荐、观看相关学习视频或 B站教程时加入 video。
+7. 只能使用可选资源类型，最多 8 个。"""
 
 
 class PlannerAgent:
@@ -134,7 +135,7 @@ class PlannerAgent:
         if start != -1 and end != -1:
             cleaned = cleaned[start : end + 1]
 
-        return json.loads(cleaned)
+        return parse_json_object(cleaned)
 
     def _normalize_plan(
         self,

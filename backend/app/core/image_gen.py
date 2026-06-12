@@ -26,11 +26,7 @@ class ImageGenClient:
 
     def __init__(self) -> None:
         settings = get_settings()
-        self.api_key = (
-            settings.deepseek_api_key
-            or settings.spark_api_password
-            or settings.spark_api_key
-        )
+        self.api_key = settings.dashscope_api_key
         self.base_url = "https://dashscope.aliyuncs.com/api/v1/services/aigc/text2image/image-synthesis"
         self.model = "qwen-image-plus"
         self.max_poll_seconds = 120
@@ -160,7 +156,7 @@ class ImageGenClient:
 
     def _validate(self) -> None:
         if not self.api_key:
-            raise ImageGenError("未配置 API Key，无法生成图片")
+            raise ImageGenError("未配置 DASHSCOPE_API_KEY，无法生成图片")
 
     @staticmethod
     def _safe_json(response: httpx.Response) -> dict[str, Any]:

@@ -84,3 +84,23 @@ async def test_planner_agent_falls_back_when_llm_fails() -> None:
     plan = await agent.plan_resources_async("反向传播", {}, decision)
 
     assert plan == ["document", "quiz", "code", "mindmap", "reading", "ppt"]
+
+
+@pytest.mark.asyncio
+async def test_planner_agent_keeps_explicit_video_resource_type() -> None:
+    agent = PlannerAgent(
+        llm_client=StubLLMClient(
+            '{"resource_types": ["document", "quiz"], "reason": "需要视频"}'
+        )
+    )
+    decision = RouteDecision(
+        update_profile=False,
+        generate_document=True,
+        is_tutor_question=False,
+        topic="反向传播",
+        resource_types=["video"],
+    )
+
+    plan = await agent.plan_resources_async("反向传播", {}, decision)
+
+    assert plan == ["document", "quiz", "video"]

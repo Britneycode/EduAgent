@@ -21,7 +21,6 @@ from app.models.learning import (
 )
 from app.models.profile import StudentProfile
 from app.models.resource import GeneratedResource
-from app.models.user import User
 
 logger = logging.getLogger(__name__)
 
@@ -828,114 +827,6 @@ class LearningPathService:
         )
         return list(result.scalars().all())
 
-    async def get_teacher_dashboard(self) -> dict[str, Any]:
-        """聚合教师/助教视角的多用户学习概况。
-
-        当前版本不引入角色权限模型，先提供教学观察所需的数据结构；
-        后续可在 API 层接入教师角色校验。
-        """
-        users = await self._list_all_users()
-        profiles = await self._list_all_profiles()
-        paths = await self._list_all_paths()
-        activities = await self._list_all_activities_for_teacher()
-        review_items = await self._list_all_review_items()
-
-        profile_by_user = {profile.user_id: profile for profile in profiles}
-        paths_by_user: dict[int, list[LearningPath]] = defaultdict(list)
-        activities_by_user: dict[int, list[LearningActivity]] = defaultdict(list)
-        pending_reviews_by_user: Counter[int] = Counter()
-        review_points_by_user: dict[int, set[str]] = defaultdict(set)
-        review_counts_by_point: Counter[str] = Counter()
-
-        for path in paths:
-            paths_by_user[path.user_id].append(path)
-        for activity in activities:
-            activities_by_user[activity.user_id].append(activity)
-        for item in review_items:
-            if item.status in {"pending", "reviewing"}:
-                pending_reviews_by_user[item.user_id] += 1
-            if item.knowledge_point:
-                review_points_by_user[item.user_id].add(item.knowledge_point)
-                review_counts_by_point[item.knowledge_point] += 1
-
-        scored_quizzes = [
-            activity
-            for activity in activities
-            if activity.activity_type == "quiz" and activity.score is not None
-        ]
-        score_by_point: dict[str, list[float]] = defaultdict(list)
-        students_by_point: dict[str, set[int]] = defaultdict(set)
-        for activity in scored_quizzes:
-            if not activity.knowledge_point:
-                continue
-            score_by_point[activity.knowledge_point].append(float(activity.score or 0))
-            if activity.score is not None and activity.score < 80:
-                students_by_point[activity.knowledge_point].add(activity.user_id)
-
-        for profile in profiles:
-            for weak_point in profile.weak_points or []:
-                students_by_point[str(weak_point)].add(profile.user_id)
-
-        students = [
-            self._build_teacher_student_item(
-                user=user,
-                profile=profile_by_user.get(user.id),
-                paths=paths_by_user.get(user.id, []),
-                activities=activities_by_user.get(user.id, []),
-                pending_reviews=pending_reviews_by_user[user.id],
-                review_weak_points=review_points_by_user.get(user.id, set()),
-            )
-            for user in users
-        ]
-
-        weak_points = [
-            {
-                "knowledge_point": point,
-                "affected_students": len(user_ids),
-                "review_count": review_counts_by_point[point],
-                "average_score": _round_average(score_by_point.get(point, [])),
-            }
-            for point, user_ids in students_by_point.items()
-        ]
-        weak_points.sort(
-            key=lambda item: (
-                -item["affected_students"],
-                item["average_score"] if item["average_score"] else 101,
-                item["knowledge_point"],
-            )
-        )
-
-        quiz_performance = [
-            {
-                "knowledge_point": point,
-                "attempts": len(scores),
-                "average_score": _round_average(scores),
-            }
-            for point, scores in score_by_point.items()
-        ]
-        quiz_performance.sort(key=lambda item: (item["average_score"], -item["attempts"]))
-
-        summary = {
-            "student_count": len(users),
-            "active_path_count": len([path for path in paths if path.status == "active"]),
-            "quiz_count": len(scored_quizzes),
-            "average_quiz_score": _round_average(
-                [float(activity.score or 0) for activity in scored_quizzes]
-            ),
-            "pending_review_count": sum(pending_reviews_by_user.values()),
-        }
-        return {
-            "summary": summary,
-            "weak_points": weak_points[:8],
-            "quiz_performance": quiz_performance[:8],
-            "students": students,
-            "recommendations": self._build_teacher_recommendations(
-                summary=summary,
-                weak_points=weak_points,
-                quiz_performance=quiz_performance,
-            ),
-        }
-
     async def count_due_review_items(self, *, user_id: int) -> int:
         """统计当前待复习错题数量。"""
         return len(await self.get_review_queue(user_id=user_id, limit=1000))
@@ -954,28 +845,6 @@ class LearningPathService:
             .where(LearningActivity.user_id == user_id)
             .order_by(LearningActivity.created_at.desc())
         )
-        return list(result.scalars().all())
-
-    async def _list_all_users(self) -> list[User]:
-        result = await self.session.execute(select(User).order_by(User.id.asc()))
-        return list(result.scalars().all())
-
-    async def _list_all_profiles(self) -> list[StudentProfile]:
-        result = await self.session.execute(select(StudentProfile))
-        return list(result.scalars().all())
-
-    async def _list_all_paths(self) -> list[LearningPath]:
-        result = await self.session.execute(select(LearningPath))
-        return list(result.scalars().all())
-
-    async def _list_all_activities_for_teacher(self) -> list[LearningActivity]:
-        result = await self.session.execute(
-            select(LearningActivity).order_by(LearningActivity.created_at.desc())
-        )
-        return list(result.scalars().all())
-
-    async def _list_all_review_items(self) -> list[ReviewItem]:
-        result = await self.session.execute(select(ReviewItem))
         return list(result.scalars().all())
 
     def _build_recent_agent_runs(
@@ -1028,50 +897,6 @@ class LearningPathService:
             "error": event.error,
             "event_metadata": event.event_metadata,
             "created_at": event.created_at.isoformat(),
-        }
-
-    def _build_teacher_student_item(
-        self,
-        *,
-        user: User,
-        profile: StudentProfile | None,
-        paths: list[LearningPath],
-        activities: list[LearningActivity],
-        pending_reviews: int,
-        review_weak_points: set[str],
-    ) -> dict[str, Any]:
-        active_paths = [path for path in paths if path.status == "active"]
-        completed_nodes = 0
-        total_nodes = 0
-        for path in paths:
-            nodes = path.nodes or []
-            completed_nodes += sum(
-                1 for node in nodes if node.get("status") == "completed"
-            )
-            total_nodes += len(nodes)
-
-        quiz_scores = [
-            float(activity.score or 0)
-            for activity in activities
-            if activity.activity_type == "quiz" and activity.score is not None
-        ]
-        profile_weak_points = [
-            str(item) for item in (profile.weak_points if profile else []) or []
-        ]
-        weak_points = sorted(set(profile_weak_points) | review_weak_points)
-
-        return {
-            "user_id": user.id,
-            "username": user.username,
-            "display_name": user.display_name,
-            "major": profile.major if profile else None,
-            "grade": profile.grade if profile else None,
-            "active_paths": len(active_paths),
-            "completed_nodes": completed_nodes,
-            "total_nodes": total_nodes,
-            "average_quiz_score": _round_average(quiz_scores),
-            "pending_reviews": pending_reviews,
-            "weak_points": weak_points[:6],
         }
 
     def _build_activity_trend(
@@ -1208,41 +1033,6 @@ class LearningPathService:
 
         return recommendations[:3]
 
-    def _build_teacher_recommendations(
-        self,
-        *,
-        summary: dict[str, Any],
-        weak_points: list[dict[str, Any]],
-        quiz_performance: list[dict[str, Any]],
-    ) -> list[str]:
-        recommendations: list[str] = []
-        if weak_points:
-            top = weak_points[0]
-            recommendations.append(
-                f"优先安排「{top['knowledge_point']}」讲解或答疑，"
-                f"当前影响 {top['affected_students']} 名学生。"
-            )
-        low_quizzes = [
-            item
-            for item in quiz_performance
-            if item["attempts"] >= 1 and item["average_score"] < 70
-        ]
-        if low_quizzes:
-            item = low_quizzes[0]
-            recommendations.append(
-                f"「{item['knowledge_point']}」测验均分 {item['average_score']:.0f}，"
-                "建议补充例题和课后训练。"
-            )
-        if summary.get("pending_review_count", 0) > 0:
-            recommendations.append(
-                f"共有 {summary['pending_review_count']} 道错题待复习，"
-                "可提醒学生先完成错题复盘。"
-            )
-        if not recommendations:
-            recommendations.append("暂无明显薄弱点，建议继续观察后续测验和学习路径进度。")
-        return recommendations[:3]
-
-
 def _round_average(values: list[float]) -> float:
     if not values:
         return 0.0
@@ -1276,5 +1066,5 @@ def _next_review_interval_days(review_count: int) -> int:
 
 def _as_utc(value: datetime) -> datetime:
     if value.tzinfo is None:
-        return value.replace(tzinfo=UTC)
-    return value.astimezone(UTC)
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
