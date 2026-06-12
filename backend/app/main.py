@@ -16,7 +16,8 @@ from app.api.wiki import router as wiki_router
 from app.core.cache import close_cache_backend, get_cache_status
 from app.core.config import get_settings
 from app.core.database import AsyncSessionLocal, init_db
-from app.core.llm import get_llm_configuration_warning
+from app.core.llm import get_llm_configuration_warning, get_llm_mode
+from app.core.video_search import get_video_search_configuration_warning
 from app.core.xunfei_safety import get_xunfei_safety_configuration_warning
 from app.core.xunfei_tts import get_xunfei_tts_configuration_warning
 from app.wiki import get_vector_store_status
@@ -27,6 +28,15 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     from app.wiki import init_wiki
+
+    settings = get_settings()
+    if settings.spark_dev_mode:
+        border = "=" * 60
+        logger.warning(
+            "%s\n当前 SPARK_DEV_MODE=true，LLM 返回模拟内容，严禁用于演示/提交！\n%s",
+            border,
+            border,
+        )
 
     await init_db()
 
@@ -74,7 +84,14 @@ async def health() -> dict[str, object | None]:
     cache_status = get_cache_status()
     return {
         "status": "ok",
+        "llm_mode": get_llm_mode(),
         "llm_warning": get_llm_configuration_warning(),
+        "dashscope_warning": (
+            None
+            if settings.dashscope_api_key
+            else "DASHSCOPE_API_KEY 未配置，语音识别和图片生成不可用"
+        ),
+        "video_search_warning": get_video_search_configuration_warning(),
         "safety_warning": get_xunfei_safety_configuration_warning(),
         "tts_warning": get_xunfei_tts_configuration_warning(),
         "cache": {

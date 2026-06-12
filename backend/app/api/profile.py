@@ -7,6 +7,7 @@ from app.core.auth import get_current_user
 from app.core.database import get_db
 from app.models.user import User
 from app.schemas.profile import (
+    AgentProfileUpdateConfirmRequest,
     ProfileHistoryItem,
     ProfileResponse,
     ProfileUpdateRequest,
@@ -54,4 +55,20 @@ async def update_profile(
         user_id=user.id,
         session_id=session_id,
         update=update,
+    )
+
+
+@router.post("/confirm-agent-update", response_model=ProfileResponse)
+async def confirm_agent_profile_update(
+    request: AgentProfileUpdateConfirmRequest,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> ProfileResponse:
+    profile_service = ProfileService(session=db)
+    update = request.update.model_dump(exclude_unset=True)
+    return await profile_service.save_profile_update(
+        request.session_id,
+        update,
+        user_id=user.id,
+        source="agent_confirmed",
     )

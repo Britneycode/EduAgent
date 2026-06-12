@@ -12,6 +12,7 @@ from langgraph.graph import END, START, StateGraph
 from app.agents.code_agent import CodeAgent
 from app.agents.content_guard import (
     audit_model_output,
+    filter_unsafe_fragments,
     format_source_citations,
     guard_content,
 )
@@ -24,13 +25,16 @@ from app.agents.reading_agent import ReadingAgent
 from app.agents.resource_types import AgentResource
 from app.agents.router_agent import RouteDecision, RouterAgent
 from app.agents.tutor_agent import TutorAgent
+from app.agents.video_agent import VideoAgent
+from app.core.config import get_settings
 from app.schemas.chat import (
     ResourceCardPayload,
     SSEEvent,
     agent_status_event,
     done_event,
     error_event,
-    profile_updated_event,
+    progress_event,
+    profile_update_proposed_event,
     resource_card_event,
     token_event,
     wiki_fallback_event,
@@ -51,6 +55,8 @@ GRAPH_NODE_NAMES = (
     "parallel_resources",
     "finalize",
 )
+_TUTOR_STREAM_FLUSH_CHARS = 220
+_TUTOR_SENTENCE_ENDINGS = ("。", "！", "？", ".", "!", "?", "\n")
 
 
 class OrchestratorState(TypedDict, total=False):
@@ -70,10 +76,50 @@ class OrchestratorState(TypedDict, total=False):
     stop: bool
 
 
-def _split_stream_chunks(text: str, chunk_size: int = 160) -> list[str]:
-    if not text:
-        return []
-    return [text[i : i + chunk_size] for i in range(0, len(text), chunk_size)]
+def _should_flush_tutor_buffer(buffer: str) -> bool:
+    if len(buffer) >= _TUTOR_STREAM_FLUSH_CHARS:
+        return True
+    return buffer.rstrip().endswith(_TUTOR_SENTENCE_ENDINGS)
+
+
+def _build_resource_intro(topic: str, resource_types: list[str], single_resource: bool) -> str:
+    if not single_resource:
+        return f"好的，我来为你生成关于「{topic}」的学习资源。"
+
+    primary_type = resource_types[0] if resource_types else "quiz"
+    intro_by_type = {
+        "quiz": f"好的，我来为你生成「{topic}」的练习题，请开始作答吧！",
+        "ppt": f"好的，我来为你生成「{topic}」的 PPT 演示图片，请稍候...",
+        "mindmap": f"好的，我来为你生成「{topic}」的思维导图，请稍候...",
+        "animation": f"好的，我来为你生成「{topic}」的动画分镜脚本，请稍候...",
+        "code": f"好的，我来为你生成「{topic}」的代码实践资源，请稍候...",
+        "reading": f"好的，我来为你生成「{topic}」的拓展阅读资源，请稍候...",
+        "video": f"好的，我来为你查找「{topic}」相关视频，请稍候...",
+    }
+    return intro_by_type.get(
+        primary_type,
+        f"好的，我来为你生成「{topic}」的学习资源，请稍候...",
+    )
+
+
+def _build_resource_status_message(
+    resource_types: list[str],
+    single_resource: bool,
+) -> str:
+    if not single_resource:
+        return "正在逐项生成学习资源..."
+
+    primary_type = resource_types[0] if resource_types else "quiz"
+    status_by_type = {
+        "quiz": "正在生成练习题...",
+        "ppt": "正在生成 PPT 演示图片...",
+        "mindmap": "正在生成思维导图...",
+        "animation": "正在生成动画分镜脚本...",
+        "code": "正在生成代码实践资源...",
+        "reading": "正在生成拓展阅读资源...",
+        "video": "正在搜索相关视频...",
+    }
+    return status_by_type.get(primary_type, "正在生成学习资源...")
 
 
 class Orchestrator:
@@ -90,6 +136,7 @@ class Orchestrator:
         code_agent: CodeAgent,
         media_agent: MediaAgent,
         reading_agent: ReadingAgent,
+        video_agent: VideoAgent,
         tutor_agent: TutorAgent,
         profile_service: ProfileService,
         chat_service: ChatService,
@@ -103,11 +150,13 @@ class Orchestrator:
         self.code_agent = code_agent
         self.media_agent = media_agent
         self.reading_agent = reading_agent
+        self.video_agent = video_agent
         self.tutor_agent = tutor_agent
         self.profile_service = profile_service
         self.chat_service = chat_service
         self.learning_service = learning_service
         self._record_lock = asyncio.Lock()
+        self._resource_concurrency = max(1, get_settings().resource_concurrency)
         self._graph = self._build_graph()
 
     async def run(
@@ -307,18 +356,29 @@ class Orchestrator:
                 state["user_message"],
             )
         except Exception:
+            logger.warning("学习画像抽取失败，跳过本轮画像更新", exc_info=True)
             update = {}
 
         if update:
             try:
-                profile_resp = await self.profile_service.save_profile_update(
-                    session_id,
-                    update,
-                    user_id=user_id,
+                profile_resp, proposed_update, changed_fields = (
+                    await self.profile_service.preview_profile_update(
+                        session_id=session_id,
+                        update=update,
+                        user_id=user_id,
+                    )
                 )
                 profile = profile_resp.model_dump(exclude_none=True)
+                if proposed_update:
+                    events.append(
+                        profile_update_proposed_event(
+                            update=proposed_update,
+                            changed_fields=changed_fields,
+                            session_id=session_id,
+                        )
+                    )
             except Exception:
-                logger.warning("保存学习画像失败", exc_info=True)
+                logger.warning("预览学习画像更新失败", exc_info=True)
                 profile = {}
         else:
             try:
@@ -331,7 +391,6 @@ class Orchestrator:
                 logger.warning("读取学习画像失败", exc_info=True)
                 profile = {}
 
-        events.append(profile_updated_event(session_id=session_id))
         await self._record_agent_event(
             state=state,
             started_at=started_at,
@@ -342,6 +401,7 @@ class Orchestrator:
             output_chars=len(str(profile)),
             event_metadata={
                 "updated": bool(update),
+                "proposed": bool(update),
                 "profile_fields": sorted(profile.keys()),
             },
             llm_holder=self.profile_agent,
@@ -386,8 +446,40 @@ class Orchestrator:
             )
         ]
 
+        streamed_parts: list[str] = []
+        buffer_parts: list[str] = []
+        audit_warnings: list[str] = []
+        tutor_warnings: list[str] = []
+        audit_allowed = True
+
+        async def flush_tutor_buffer() -> bool:
+            nonlocal audit_allowed
+            segment = "".join(buffer_parts)
+            buffer_parts.clear()
+            if not segment:
+                return True
+
+            audited_segment, segment_warnings, segment_allowed = (
+                await audit_model_output(
+                    segment,
+                    chat_sid=(
+                        f"session-{session_id}:tutor:"
+                        f"{len(streamed_parts) + 1}"
+                    ),
+                )
+            )
+            audit_warnings.extend(segment_warnings)
+            if not segment_allowed:
+                audit_allowed = False
+                events.append(token_event(token=audited_segment, session_id=session_id))
+                return False
+
+            audited_segment = filter_unsafe_fragments(audited_segment)
+            streamed_parts.append(audited_segment)
+            events.append(token_event(token=audited_segment, session_id=session_id))
+            return True
+
         try:
-            full_answer_parts: list[str] = []
             async for token in self.tutor_agent.answer_stream(
                 user_message,
                 profile,
@@ -395,8 +487,14 @@ class Orchestrator:
                 study_mode=bool(state.get("study_mode")),
                 course_id=state.get("course_id"),
             ):
-                full_answer_parts.append(token)
-            answer = "".join(full_answer_parts)
+                buffer_parts.append(token)
+                current_buffer = "".join(buffer_parts)
+                if _should_flush_tutor_buffer(current_buffer):
+                    if not await flush_tutor_buffer():
+                        break
+            if audit_allowed:
+                await flush_tutor_buffer()
+            answer = "".join(streamed_parts)
         except Exception as exc:
             await self._record_agent_event(
                 state=state,
@@ -417,27 +515,20 @@ class Orchestrator:
             )
             return {"events": events, "stop": True}
 
-        audited_answer, audit_warnings, audit_allowed = await audit_model_output(
-            answer,
-            chat_sid=f"session-{session_id}:tutor",
-        )
         for warning in audit_warnings:
             logger.info("Tutor 讯飞安全护栏警告: %s", warning)
 
         if audit_allowed:
-            guarded_answer, tutor_warnings = guard_content(
-                audited_answer, topic=decision.topic
-            )
+            guarded_answer, tutor_warnings = guard_content(answer, topic=decision.topic)
         else:
-            guarded_answer = audited_answer
-            tutor_warnings = []
+            guarded_answer = answer
         for warning in tutor_warnings:
             logger.info("Tutor 内容防护警告: %s", warning)
 
-        events.extend(
-            token_event(token=chunk, session_id=session_id)
-            for chunk in _split_stream_chunks(guarded_answer)
-        )
+        if audit_allowed and guarded_answer.startswith(answer):
+            suffix = guarded_answer[len(answer) :]
+            if suffix:
+                events.append(token_event(token=suffix, session_id=session_id))
 
         try:
             await self.chat_service.save_message(
@@ -502,7 +593,14 @@ class Orchestrator:
                 status="working",
                 message="正在拆解资源生成任务",
                 session_id=session_id,
-            )
+            ),
+            progress_event(
+                stage="planning",
+                completed=0,
+                total=1,
+                message="正在规划本轮学习资源",
+                session_id=session_id,
+            ),
         ]
         if not resource_types:
             await self._record_agent_event(
@@ -522,14 +620,11 @@ class Orchestrator:
                 "stop": True,
             }
 
-        # 纯出题/纯PPT模式用专门的引导语
-        if decision.quiz_only:
-            if "ppt" in resource_types:
-                intro = f"好的，我来为你生成「{decision.topic}」的 PPT 演示图片，请稍候..."
-            else:
-                intro = f"好的，我来为你生成「{decision.topic}」的练习题，请开始作答吧！"
-        else:
-            intro = f"好的，我来为你生成关于「{decision.topic}」的学习资源。"
+        intro = _build_resource_intro(
+            decision.topic,
+            resource_types,
+            single_resource=decision.quiz_only,
+        )
         await self._record_agent_event(
             state=state,
             started_at=started_at,
@@ -545,7 +640,17 @@ class Orchestrator:
             "resource_types": resource_types,
             "assistant_content": intro,
             "generated_resources": {},
-            "events": [*events, token_event(token=intro, session_id=session_id)],
+            "events": [
+                *events,
+                progress_event(
+                    stage="planning",
+                    completed=1,
+                    total=1,
+                    message="学习资源规划完成",
+                    session_id=session_id,
+                ),
+                token_event(token=intro, session_id=session_id),
+            ],
         }
 
     async def _document_node(self, state: OrchestratorState) -> OrchestratorState:
@@ -558,7 +663,14 @@ class Orchestrator:
                 status="working",
                 message="正在生成学习文档",
                 session_id=session_id,
-            )
+            ),
+            progress_event(
+                stage="resources",
+                completed=0,
+                total=max(len(state.get("resource_types", [])), 1),
+                message="正在生成学习文档",
+                session_id=session_id,
+            ),
         ]
 
         try:
@@ -596,6 +708,15 @@ class Orchestrator:
                 session_id,
                 doc_resource,
                 turn_id=state["run_id"],
+            )
+        )
+        events.append(
+            progress_event(
+                stage="resources",
+                completed=1,
+                total=max(len(state.get("resource_types", [])), 1),
+                message="学习文档已生成",
+                session_id=session_id,
             )
         )
         await self._record_agent_event(
@@ -640,10 +761,9 @@ class Orchestrator:
             return {"events": []}
 
         decision = state["decision"]
-        parallel_msg = (
-            "正在生成练习题..."
-            if decision.quiz_only
-            else "正在逐项生成学习资源..."
+        parallel_msg = _build_resource_status_message(
+            parallel_types,
+            single_resource=decision.quiz_only,
         )
         events = [
             agent_status_event(
@@ -654,19 +774,44 @@ class Orchestrator:
             )
         ]
 
-        # 串行生成避免 API 限流（免费 API 并发能力有限）
+        semaphore = asyncio.Semaphore(self._resource_concurrency)
+
+        async def _run_one(resource_type: str) -> tuple[str, AgentResource | None]:
+            async with semaphore:
+                try:
+                    resource = await self._generate_resource(
+                        resource_type=resource_type,
+                        topic=decision.topic,
+                        profile=state.get("profile", {}),
+                        generated_resources=generated_resources,
+                        state=state,
+                    )
+                    return resource_type, resource
+                except Exception as exc:
+                    logger.warning("资源 %s 生成失败，跳过: %s", resource_type, exc)
+                    return resource_type, None
+
+        first_layer = [
+            resource_type
+            for resource_type in parallel_types
+            if resource_type != "code"
+        ]
+        second_layer = [
+            resource_type
+            for resource_type in parallel_types
+            if resource_type == "code"
+        ]
+
         all_failed = True
-        for i, resource_type in enumerate(parallel_types):
-            if i > 0:
-                await asyncio.sleep(3)  # 资源间间隔
-            try:
-                resource = await self._generate_resource(
-                    resource_type=resource_type,
-                    topic=decision.topic,
-                    profile=state.get("profile", {}),
-                    generated_resources=generated_resources,
-                    state=state,
-                )
+        total_resources = max(len(state.get("resource_types", [])), 1)
+        completed_resources = 1 if "document" in generated_resources else 0
+        for layer in (first_layer, second_layer):
+            if not layer:
+                continue
+            results = await asyncio.gather(*[_run_one(t) for t in layer])
+            for resource_type, resource in results:
+                if resource is None:
+                    continue
                 all_failed = False
                 generated_resources[resource_type] = resource
                 events.append(
@@ -676,8 +821,16 @@ class Orchestrator:
                         turn_id=state["run_id"],
                     )
                 )
-            except Exception as exc:
-                logger.warning("资源 %s 生成失败，跳过: %s", resource_type, exc)
+                completed_resources += 1
+                events.append(
+                    progress_event(
+                        stage="resources",
+                        completed=completed_resources,
+                        total=total_resources,
+                        message=f"{resource.title} 已生成",
+                        session_id=session_id,
+                    )
+                )
 
         if all_failed:
             events.append(
@@ -796,7 +949,7 @@ class Orchestrator:
         for warning in audit_warnings:
             logger.info("讯飞安全护栏警告 [%s]: %s", resource.title, warning)
 
-        if audit_allowed and resource.resource_type not in ("quiz", "ppt_images"):
+        if audit_allowed and resource.resource_type not in ("quiz", "ppt", "video"):
             guarded, warnings = guard_content(
                 content,
                 wiki_context=resource.wiki_context,
@@ -912,6 +1065,13 @@ class Orchestrator:
                     document_content=document.content if document else None,
                     course_id=state.get("course_id"),
                 )
+            elif resource_type == "video":
+                resource = await self.video_agent.generate_videos(
+                    topic,
+                    profile,
+                    document_content=document.content if document else None,
+                    course_id=state.get("course_id"),
+                )
             else:
                 raise ValueError(f"不支持的资源类型：{resource_type}")
         except Exception as exc:
@@ -940,6 +1100,7 @@ class Orchestrator:
             event_metadata={
                 "title": resource.title,
                 "source_count": len(resource.sources),
+                **resource.metadata,
             },
             llm_holder=agent,
         )
@@ -956,6 +1117,8 @@ class Orchestrator:
             return "MediaAgent", self.media_agent
         if resource_type == "reading":
             return "ReadingAgent", self.reading_agent
+        if resource_type == "video":
+            return "VideoAgent", self.video_agent
         return "UnknownAgent", self
 
     async def _update_session_title_if_needed(

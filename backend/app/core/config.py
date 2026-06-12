@@ -24,10 +24,21 @@ class Settings(BaseSettings):
     spark_model: str = "lite"
     spark_api_base_url: str = "https://spark-api-open.xf-yun.com/v1"
     spark_dev_mode: bool = False
+    # 资源 Agent 并发上限，免费 API 建议保持较低数值。
+    resource_concurrency: int = 2
     deepseek_enabled: bool = False
     deepseek_api_key: str = ""
     deepseek_api_base_url: str = "https://api.deepseek.com"
     deepseek_model: str = "deepseek-v4-flash"
+    openai_compatible_enabled: bool = False
+    openai_compatible_provider: str = "OpenAI 兼容模型"
+    openai_compatible_api_key: str = ""
+    openai_compatible_api_base_url: str = (
+        "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    )
+    openai_compatible_model: str = "qwen3.6-plus"
+    openai_compatible_enable_thinking: bool | None = None
+    dashscope_api_key: str = ""
     # 讯飞安全护栏：关闭或凭证缺失时，调用方会回退本地规则。
     xunfei_safety_enabled: bool = False
     xunfei_safety_app_id: str = ""
@@ -46,6 +57,14 @@ class Settings(BaseSettings):
     xunfei_tts_volume: int = 50
     xunfei_tts_pitch: int = 50
 
+    # 相关视频联网搜索：默认使用 Tavily，并限制到 B站域名。
+    video_search_enabled: bool = True
+    video_search_provider: str = "tavily"
+    tavily_api_key: str = ""
+    tavily_api_base_url: str = "https://api.tavily.com"
+    video_search_domains: list[str] = ["bilibili.com"]
+    video_search_max_results: int = 5
+
     # 缓存配置（REDIS_URL 为空时使用进程内 TTL 缓存）
     cache_enabled: bool = True
     cache_ttl_seconds: int = 1800
@@ -53,13 +72,10 @@ class Settings(BaseSettings):
     redis_url: str = ""
 
     # JWT 认证
+    app_env: str = "development"
     jwt_secret_key: str = ""
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 1440
-
-    # 教师面板访问白名单。逗号分隔，默认空表示不开放多用户聚合视图。
-    teacher_dashboard_allowed_usernames: str = ""
-    teacher_dashboard_allowed_user_ids: str = ""
 
     # Wiki 知识中枢配置
     wiki_vector_backend: str = "auto"
@@ -88,6 +104,8 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     settings = Settings()
     if not settings.jwt_secret_key:
+        if settings.app_env.lower() in {"prod", "production"}:
+            raise RuntimeError("生产环境必须配置 JWT_SECRET_KEY")
         settings.jwt_secret_key = secrets.token_urlsafe(32)
         logger.warning(
             "JWT_SECRET_KEY 未配置，已自动生成随机密钥。"

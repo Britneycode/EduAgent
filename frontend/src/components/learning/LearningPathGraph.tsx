@@ -44,7 +44,15 @@ const STATUS_CLASSES: Record<LearningPathNode["status"], string> = {
   skipped: "border-[var(--color-warm-gray-300)] bg-[var(--color-warm-gray-100)] text-[var(--color-warm-gray-500)]",
 };
 
-const MIN_READABLE_SCALE = 0.68;
+const NODE_WIDTH = 160;
+const NODE_HEIGHT = 74;
+const NODE_EDGE_OFFSET = NODE_WIDTH / 2 - 6;
+const GRAPH_MIN_WIDTH = 640;
+const GRAPH_MIN_HEIGHT = 260;
+const GRAPH_X_MARGIN = NODE_WIDTH / 2 + 48;
+const GRAPH_Y_MARGIN = 54;
+const LEVEL_GAP = NODE_WIDTH + 82;
+const ROW_GAP = 30;
 
 function createEdges(nodes: LearningPathNode[]): GraphEdge[] {
   const concepts = new Set(nodes.map((node) => node.concept));
@@ -121,9 +129,17 @@ export function buildLearningPathGraph(nodes: LearningPathNode[]): LearningPathG
       );
   }
 
-  const width = Math.max(760, Math.max(0, levels.length - 1) * 220 + 220);
+  const width = Math.max(
+    GRAPH_MIN_WIDTH,
+    Math.max(0, levels.length - 1) * LEVEL_GAP + GRAPH_X_MARGIN * 2
+  );
   const maxGroupSize = Math.max(1, ...levels.map((level) => groups.get(level)?.length ?? 1));
-  const height = Math.max(280, maxGroupSize * 94 + 120);
+  const maxGroupHeight =
+    maxGroupSize * NODE_HEIGHT + Math.max(0, maxGroupSize - 1) * ROW_GAP;
+  const height = Math.max(
+    GRAPH_MIN_HEIGHT,
+    maxGroupHeight + GRAPH_Y_MARGIN * 2
+  );
   const graphNodes: GraphNode[] = [];
 
   levels.forEach((level, levelIndex) => {
@@ -131,13 +147,14 @@ export function buildLearningPathGraph(nodes: LearningPathNode[]): LearningPathG
     const x =
       levels.length === 1
         ? width / 2
-        : 110 + (levelIndex * (width - 220)) / (levels.length - 1);
+        : GRAPH_X_MARGIN +
+          (levelIndex * (width - GRAPH_X_MARGIN * 2)) / (levels.length - 1);
 
     group.forEach((node, itemIndex) => {
-      const y =
-        group.length === 1
-          ? height / 2
-          : 70 + (itemIndex * (height - 140)) / (group.length - 1);
+      const groupHeight =
+        group.length * NODE_HEIGHT + Math.max(0, group.length - 1) * ROW_GAP;
+      const groupStartY = (height - groupHeight) / 2 + NODE_HEIGHT / 2;
+      const y = groupStartY + itemIndex * (NODE_HEIGHT + ROW_GAP);
       graphNodes.push({
         id: node.concept,
         label: node.concept,
@@ -157,10 +174,16 @@ export function buildLearningPathGraph(nodes: LearningPathNode[]): LearningPathG
   };
 }
 
+export function calculateGraphScale(graphWidth: number, viewportWidth: number): number {
+  void graphWidth;
+  void viewportWidth;
+  return 1;
+}
+
 function edgePath(source: GraphNode, target: GraphNode): string {
   const direction = target.x >= source.x ? 1 : -1;
-  const startX = source.x + direction * 74;
-  const endX = target.x - direction * 74;
+  const startX = source.x + direction * NODE_EDGE_OFFSET;
+  const endX = target.x - direction * NODE_EDGE_OFFSET;
   const curve = Math.max(70, Math.abs(endX - startX) * 0.45);
   return `M ${startX} ${source.y} C ${startX + direction * curve} ${source.y}, ${endX - direction * curve} ${target.y}, ${endX} ${target.y}`;
 }
@@ -196,16 +219,12 @@ export function LearningPathGraph({ path, onToggleNode }: LearningPathGraphProps
 
   if (path.nodes.length === 0) return null;
 
-  const fitScale =
-    viewportWidth > 0 && graph.width > viewportWidth
-      ? viewportWidth / graph.width
-      : 1;
-  const graphScale = fitScale < 1 ? Math.max(fitScale, MIN_READABLE_SCALE) : 1;
+  const graphScale = calculateGraphScale(graph.width, viewportWidth);
   const scaledWidth = Math.ceil(graph.width * graphScale);
   const scaledHeight = Math.ceil(graph.height * graphScale);
 
   return (
-    <div className="mb-4 rounded-xl bg-[var(--color-ivory)] p-4 ring-1 ring-[var(--color-warm-gray-200)]">
+    <div className="mb-4 min-w-0 rounded-xl bg-[var(--color-ivory)] p-4 ring-1 ring-[var(--color-warm-gray-200)]">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
           <h2 className="text-sm font-medium text-[var(--color-warm-gray-700)]">
@@ -228,9 +247,9 @@ export function LearningPathGraph({ path, onToggleNode }: LearningPathGraphProps
         </div>
       </div>
 
-      <div ref={viewportRef} className="overflow-x-auto">
+      <div ref={viewportRef} className="max-w-full overflow-x-auto pb-1">
         <div
-          className="relative"
+          className="relative mx-auto"
           style={{ width: scaledWidth, height: scaledHeight }}
         >
           <div

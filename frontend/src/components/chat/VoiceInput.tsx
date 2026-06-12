@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import { Mic, Square } from "lucide-react";
 import { getToken } from "@/lib/auth";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -10,17 +11,61 @@ interface VoiceInputProps {
   disabled?: boolean;
 }
 
+interface SpeechRecognitionResultLike {
+  isFinal: boolean;
+  0: {
+    transcript: string;
+  };
+}
+
+interface SpeechRecognitionEventLike {
+  resultIndex: number;
+  results: {
+    length: number;
+    [index: number]: SpeechRecognitionResultLike;
+  };
+}
+
+interface SpeechRecognitionErrorEventLike {
+  error: string;
+}
+
+interface SpeechRecognitionLike {
+  lang: string;
+  interimResults: boolean;
+  continuous: boolean;
+  maxAlternatives: number;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEventLike) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+  abort: () => void;
+}
+
+type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
+
+interface SpeechRecognitionWindow extends Window {
+  SpeechRecognition?: SpeechRecognitionConstructor;
+  webkitSpeechRecognition?: SpeechRecognitionConstructor;
+}
+
+function getSpeechRecognitionConstructor(): SpeechRecognitionConstructor | null {
+  const speechWindow = window as SpeechRecognitionWindow;
+  return speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition || null;
+}
+
 // 浏览器原生语音识别
 function supportsSpeechRecognition(): boolean {
-  return !!(typeof window !== "undefined" &&
-    ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition));
+  return typeof window !== "undefined" && Boolean(getSpeechRecognitionConstructor());
 }
 
 export function VoiceInput({ onResult, disabled }: VoiceInputProps) {
   const [listening, setListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [interim, setInterim] = useState("");
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
   useEffect(() => {
     return () => {
@@ -29,59 +74,6 @@ export function VoiceInput({ onResult, disabled }: VoiceInputProps) {
       }
     };
   }, []);
-
-  const startListening = useCallback(() => {
-    setError(null);
-    setInterim("");
-
-    if (supportsSpeechRecognition()) {
-      // 方案1：浏览器原生语音识别（Chrome/Edge）
-      const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      const recognition = new SR();
-      recognition.lang = "zh-CN";
-      recognition.interimResults = true;
-      recognition.continuous = true;
-      recognition.maxAlternatives = 1;
-
-      recognition.onresult = (event: any) => {
-        let final = "";
-        let interimText = "";
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const result = event.results[i];
-          if (result.isFinal) {
-            final += result[0].transcript;
-          } else {
-            interimText += result[0].transcript;
-          }
-        }
-        if (final) {
-          onResult(final);
-          setInterim("");
-        } else {
-          setInterim(interimText);
-        }
-      };
-
-      recognition.onerror = (event: any) => {
-        if (event.error !== "no-speech") {
-          setError(event.error === "not-allowed" ? "麦克风权限被拒绝" : `识别错误: ${event.error}`);
-        }
-        setListening(false);
-      };
-
-      recognition.onend = () => {
-        setListening(false);
-        setInterim("");
-      };
-
-      recognitionRef.current = recognition;
-      recognition.start();
-      setListening(true);
-    } else {
-      // 方案2：录音后调用 DashScope Paraformer API
-      startRecordingForASR();
-    }
-  }, [onResult]);
 
   const startRecordingForASR = useCallback(async () => {
     try {
@@ -120,7 +112,57 @@ export function VoiceInput({ onResult, disabled }: VoiceInputProps) {
     }
   }, [onResult]);
 
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const startListening = useCallback(() => {
+    setError(null);
+    setInterim("");
+
+    if (supportsSpeechRecognition()) {
+      const SpeechRecognition = getSpeechRecognitionConstructor();
+      if (!SpeechRecognition) return;
+      const recognition = new SpeechRecognition();
+      recognition.lang = "zh-CN";
+      recognition.interimResults = true;
+      recognition.continuous = true;
+      recognition.maxAlternatives = 1;
+
+      recognition.onresult = (event) => {
+        let final = "";
+        let interimText = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const result = event.results[i];
+          if (result.isFinal) {
+            final += result[0].transcript;
+          } else {
+            interimText += result[0].transcript;
+          }
+        }
+        if (final) {
+          onResult(final);
+          setInterim("");
+        } else {
+          setInterim(interimText);
+        }
+      };
+
+      recognition.onerror = (event) => {
+        if (event.error !== "no-speech") {
+          setError(event.error === "not-allowed" ? "麦克风权限被拒绝" : `识别错误: ${event.error}`);
+        }
+        setListening(false);
+      };
+
+      recognition.onend = () => {
+        setListening(false);
+        setInterim("");
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+      setListening(true);
+    } else {
+      void startRecordingForASR();
+    }
+  }, [onResult, startRecordingForASR]);
 
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {
@@ -151,10 +193,7 @@ export function VoiceInput({ onResult, disabled }: VoiceInputProps) {
             : "text-[var(--color-warm-gray-500)] ring-1 ring-[var(--color-warm-gray-200)] hover:text-[var(--color-terracotta)] hover:ring-[var(--color-terracotta)]"
         } disabled:cursor-not-allowed disabled:opacity-50`}
       >
-        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-            d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-        </svg>
+        {listening ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
         {listening ? "停止" : "语音"}
       </button>
       {error && (

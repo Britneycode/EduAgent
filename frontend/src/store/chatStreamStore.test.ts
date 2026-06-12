@@ -19,6 +19,7 @@ describe("chatStreamStore", () => {
       agentStatus: null,
       agentTimeline: [],
       resources: [],
+      progress: null,
       wikiFallback: null,
       error: null,
     });
@@ -85,6 +86,13 @@ describe("chatStreamStore", () => {
         content: "内容",
       },
     ]);
+    store.getState().setProgress(4, {
+      stage: "resources",
+      completed: 1,
+      total: 2,
+      percent: 50,
+      message: "已生成资料",
+    });
     store.getState().setWikiFallback(4, "已使用知识库兜底");
     store.getState().finishStream(4);
 
@@ -99,6 +107,13 @@ describe("chatStreamStore", () => {
           content: "内容",
         },
       ],
+      progress: {
+        stage: "resources",
+        completed: 1,
+        total: 2,
+        percent: 50,
+        message: "已生成资料",
+      },
       wikiFallback: "已使用知识库兜底",
     });
   });
@@ -125,4 +140,3 @@ describe("chatStreamStore", () => {
     ]);
   });
 });
-

@@ -5,11 +5,13 @@ from zipfile import ZipFile
 
 import pytest
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import select
 
 from app.agents.resource_types import AgentResource
 from app.core.database import AsyncSessionLocal
 from app.core.storage import LocalAssetStorage
 from app.main import app
+from app.models.learning import LearningActivity
 from app.services.chat_service import ChatService
 
 
@@ -123,6 +125,21 @@ async def test_execute_code_resource_returns_stdout_for_owner() -> None:
     assert data["stdout"].strip() == "3"
     assert data["stderr"] == ""
 
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            select(LearningActivity).where(
+                LearningActivity.user_id == user_id,
+                LearningActivity.resource_id == resource.id,
+                LearningActivity.activity_type == "code_practice",
+            )
+        )
+        activity = result.scalars().first()
+
+    assert activity is not None
+    assert activity.knowledge_point == "Python"
+    assert activity.result["status"] == "success"
+    assert activity.result["stdout_chars"] == len(data["stdout"])
+
 
 @pytest.mark.asyncio
 async def test_execute_code_resource_blocks_unsafe_code() -> None:
@@ -211,6 +228,40 @@ async def test_set_resource_favorite_and_list_prioritizes_favorites() -> None:
 
 
 @pytest.mark.asyncio
+async def test_list_resources_can_filter_video_resources() -> None:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        user_id, headers = await _register_and_get_auth(client, "resource_video_list")
+        async with AsyncSessionLocal() as db:
+            service = ChatService(session=db)
+            session_id = await service.create_session(user_id=user_id)
+            video = await service.save_resource(
+                session_id=session_id,
+                resource_type="video",
+                title="反向传播相关视频",
+                content="[反向传播视频](https://www.bilibili.com/video/BV123)",
+                knowledge_point="反向传播",
+                agent_name="VideoAgent",
+            )
+            await service.save_resource(
+                session_id=session_id,
+                resource_type="document",
+                title="反向传播讲义",
+                content="讲义内容",
+            )
+
+        response = await client.get(
+            "/api/resources?resource_type=video",
+            headers=headers,
+        )
+
+    assert response.status_code == 200
+    items = response.json()
+    assert [item["id"] for item in items] == [video.id]
+    assert items[0]["resource_type"] == "video"
+
+
+@pytest.mark.asyncio
 async def test_regenerate_resource_updates_only_target_resource(monkeypatch) -> None:
     from app.api import resources as resources_api
 
@@ -268,6 +319,50 @@ async def test_regenerate_resource_updates_only_target_resource(monkeypatch) -> 
     assert data["title"] == "新版反向传播讲义"
     assert "新版讲义正文" in data["content"]
     assert other_response.json()["title"] == "练习题"
+
+
+@pytest.mark.asyncio
+async def test_regenerate_video_resource_updates_target_resource(monkeypatch) -> None:
+    from app.api import resources as resources_api
+
+    class FakeVideoAgent:
+        async def generate_videos(self, topic, profile, document_content=None, course_id=None):
+            return AgentResource(
+                title=f"{topic}相关视频",
+                resource_type="video",
+                content="[新版视频](https://www.bilibili.com/video/BV999)",
+                knowledge_point=topic,
+                agent_name="VideoAgent",
+            )
+
+    monkeypatch.setattr(resources_api, "VideoAgent", lambda: FakeVideoAgent())
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        user_id, headers = await _register_and_get_auth(client, "resource_video_regen")
+        async with AsyncSessionLocal() as db:
+            service = ChatService(session=db)
+            session_id = await service.create_session(user_id=user_id)
+            target = await service.save_resource(
+                session_id=session_id,
+                resource_type="video",
+                title="旧视频",
+                content="[旧视频](https://www.bilibili.com/video/BV123)",
+                knowledge_point="反向传播",
+                agent_name="VideoAgent",
+            )
+
+        response = await client.post(
+            f"/api/resources/{target.id}/regenerate",
+            headers=headers,
+        )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == target.id
+    assert data["resource_type"] == "video"
+    assert data["title"] == "反向传播相关视频"
+    assert "BV999" in data["content"]
 
 
 @pytest.mark.asyncio
@@ -332,6 +427,56 @@ async def test_create_export_asset_returns_persistent_url(monkeypatch, tmp_path)
     saved_path = storage.resolve(data["url"].replace("/api/assets/", ""))
     assert saved_path is not None
     assert "阅读内容" in saved_path.read_text(encoding="utf-8")
+
+
+@pytest.mark.asyncio
+async def test_asset_download_requires_auth_and_resource_ownership(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    from app.api import assets as assets_api
+    from app.api import resources as resources_api
+
+    storage = LocalAssetStorage(tmp_path, public_url_prefix="/api/assets")
+    monkeypatch.setattr(resources_api, "get_asset_storage", lambda: storage)
+    monkeypatch.setattr(assets_api, "get_asset_storage", lambda: storage)
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        owner_id, owner_headers = await _register_and_get_auth(client, "asset_owner")
+        _, other_headers = await _register_and_get_auth(client, "asset_other")
+        async with AsyncSessionLocal() as db:
+            service = ChatService(session=db)
+            session_id = await service.create_session(user_id=owner_id)
+            resource = await service.save_resource(
+                session_id=session_id,
+                resource_type="reading",
+                title="私有阅读",
+                content="只有资源所有者可下载",
+                knowledge_point="搜索",
+                agent_name="ReadingAgent",
+            )
+
+        asset_response = await client.post(
+            f"/api/resources/{resource.id}/assets/export?format=markdown",
+            headers=owner_headers,
+        )
+        assert asset_response.status_code == 200
+        asset_url = asset_response.json()["url"]
+
+        missing_auth = await client.get(asset_url)
+        owner_download = await client.get(asset_url, headers=owner_headers)
+        other_download = await client.get(asset_url, headers=other_headers)
+        unknown_namespace = await client.get(
+            "/api/assets/resources/legacy.md",
+            headers=owner_headers,
+        )
+
+    assert missing_auth.status_code in {401, 403}
+    assert owner_download.status_code == 200
+    assert "只有资源所有者可下载" in owner_download.text
+    assert other_download.status_code == 404
+    assert unknown_namespace.status_code == 404
 
 
 @pytest.mark.asyncio

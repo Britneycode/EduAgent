@@ -5,6 +5,8 @@ import type {
   ResourceCard,
   ErrorPayload,
   WikiFallbackPayload,
+  ProfileUpdateProposedPayload,
+  ProgressPayload,
 } from "./types";
 import { getChatStreamUrl } from "./api";
 import { getToken } from "./auth";
@@ -35,7 +37,12 @@ export function parseSSEChunk(chunk: string): SSEEvent[] {
 
 export interface StreamChatHandlers {
   onAgentStatus?: (payload: AgentStatusPayload, sessionId: number | null) => void;
-  onProfileUpdated?: (sessionId: number | null) => void;
+  onProfileUpdateProposed?: (
+    payload: ProfileUpdateProposedPayload,
+    sessionId: number | null
+  ) => void;
+  onProgress?: (payload: ProgressPayload, sessionId: number | null) => void;
+  onHeartbeat?: (sessionId: number | null) => void;
   onToken?: (payload: TokenPayload, sessionId: number | null) => void;
   onResourceCard?: (resource: ResourceCard, sessionId: number | null) => void;
   onWikiFallback?: (payload: WikiFallbackPayload, sessionId: number | null) => void;
@@ -139,8 +146,18 @@ export async function streamChat(
             handlers.onAgentStatus?.(p, event.session_id);
             break;
           }
-          case "profile_updated":
-            handlers.onProfileUpdated?.(event.session_id);
+          case "profile_update_proposed": {
+            const p = event.payload as ProfileUpdateProposedPayload;
+            handlers.onProfileUpdateProposed?.(p, event.session_id);
+            break;
+          }
+          case "progress": {
+            const p = event.payload as ProgressPayload;
+            handlers.onProgress?.(p, event.session_id);
+            break;
+          }
+          case "heartbeat":
+            handlers.onHeartbeat?.(event.session_id);
             break;
           case "token": {
             const p = event.payload as TokenPayload;

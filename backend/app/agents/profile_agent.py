@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import json
 import logging
 import re
 from typing import Any
 
+from app.agents.common import parse_json_object
 from app.core.llm import BaseLLMClient
 from app.services.profile_service import ProfileService
 
@@ -144,7 +144,10 @@ class ProfileAgent:
                 if hours > 0:
                     result["weekly_hours"] = hours
             except (ValueError, TypeError):
-                pass
+                logger.debug(
+                    "weekly_hours 解析失败，已忽略: %r",
+                    parsed.get("weekly_hours"),
+                )
 
         if "knowledge_base" in parsed and isinstance(parsed["knowledge_base"], dict):
             result["knowledge_base"] = parsed["knowledge_base"]
@@ -170,7 +173,7 @@ class ProfileAgent:
         if start != -1 and end != -1:
             cleaned = cleaned[start : end + 1]
 
-        return json.loads(cleaned)
+        return parse_json_object(cleaned)
 
     def extract_profile_update(self, text: str) -> dict[str, Any]:
         """正则规则抽取（同步 fallback）。"""

@@ -1,7 +1,20 @@
 "use client";
 
+import {
+  BookOpenText,
+  BrainCircuit,
+  CheckCircle2,
+  Code2,
+  FileQuestion,
+  Film,
+  GitBranch,
+  Loader2,
+  MessageCircle,
+  Newspaper,
+  Route,
+} from "lucide-react";
 import type { AgentTimelineItem } from "@/store/chatStreamStore";
-import type { ResourceCard } from "@/lib/types";
+import type { ProgressPayload, ResourceCard } from "@/lib/types";
 
 type FlowState = "active" | "done";
 
@@ -23,6 +36,20 @@ const AGENT_META: Record<string, { label: string; role: string }> = {
   CodeAgent: { label: "Code", role: "代码实践" },
   MediaAgent: { label: "Media", role: "多模态资源" },
   ReadingAgent: { label: "Reading", role: "拓展阅读" },
+  VideoAgent: { label: "Video", role: "相关视频" },
+};
+
+const AGENT_ICONS = {
+  RouterAgent: GitBranch,
+  ProfileAgent: BrainCircuit,
+  PlannerAgent: Route,
+  TutorAgent: MessageCircle,
+  DocAgent: BookOpenText,
+  QuizAgent: FileQuestion,
+  CodeAgent: Code2,
+  MediaAgent: Film,
+  ReadingAgent: Newspaper,
+  VideoAgent: Film,
 };
 
 const AGENT_ORDER = [
@@ -35,6 +62,7 @@ const AGENT_ORDER = [
   "CodeAgent",
   "MediaAgent",
   "ReadingAgent",
+  "VideoAgent",
 ];
 
 const RESOURCE_AGENT_FALLBACK: Record<ResourceCard["resource_type"], string> = {
@@ -45,6 +73,7 @@ const RESOURCE_AGENT_FALLBACK: Record<ResourceCard["resource_type"], string> = {
   ppt: "MediaAgent",
   ppt_images: "MediaAgent",
   animation: "MediaAgent",
+  video: "VideoAgent",
   reading: "ReadingAgent",
 };
 
@@ -112,44 +141,66 @@ interface AgentFlowProps {
   timeline: AgentTimelineItem[];
   resources: ResourceCard[];
   isStreaming: boolean;
+  progress?: ProgressPayload | null;
 }
 
-export function AgentFlow({ timeline, resources, isStreaming }: AgentFlowProps) {
+export function AgentFlow({ timeline, resources, isStreaming, progress }: AgentFlowProps) {
   const steps = buildAgentFlowSteps(timeline, resources, isStreaming);
   if (steps.length === 0) return null;
 
   return (
-    <div className="mx-3 mb-3 rounded-xl bg-[var(--color-parchment)] px-3 py-3 ring-1 ring-[var(--color-warm-gray-200)]">
+    <div className="mx-3 mb-3 rounded-2xl bg-[var(--color-parchment)] px-3 py-3 shadow-[var(--shadow-ring)]">
       <div className="mb-2 flex items-center justify-between gap-3">
-        <h2 className="text-xs font-medium text-[var(--color-warm-gray-700)]">
+        <h2 className="font-serif text-sm font-medium text-[var(--color-warm-gray-700)]">
           Agent 协作链路
         </h2>
         <span className="text-[11px] text-[var(--color-warm-gray-400)]">
-          {steps.length} 个节点
+          {progress && progress.total > 0
+            ? `${progress.completed}/${progress.total} · ${progress.percent}%`
+            : `${steps.length} 个节点`}
         </span>
       </div>
+      {progress && progress.total > 0 && (
+        <div className="mb-2">
+          <div className="mb-1 flex items-center justify-between gap-2 text-[11px] text-[var(--color-warm-gray-600)]">
+            <span className="truncate">{progress.message}</span>
+            <span>{progress.percent}%</span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-[var(--color-warm-gray-200)]">
+            <div
+              className="h-full rounded-full bg-[var(--color-terracotta)] transition-[width]"
+              style={{ width: `${progress.percent}%` }}
+            />
+          </div>
+        </div>
+      )}
       <div className="overflow-x-auto">
         <ol className="flex min-w-max items-stretch gap-2">
-          {steps.map((step, index) => (
+          {steps.map((step, index) => {
+            const Icon = AGENT_ICONS[step.agent as keyof typeof AGENT_ICONS] ?? GitBranch;
+            return (
             <li key={step.agent} className="flex items-center gap-2">
               <div
-                className={`h-[78px] w-36 rounded-lg px-3 py-2 ring-1 transition-colors ${
+                className={`h-[82px] w-40 rounded-xl px-3 py-2 ring-1 transition-colors ${
                   step.state === "active"
                     ? "bg-[var(--color-terracotta)] text-white ring-[var(--color-terracotta)]"
                     : "bg-[var(--color-ivory)] text-[var(--color-warm-gray-700)] ring-[var(--color-warm-gray-200)]"
                 }`}
               >
                 <div className="mb-1 flex items-center justify-between gap-2">
-                  <span className="truncate text-xs font-medium">
+                  <span className="inline-flex min-w-0 items-center gap-1.5">
+                    <Icon className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate text-xs font-medium">
                     {step.label}
+                    </span>
                   </span>
-                  <span
-                    className={`h-2 w-2 shrink-0 rounded-full ${
-                      step.state === "active"
-                        ? "animate-pulse bg-white"
-                        : "bg-[var(--color-terracotta)]"
-                    }`}
-                  />
+                  {step.state === "active" ? (
+                    <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
+                  ) : (
+                    <CheckCircle2
+                      className="h-3.5 w-3.5 shrink-0 text-[var(--color-terracotta)]"
+                    />
+                  )}
                 </div>
                 <p
                   className={`mb-1 truncate text-[11px] ${
@@ -168,7 +219,8 @@ export function AgentFlow({ timeline, resources, isStreaming }: AgentFlowProps) 
                 <span className="h-px w-5 bg-[var(--color-warm-gray-300)]" />
               )}
             </li>
-          ))}
+            );
+          })}
         </ol>
       </div>
     </div>

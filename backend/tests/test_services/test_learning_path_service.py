@@ -13,6 +13,7 @@ from app.models.user import User
 from app.services.learning_path_service import (
     LearningActivityOwnershipError,
     LearningPathService,
+    _as_utc,
 )
 from app.wiki.graph import KnowledgeGraph
 
@@ -30,6 +31,16 @@ class StubLLMClient(BaseLLMClient):
 class ErrorLLMClient(BaseLLMClient):
     async def generate_text(self, prompt: str) -> str:
         raise RuntimeError("llm failed")
+
+
+def test_as_utc_handles_naive_and_aware_datetime() -> None:
+    naive = datetime(2026, 6, 12, 9, 30)
+    aware = datetime(2026, 6, 12, 17, 30, tzinfo=timezone(timedelta(hours=8)))
+
+    assert _as_utc(naive).tzinfo == timezone.utc
+    assert _as_utc(naive).hour == 9
+    assert _as_utc(aware).tzinfo == timezone.utc
+    assert _as_utc(aware).hour == 9
 
 
 @pytest.mark.asyncio

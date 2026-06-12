@@ -199,6 +199,10 @@ async def test_change_password_requires_current_password_and_allows_new_login() 
             headers={"Authorization": f"Bearer {token}"},
             json={"current_password": "oldpass123", "new_password": "newpass123"},
         )
+        old_token_profile = await client.get(
+            "/api/profile",
+            headers={"Authorization": f"Bearer {token}"},
+        )
         old_login = await client.post(
             "/api/auth/login",
             json={"username": "change_password_user", "password": "oldpass123"},
@@ -210,6 +214,8 @@ async def test_change_password_requires_current_password_and_allows_new_login() 
 
     assert wrong.status_code == 400
     assert changed.status_code == 200
+    assert old_token_profile.status_code == 401
+    assert old_token_profile.json()["detail"] == "登录状态已失效，请重新登录"
     assert old_login.status_code == 401
     assert new_login.status_code == 200
 

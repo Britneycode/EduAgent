@@ -61,6 +61,28 @@ async def test_profile_history_records_agent_and_manual_snapshots(
 
 
 @pytest.mark.asyncio
+async def test_preview_profile_update_does_not_persist_candidate(
+    async_session: AsyncSession,
+):
+    service = ProfileService(session=async_session)
+
+    current, proposed, changed_fields = await service.preview_profile_update(
+        user_id=1,
+        session_id=7,
+        update={"major": "计算机", "weak_points": ["反向传播"]},
+    )
+    history = await service.list_profile_history(user_id=1)
+    profile = await service.get_or_create_profile(session_id=7, user_id=1)
+
+    assert current.major is None
+    assert proposed == {"major": "计算机", "weak_points": ["反向传播"]}
+    assert set(changed_fields) == {"major", "weak_points"}
+    assert history == []
+    assert profile.major is None
+    assert profile.weak_points == []
+
+
+@pytest.mark.asyncio
 async def test_merge_profile_logic():
     service = ProfileService(session=None)
     existing = {"major": "数学", "grade": None, "knowledge_base": {}, "weak_points": []}

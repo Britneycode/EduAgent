@@ -47,7 +47,7 @@ async def register(
     await db.commit()
     await db.refresh(user)
 
-    token = create_access_token(user_id=user.id)
+    token = create_access_token(user_id=user.id, hashed_password=user.hashed_password)
     return AuthResponse(access_token=token, user_id=user.id)
 
 
@@ -63,7 +63,7 @@ async def login(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="用户名或密码错误"
         )
 
-    token = create_access_token(user_id=user.id)
+    token = create_access_token(user_id=user.id, hashed_password=user.hashed_password)
     return AuthResponse(access_token=token, user_id=user.id)
 
 
@@ -71,7 +71,7 @@ async def login(
 async def refresh_token(
     user: User = Depends(get_current_user),
 ) -> AuthResponse:
-    token = create_access_token(user_id=user.id)
+    token = create_access_token(user_id=user.id, hashed_password=user.hashed_password)
     return AuthResponse(access_token=token, user_id=user.id)
 
 
@@ -96,5 +96,5 @@ async def change_password(
     db.add(user)
     await db.commit()
 
-    token = create_access_token(user_id=user.id)
+    token = create_access_token(user_id=user.id, hashed_password=user.hashed_password)
     return AuthResponse(access_token=token, user_id=user.id)

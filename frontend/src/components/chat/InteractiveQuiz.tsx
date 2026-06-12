@@ -1,6 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Award,
+  BookOpenText,
+  CheckCircle2,
+  ClipboardList,
+  FileText,
+  Lightbulb,
+  MessageCircleQuestion,
+  Trophy,
+  XCircle,
+} from "lucide-react";
 import { submitQuiz } from "@/lib/api";
 import { streamChat } from "@/lib/sse";
 import type { QuizSubmitResponse } from "@/lib/types";
@@ -591,7 +602,8 @@ export function InteractiveQuiz({ content, resourceId, sessionId }: InteractiveQ
                 onChange={(event) => setExamMode(event.target.checked)}
                 className="h-3.5 w-3.5 accent-[var(--color-terracotta)]"
               />
-              🏆 考试模式（全部答完才出分）
+              <Trophy className="h-3.5 w-3.5 text-[var(--color-terracotta)]" />
+              考试模式（全部答完才出分）
             </label>
           </div>
         </div>
@@ -612,7 +624,7 @@ export function InteractiveQuiz({ content, resourceId, sessionId }: InteractiveQ
         {/* 成绩总结 */}
         <div className="rounded-xl bg-[var(--color-parchment)] px-4 py-4 ring-1 ring-[var(--color-warm-gray-200)]">
           <div className="text-center">
-            <div className="mb-2 text-4xl">🎉</div>
+            <Award className="mx-auto mb-2 h-10 w-10 text-[var(--color-terracotta)]" />
             <p className="mb-1 text-lg font-medium text-[var(--color-warm-gray-800)]">
               {timedOut ? "时间到！练习结束" : "练习完成！"}
             </p>
@@ -659,14 +671,20 @@ export function InteractiveQuiz({ content, resourceId, sessionId }: InteractiveQ
               <p className="mt-3 text-xs text-[var(--color-warm-gray-400)]">正在同步到学习档案...</p>
             )}
             {submitted && (
-              <p className="mt-3 text-xs text-[var(--color-warm-gray-400)]">已记录到学习档案 ✅</p>
+              <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-[var(--color-warm-gray-400)]">
+                已记录到学习档案
+                <CheckCircle2 className="h-3.5 w-3.5 text-[var(--color-resource-mindmap)]" />
+              </p>
             )}
           </div>
         </div>
 
         {/* 每道题的回顾 */}
         <div className="space-y-3">
-          <p className="text-sm font-medium text-[var(--color-warm-gray-700)]">📋 答题回顾</p>
+          <p className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-warm-gray-700)]">
+            <ClipboardList className="h-4 w-4 text-[var(--color-terracotta)]" />
+            答题回顾
+          </p>
           {activeQuestions.map((q) => {
             const userAnswer = answers[q.id];
             const isCorrect = q.options.length > 0 && userAnswer === q.answer;
@@ -681,9 +699,9 @@ export function InteractiveQuiz({ content, resourceId, sessionId }: InteractiveQ
                   >
                     {q.options.length > 0
                       ? isCorrect
-                        ? "✅"
-                        : "❌"
-                      : "📝"}
+                        ? <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        : <XCircle className="h-4 w-4 text-red-600" />
+                      : <FileText className="h-4 w-4 text-[var(--color-terracotta)]" />}
                   </span>
                   <div className="min-w-0">
                     <p className="text-sm text-[var(--color-warm-gray-800)]">{q.question}</p>
@@ -873,9 +891,9 @@ export function InteractiveQuiz({ content, resourceId, sessionId }: InteractiveQ
               <span className="text-lg">
                 {isObjective
                   ? isCorrect
-                    ? "🎉"
-                    : "😞"
-                  : "📝"}
+                    ? <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    : <XCircle className="h-5 w-5 text-red-600" />
+                  : <FileText className="h-5 w-5 text-[var(--color-terracotta)]" />}
               </span>
               <p className="text-sm font-medium text-[var(--color-warm-gray-800)]">
                 {isObjective
@@ -893,7 +911,14 @@ export function InteractiveQuiz({ content, resourceId, sessionId }: InteractiveQ
             {q.explanation && (
               <div className="mt-3 rounded-lg bg-white/60 px-3 py-2">
                 <p className="mb-1 text-xs font-medium text-[var(--color-warm-gray-700)]">
-                  {isObjective && !isCorrect ? "📖 详细解析" : "💡 知识点总结"}
+                  <span className="inline-flex items-center gap-1.5">
+                    {isObjective && !isCorrect ? (
+                      <BookOpenText className="h-3.5 w-3.5 text-[var(--color-terracotta)]" />
+                    ) : (
+                      <Lightbulb className="h-3.5 w-3.5 text-[var(--color-terracotta)]" />
+                    )}
+                    {isObjective && !isCorrect ? "详细解析" : "知识点总结"}
+                  </span>
                 </p>
                 <p className="text-xs leading-5 text-[var(--color-warm-gray-600)]">
                   {q.explanation}
@@ -908,8 +933,9 @@ export function InteractiveQuiz({ content, resourceId, sessionId }: InteractiveQ
       {isRevealed && (
         <div className="rounded-xl bg-[var(--color-ivory)] ring-1 ring-[var(--color-warm-gray-200)] overflow-hidden">
           <div className="border-b border-[var(--color-warm-gray-200)] bg-[var(--color-parchment)]/70 px-4 py-2.5">
-            <p className="text-xs font-medium text-[var(--color-warm-gray-700)]">
-              💬 对这道题有疑问？和 AI 讨论
+            <p className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--color-warm-gray-700)]">
+              <MessageCircleQuestion className="h-3.5 w-3.5 text-[var(--color-terracotta)]" />
+              对这道题有疑问？和 AI 讨论
             </p>
           </div>
 
@@ -996,9 +1022,10 @@ export function InteractiveQuiz({ content, resourceId, sessionId }: InteractiveQ
               type="button"
               onClick={handleExamSubmit}
               disabled={!hasAnswer}
-              className="rounded-lg bg-[var(--color-terracotta)] px-6 py-2 text-xs font-medium text-white transition-colors hover:bg-[var(--color-terracotta-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--color-terracotta)] px-6 py-2 text-xs font-medium text-white transition-colors hover:bg-[var(--color-terracotta-hover)] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              🏆 交卷
+              <Trophy className="h-3.5 w-3.5" />
+              交卷
             </button>
           ) : (
             <span className="rounded-lg bg-[var(--color-terracotta)]/10 px-4 py-2 text-xs text-[var(--color-terracotta)]">

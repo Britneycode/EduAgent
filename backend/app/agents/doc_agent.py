@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+from app.agents.common import build_profile_lines, build_wiki_context_with_sources
 from app.agents.resource_types import AgentResource
 from app.core.llm import BaseLLMClient, get_llm_client
 
@@ -31,39 +32,14 @@ class DocAgent:
     ) -> AgentResource:
         normalized_topic = topic.strip() if topic else "当前学习主题"
 
-        # RAG 检索知识库上下文（带来源引用）
-        wiki_context = ""
-        wiki_fallback = False
-        confidence = 0.0
-        sources: list[dict[str, Any]] = []
-        if self.wiki_service is not None:
-            try:
-                ctx_with_sources = (
-                    await self.wiki_service.build_context_with_sources(
-                        query=normalized_topic, top_k=3, course_id=course_id
-                    )
-                )
-                wiki_context = ctx_with_sources.context
-                confidence = ctx_with_sources.confidence
-                sources = [
-                    {
-                        "chapter": s.chapter,
-                        "section": s.section,
-                        "title": s.title,
-                        "score": s.score,
-                        "chunk_id": s.chunk_id,
-                        "snippet": s.snippet,
-                        "source_name": s.source_name,
-                    }
-                    for s in ctx_with_sources.sources
-                ]
-                if not wiki_context.strip():
-                    wiki_fallback = True
-            except Exception:
-                logger.warning("Wiki 检索失败，将不使用知识库上下文", exc_info=True)
-                wiki_fallback = True
-        else:
-            wiki_fallback = True
+        wiki_context, wiki_fallback, confidence, sources = (
+            await build_wiki_context_with_sources(
+                self.wiki_service,
+                query=normalized_topic,
+                course_id=course_id,
+                logger=logger,
+            )
+        )
 
         prompt = self.build_prompt(normalized_topic, profile or {}, wiki_context)
         content = await self.llm_client.generate_text(prompt)
@@ -117,42 +93,7 @@ class DocAgent:
         return "\n".join(parts)
 
     def _build_profile_lines(self, profile: dict[str, Any]) -> list[str]:
-        knowledge_base = profile.get("knowledge_base") or {}
-        knowledge_text = self._format_knowledge_base(knowledge_base)
-
-        return [
-            f"- 专业：{profile.get('major') or '未提供'}",
-            f"- 年级：{profile.get('grade') or '未提供'}",
-            f"- 学习目标：{profile.get('learning_goal') or '未提供'}",
-            f"- 认知风格：{profile.get('cognitive_style') or '未提供'}",
-            f"- 知识基础：{knowledge_text}",
-            f"- 学习节奏：{profile.get('learning_pace') or '未提供'}",
-            f"- 编程水平：{profile.get('coding_level') or '未提供'}",
-            f"- 每周可投入时间：{profile.get('weekly_hours') or '未提供'}",
-        ]
-
-    def _format_knowledge_base(self, knowledge_base: Any) -> str:
-        if not isinstance(knowledge_base, dict) or not knowledge_base:
-            return "未提供"
-
-        subject = knowledge_base.get("subject")
-        level = knowledge_base.get("level")
-        if subject and level:
-            return f"{subject}（{level}）"
-        if subject:
-            return str(subject)
-        if level:
-            return str(level)
-
-        parts: list[str] = []
-        for concept, raw_level in knowledge_base.items():
-            if isinstance(raw_level, dict):
-                raw_level = raw_level.get("level") or raw_level.get("status")
-            if raw_level:
-                parts.append(f"{concept}（{raw_level}）")
-            else:
-                parts.append(str(concept))
-        return "、".join(parts) if parts else "未提供"
+        return build_profile_lines(profile)
 
     def _normalize_content(self, topic: str, content: str) -> str:
         normalized = content.strip()

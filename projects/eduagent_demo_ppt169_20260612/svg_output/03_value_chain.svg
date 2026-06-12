@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <defs>
+    <linearGradient id="warmBand" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#c96442" stop-opacity="0.18"/>
+      <stop offset="55%" stop-color="#6b8e6b" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#1565C0" stop-opacity="0.14"/>
+    </linearGradient>
+  </defs>
+  <g id="background">
+    <rect x="0" y="0" width="1280" height="720" fill="#f5f4ed"/>
+    <rect x="0" y="0" width="1280" height="8" fill="#c96442"/>
+    <circle cx="1050" cy="165" r="120" fill="#1565C0" fill-opacity="0.06"/>
+    <circle cx="112" cy="600" r="140" fill="#6b8e6b" fill-opacity="0.07"/>
+  </g>
+  <g id="header">
+    <text x="56" y="70" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="34" fill="#141413" font-weight="800">一句话价值：先理解学生，再组织知识，再生成资源，再陪伴学习</text>
+    <text x="56" y="105" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#5e5d59">系统价值来自连续协作，而不是一次回答。</text>
+  </g>
+  <g id="hero-claim">
+    <text x="72" y="208" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="52" fill="#141413" font-weight="800">
+      <tspan x="72" dy="0">从</tspan>
+      <tspan fill="#c96442">学生画像</tspan>
+      <tspan>到</tspan>
+      <tspan fill="#1565C0">知识组织</tspan>
+      <tspan>，再到</tspan>
+      <tspan fill="#6b8e6b">学习反馈</tspan>
+    </text>
+    <text x="76" y="254" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="22" fill="#5e5d59">EduAgent 把教育中的“内容生成”扩展为“学习过程编排”。</text>
+  </g>
+  <g id="value-chain">
+    <rect x="88" y="350" width="1104" height="120" rx="60" fill="url(#warmBand)" stroke="#e8e6dc" stroke-width="1"/>
+    <line x1="214" y1="410" x2="1066" y2="410" stroke="#c96442" stroke-width="4" stroke-linecap="round" stroke-opacity="0.55"/>
+    <polygon points="1066,410 1048,400 1048,420" fill="#c96442"/>
+    <g id="step-understand">
+      <circle cx="214" cy="410" r="54" fill="#faf9f5" stroke="#c96442" stroke-width="4"/>
+      <text x="214" y="404" text-anchor="middle" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="28" fill="#c96442" font-weight="800">01</text>
+      <text x="214" y="432" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#141413" font-weight="700">理解学生</text>
+    </g>
+    <g id="step-knowledge">
+      <circle cx="498" cy="410" r="54" fill="#faf9f5" stroke="#1565C0" stroke-width="4"/>
+      <text x="498" y="404" text-anchor="middle" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="28" fill="#1565C0" font-weight="800">02</text>
+      <text x="498" y="432" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#141413" font-weight="700">组织知识</text>
+    </g>
+    <g id="step-resource">
+      <circle cx="782" cy="410" r="54" fill="#faf9f5" stroke="#b07d62" stroke-width="4"/>
+      <text x="782" y="404" text-anchor="middle" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="28" fill="#b07d62" font-weight="800">03</text>
+      <text x="782" y="432" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#141413" font-weight="700">生成资源</text>
+    </g>
+    <g id="step-companion">
+      <circle cx="1066" cy="410" r="54" fill="#faf9f5" stroke="#6b8e6b" stroke-width="4"/>
+      <text x="1066" y="404" text-anchor="middle" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="28" fill="#6b8e6b" font-weight="800">04</text>
+      <text x="1066" y="432" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#141413" font-weight="700">陪伴学习</text>
+    </g>
+  </g>
+  <g id="chain-caption">
+    <text x="214" y="532" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#5e5d59">
+      <tspan x="214" dy="0">自然语言抽取</tspan>
+      <tspan x="214" dy="24">8 维画像</tspan>
+    </text>
+    <text x="498" y="532" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#5e5d59">
+      <tspan x="498" dy="0">LLM Wiki</tspan>
+      <tspan x="498" dy="24">RAG 与图谱</tspan>
+    </text>
+    <text x="782" y="532" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#5e5d59">
+      <tspan x="782" dy="0">讲义、测验</tspan>
+      <tspan x="782" dy="24">代码与媒体</tspan>
+    </text>
+    <text x="1066" y="532" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#5e5d59">
+      <tspan x="1066" dy="0">错题复习</tspan>
+      <tspan x="1066" dy="24">路径更新</tspan>
+    </text>
+  </g>
+  <g id="footer">
+    <text x="56" y="690" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#87867f">EduAgent | 一句话价值</text>
+    <text x="1224" y="690" text-anchor="end" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#87867f">03</text>
+  </g>
+</svg>

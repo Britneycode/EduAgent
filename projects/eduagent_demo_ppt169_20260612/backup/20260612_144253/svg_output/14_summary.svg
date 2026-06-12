@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <g id="background">
+    <rect x="0" y="0" width="1280" height="720" fill="#f5f4ed"/>
+    <rect x="0" y="0" width="1280" height="8" fill="#c96442"/>
+  </g>
+  <g id="header">
+    <text x="56" y="68" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="34" fill="#141413" font-weight="800">EduAgent 已覆盖核心要求，并保留清晰的增强路径</text>
+    <text x="56" y="101" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#5e5d59">当前系统可完整展示比赛核心链路，后续可增强视频导出、OCR 和生产级存储。</text>
+  </g>
+  <g id="coverage-matrix">
+    <rect x="56" y="136" width="730" height="440" rx="8" fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5"/>
+    <text x="90" y="182" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="26" fill="#141413" font-weight="800">比赛需求覆盖</text>
+    <g id="matrix-header">
+      <rect x="90" y="210" width="654" height="38" rx="8" fill="#30302e"/>
+      <text x="122" y="235" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#ffffff" font-weight="700">要求</text>
+      <text x="548" y="235" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#ffffff" font-weight="700">状态</text>
+      <text x="646" y="235" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#ffffff" font-weight="700">证据</text>
+    </g>
+    <g id="row-1">
+      <text x="122" y="278" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" fill="#141413">多智能体协同</text>
+      <rect x="530" y="258" width="70" height="28" rx="8" fill="#6b8e6b"/>
+      <text x="565" y="278" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#ffffff" font-weight="700">完成</text>
+      <text x="646" y="278" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5e5d59">LangGraph + 9 类 Agent</text>
+    </g>
+    <line x1="90" y1="302" x2="744" y2="302" stroke="#e8e6dc" stroke-width="1"/>
+    <g id="row-2">
+      <text x="122" y="332" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" fill="#141413">不少于 6 维学生画像</text>
+      <rect x="530" y="312" width="70" height="28" rx="8" fill="#6b8e6b"/>
+      <text x="565" y="332" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#ffffff" font-weight="700">完成</text>
+      <text x="646" y="332" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5e5d59">8 维动态画像</text>
+    </g>
+    <line x1="90" y1="356" x2="744" y2="356" stroke="#e8e6dc" stroke-width="1"/>
+    <g id="row-3">
+      <text x="122" y="386" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" fill="#141413">5 类以上学习资源</text>
+      <rect x="530" y="366" width="70" height="28" rx="8" fill="#6b8e6b"/>
+      <text x="565" y="386" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#ffffff" font-weight="700">完成</text>
+      <text x="646" y="386" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5e5d59">8 类资源生成</text>
+    </g>
+    <line x1="90" y1="410" x2="744" y2="410" stroke="#e8e6dc" stroke-width="1"/>
+    <g id="row-4">
+      <text x="122" y="440" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" fill="#141413">个性化路径与辅导</text>
+      <rect x="530" y="420" width="70" height="28" rx="8" fill="#6b8e6b"/>
+      <text x="565" y="440" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#ffffff" font-weight="700">完成</text>
+      <text x="646" y="440" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5e5d59">路径服务 + Tutor</text>
+    </g>
+    <line x1="90" y1="464" x2="744" y2="464" stroke="#e8e6dc" stroke-width="1"/>
+    <g id="row-5">
+      <text x="122" y="494" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" fill="#141413">学习效果评估</text>
+      <rect x="530" y="474" width="70" height="28" rx="8" fill="#6b8e6b"/>
+      <text x="565" y="494" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#ffffff" font-weight="700">完成</text>
+      <text x="646" y="494" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5e5d59">测验、错题、仪表盘</text>
+    </g>
+    <line x1="90" y1="518" x2="744" y2="518" stroke="#e8e6dc" stroke-width="1"/>
+    <g id="row-6">
+      <text x="122" y="548" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" fill="#141413">防幻觉与安全</text>
+      <rect x="530" y="528" width="70" height="28" rx="8" fill="#6b8e6b"/>
+      <text x="565" y="548" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#ffffff" font-weight="700">完成</text>
+      <text x="646" y="548" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5e5d59">RAG 引用 + 安全护栏</text>
+    </g>
+  </g>
+  <g id="roadmap-panel">
+    <rect x="822" y="136" width="402" height="440" rx="8" fill="#30302e"/>
+    <text x="858" y="184" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="26" fill="#ffffff" font-weight="800">后续增强路径</text>
+    <g id="roadmap-1">
+      <circle cx="878" cy="242" r="9" fill="#c96442"/>
+      <text x="904" y="248" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#ffffff" font-weight="700">完整视频导出</text>
+      <text x="904" y="274" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#ffffff">动画、字幕、旁白包进一步自动化。</text>
+    </g>
+    <g id="roadmap-2">
+      <circle cx="878" cy="326" r="9" fill="#1565C0"/>
+      <text x="904" y="332" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#ffffff" font-weight="700">OCR 与资料解析增强</text>
+      <text x="904" y="358" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#ffffff">覆盖更多课件、扫描件和手写题型。</text>
+    </g>
+    <g id="roadmap-3">
+      <circle cx="878" cy="410" r="9" fill="#6b8e6b"/>
+      <text x="904" y="416" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#ffffff" font-weight="700">生产级对象存储</text>
+      <text x="904" y="442" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#ffffff">大班级、多课程场景下稳定扩展。</text>
+    </g>
+    <rect x="858" y="500" width="320" height="42" rx="8" fill="#faf9f5"/>
+    <text x="1018" y="527" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" fill="#141413" font-weight="700">答辩主张：系统已可演示核心闭环</text>
+  </g>
+  <g id="footer">
+    <text x="56" y="690" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#87867f">EduAgent | 总结</text>
+    <text x="1224" y="690" text-anchor="end" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#87867f">14</text>
+  </g>
+</svg>

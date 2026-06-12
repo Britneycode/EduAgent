@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <g id="background">
+    <rect x="0" y="0" width="1280" height="720" fill="#f5f4ed" />
+    <rect x="0" y="0" width="1280" height="8" fill="#c96442" />
+  </g>
+  <g id="header">
+    <text x="56" y="68" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="34" fill="#141413" font-weight="800">高等教育的关键矛盾不是缺资源，而是缺匹配</text>
+    <text x="56" y="101" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#5e5d59">海量资源与学生差异之间，缺少持续理解、解释与个性化组织机制。</text>
+    <path fill="#faf9f5" stroke="#e8e6dc" stroke-width="1" d="M1048,48 H1152 A8,8 0 0 1 1160,56 V70 A8,8 0 0 1 1152,78 H1048 A8,8 0 0 1 1040,70 V56 A8,8 0 0 1 1048,48 Z" />
+    <text x="1100" y="69" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#c96442" font-weight="700">Pain Point</text>
+  </g>
+  <g id="core-problem">
+    <path fill="#30302e" d="M64,150 H490 A8,8 0 0 1 498,158 V572 A8,8 0 0 1 490,580 H64 A8,8 0 0 1 56,572 V158 A8,8 0 0 1 64,150 Z" />
+    <text font-size="52" font-weight="800" fill="#ffffff" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" x="90" y="218"><tspan>不是</tspan>
+      <tspan fill="#c96442">资源少</tspan>
+    </text><line x1="90" y1="254" x2="420" y2="254" stroke="#f5f4ed" stroke-width="1.5" stroke-dasharray="8,4" stroke-opacity="0.55" />
+    <text font-size="52" font-weight="800" fill="#ffffff" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" x="90" y="330"><tspan>而是</tspan>
+      <tspan fill="#6b8e6b">匹配弱</tspan>
+    </text><text font-size="20" fill="#ffffff" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" x="92" y="405">学生基础、目标、节奏与兴趣</text><text font-size="20" fill="#ffffff" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" x="92" y="437">不断变化，但传统资源组织</text><text font-size="20" fill="#ffffff" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" x="92" y="469">很少能跟着变化。</text><path fill="#faf9f5" d="M98,510 H422 A8,8 0 0 1 430,518 V544 A8,8 0 0 1 422,552 H98 A8,8 0 0 1 90,544 V518 A8,8 0 0 1 98,510 Z" />
+    <text x="260" y="538" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#141413" font-weight="700">个性化不是功能点，是组织方式</text>
+  </g>
+  <g id="card-resource">
+    <path fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5" d="M544,150 H848 A8,8 0 0 1 856,158 V268 A8,8 0 0 1 848,276 H544 A8,8 0 0 1 536,268 V158 A8,8 0 0 1 544,150 Z" />
+    <path fill="#c96442" d="M540,150 H540 A4,4 0 0 1 544,154 V272 A4,4 0 0 1 540,276 H540 A4,4 0 0 1 536,272 V154 A4,4 0 0 1 540,150 Z" />
+    <circle cx="590" cy="198" r="24" fill="#c96442" fill-opacity="0.12" />
+    <path d="M578,188 L602,188 L602,208 L578,208 Z" fill="none" stroke="#c96442" stroke-width="3" />
+    <path d="M582,194 L598,194 M582,201 L594,201" stroke="#c96442" stroke-width="2" />
+    <text x="632" y="193" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="24" fill="#141413" font-weight="800">资源繁杂难筛选</text>
+    <text font-size="17" fill="#5e5d59" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" x="632" y="226">学生不知道该看什么、按什么顺序看，</text><text font-size="17" fill="#5e5d59" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" x="632" y="251">更难判断内容是否可信。</text></g>
+  <g id="card-standard">
+    <path fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5" d="M892,150 H1196 A8,8 0 0 1 1204,158 V268 A8,8 0 0 1 1196,276 H892 A8,8 0 0 1 884,268 V158 A8,8 0 0 1 892,150 Z" />
+    <path fill="#1565C0" d="M888,150 H888 A4,4 0 0 1 892,154 V272 A4,4 0 0 1 888,276 H888 A4,4 0 0 1 884,272 V154 A4,4 0 0 1 888,150 Z" />
+    <circle cx="938" cy="198" r="24" fill="#1565C0" fill-opacity="0.12" />
+    <path d="M926,204 C932,188 944,188 950,204" fill="none" stroke="#1565C0" stroke-width="3" />
+    <circle cx="938" cy="190" r="8" fill="none" stroke="#1565C0" stroke-width="3" />
+    <text x="980" y="193" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="24" fill="#141413" font-weight="800">标准课堂难适配</text>
+    <text font-size="17" fill="#5e5d59" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" x="980" y="226">同一讲法覆盖不同基础，</text><text font-size="17" fill="#5e5d59" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" x="980" y="251">进度与难度难以实时调整。</text></g>
+  <g id="card-chat">
+    <path fill="#faf9f5" stroke="#e8e6dc" stroke-width="1.5" d="M544,308 H1196 A8,8 0 0 1 1204,316 V460 A8,8 0 0 1 1196,468 H544 A8,8 0 0 1 536,460 V316 A8,8 0 0 1 544,308 Z" />
+    <path fill="#6b8e6b" d="M540,308 H540 A4,4 0 0 1 544,312 V464 A4,4 0 0 1 540,468 H540 A4,4 0 0 1 536,464 V312 A4,4 0 0 1 540,308 Z" />
+    <circle cx="600" cy="370" r="30" fill="#6b8e6b" fill-opacity="0.13" />
+    <path d="M582,360 Q600,344 618,360 Q632,374 616,388 L606,386 Q592,394 580,382 Q570,370 582,360 Z" fill="none" stroke="#6b8e6b" stroke-width="3" />
+    <text x="650" y="358" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="26" fill="#141413" font-weight="800">通用问答不理解学生，也不沉淀教学资产</text>
+    <text font-size="18" fill="#5e5d59" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" x="650" y="397">一次回答解决不了持续学习：没有画像记忆、没有课程边界、</text><text font-size="18" fill="#5e5d59" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" x="650" y="425">没有从资源到测验再到路径调整的闭环。</text></g>
+  <g id="bottom-answer">
+    <path fill="#ffffff" stroke="#e8e6dc" stroke-width="1.5" d="M544,510 H1196 A8,8 0 0 1 1204,518 V572 A8,8 0 0 1 1196,580 H544 A8,8 0 0 1 536,572 V518 A8,8 0 0 1 544,510 Z" />
+    <text x="570" y="552" font-family="SimHei, Microsoft YaHei, Arial, sans-serif" font-size="24" fill="#141413" font-weight="800">系统命题：</text>
+    <text x="692" y="552" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="22" fill="#5e5d59">
+      <tspan fill="#c96442" font-weight="700">持续理解学生</tspan>，再让知识、资源与评估围绕学生流动。
+    </text>
+  </g>
+  <g id="footer">
+    <text x="56" y="690" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#87867f">EduAgent | 教育痛点</text>
+    <text x="1224" y="690" text-anchor="end" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#87867f">02</text>
+  </g>
+</svg>

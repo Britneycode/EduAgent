@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight, ImageOff, Lightbulb, X } from "lucide-react";
 
 interface PptSlide {
   title: string;
@@ -100,7 +101,7 @@ export function PptImageGallery({ content }: { content: string }) {
           ) : (
             <div className="flex h-full w-full items-center justify-center">
               <div className="text-center">
-                <p className="text-4xl">🖼️</p>
+                <ImageOff className="mx-auto h-10 w-10 text-[var(--color-warm-gray-400)]" />
                 <p className="mt-2 text-sm text-[var(--color-warm-gray-400)]">
                   {currentSlide.error
                     ? `图片生成失败：${currentSlide.error}`
@@ -121,9 +122,7 @@ export function PptImageGallery({ content }: { content: string }) {
                 }}
                 className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 text-[var(--color-warm-gray-600)] shadow-sm ring-1 ring-[var(--color-warm-gray-200)] transition-colors hover:bg-white hover:text-[var(--color-terracotta)]"
               >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
+                <ChevronLeft className="h-4 w-4" />
               </button>
               <button
                 type="button"
@@ -133,9 +132,7 @@ export function PptImageGallery({ content }: { content: string }) {
                 }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 text-[var(--color-warm-gray-600)] shadow-sm ring-1 ring-[var(--color-warm-gray-200)] transition-colors hover:bg-white hover:text-[var(--color-terracotta)]"
               >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
+                <ChevronRight className="h-4 w-4" />
               </button>
             </>
           )}
@@ -181,8 +178,9 @@ export function PptImageGallery({ content }: { content: string }) {
             </ul>
           )}
           {currentSlide.summary && (
-            <p className="text-xs leading-5 text-[var(--color-warm-gray-500)]">
-              💡 {currentSlide.summary}
+            <p className="inline-flex items-start gap-1.5 text-xs leading-5 text-[var(--color-warm-gray-500)]">
+              <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--color-terracotta)]" />
+              <span>{currentSlide.summary}</span>
             </p>
           )}
         </div>
@@ -232,9 +230,7 @@ export function PptImageGallery({ content }: { content: string }) {
             onClick={() => setZoomedImage(null)}
             className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
           >
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <X className="h-6 w-6" />
           </button>
           <img
             src={zoomedImage}

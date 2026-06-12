@@ -35,6 +35,12 @@ const PACE_MAP: Record<string, number> = {
   "很快": 5,
 };
 
+const RADAR_COLORS = {
+  primary: "var(--color-terracotta)",
+  tooltipBg: "var(--color-ivory)",
+  tooltipBorder: "var(--color-warm-gray-200)",
+};
+
 function codingScore(level: string | null): number {
   if (!level) return 0;
   return CODING_LEVEL_MAP[level] ?? 2;
@@ -113,21 +119,21 @@ export function ProfileRadarChart({ profile }: ProfileRadarChartProps) {
           <PolarRadiusAxis
             angle={90}
             domain={[0, 5]}
-            tick={{ fontSize: 10, fill: "var(--color-warm-gray-400)" }}
+            tick={{ fontSize: 10, fill: "var(--color-warm-gray-500)" }}
             tickCount={6}
           />
           <Radar
             name="画像"
             dataKey="value"
-            stroke="#c96442"
-            fill="#c96442"
+            stroke={RADAR_COLORS.primary}
+            fill={RADAR_COLORS.primary}
             fillOpacity={0.25}
             strokeWidth={2}
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: "#faf9f5",
-              border: "1px solid #d5cec0",
+              backgroundColor: RADAR_COLORS.tooltipBg,
+              border: `1px solid ${RADAR_COLORS.tooltipBorder}`,
               borderRadius: "8px",
               fontSize: "12px",
             }}

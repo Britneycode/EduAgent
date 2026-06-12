@@ -4,6 +4,7 @@ import json
 import logging
 from typing import TYPE_CHECKING, Any
 
+from app.agents.common import build_wiki_context_with_sources, parse_json_object
 from app.agents.resource_types import AgentResource
 from app.core.image_gen import ImageGenClient, ImageGenError
 from app.core.llm import BaseLLMClient, get_llm_client
@@ -164,7 +165,7 @@ class MediaAgent:
         content = json.dumps(ppt_data, ensure_ascii=False)
         return AgentResource(
             title=f"{normalized_topic}教学演示PPT",
-            resource_type="ppt_images",
+            resource_type="ppt",
             content=content,
             knowledge_point=normalized_topic,
             agent_name="MediaAgent",
@@ -337,30 +338,13 @@ class MediaAgent:
     async def _build_wiki_context(
         self, topic: str, course_id: str | None = None
     ) -> tuple[str, bool, float, list[dict[str, Any]]]:
-        if self.wiki_service is None:
-            return "", True, 0.0, []
-        try:
-            ctx_with_sources = await self.wiki_service.build_context_with_sources(
-                query=topic, top_k=3, course_id=course_id
-            )
-            if not ctx_with_sources.context.strip():
-                return "", True, 0.0, []
-            sources = [
-                {
-                    "chapter": s.chapter,
-                    "section": s.section,
-                    "title": s.title,
-                    "score": s.score,
-                    "chunk_id": s.chunk_id,
-                    "snippet": s.snippet,
-                    "source_name": s.source_name,
-                }
-                for s in ctx_with_sources.sources
-            ]
-            return ctx_with_sources.context, False, ctx_with_sources.confidence, sources
-        except Exception:
-            logger.warning("Wiki 检索失败", exc_info=True)
-            return "", True, 0.0, []
+        return await build_wiki_context_with_sources(
+            self.wiki_service,
+            query=topic,
+            top_k=3,
+            course_id=course_id,
+            logger=logger,
+        )
 
     def _normalize_content(self, topic: str, content: str, label: str) -> str:
         normalized = content.strip()
@@ -369,8 +353,6 @@ class MediaAgent:
         return f"{topic}{label}\n\n暂未生成到有效内容，请稍后重试。"
 
     def _parse_json(self, raw: str) -> dict[str, Any]:
-        import json as _json
-
         cleaned = raw.strip()
         if cleaned.startswith("```"):
             cleaned = cleaned.split("\n", 1)[-1]
@@ -383,4 +365,4 @@ class MediaAgent:
         if start != -1 and end != -1:
             cleaned = cleaned[start : end + 1]
 
-        return _json.loads(cleaned)
+        return parse_json_object(cleaned)

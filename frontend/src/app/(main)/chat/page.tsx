@@ -1,18 +1,32 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import {
+  ArrowRight,
+  BarChart3,
+  BookOpen,
+  CheckCircle2,
+  Clock3,
+  FileQuestion,
+  Flame,
+  Lightbulb,
+  Map,
+  Presentation,
+  Repeat2,
+  Send,
+} from "lucide-react";
 import { createSession, fetchLearningDashboard, fetchReviewQueue, fetchProfile } from "@/lib/api";
 import { setPendingMessage } from "@/lib/pendingMessage";
 import { VoiceInput } from "@/components/chat/VoiceInput";
 import type { LearningDashboard, ReviewItem, Profile } from "@/lib/types";
 
 const STARTER_PROMPTS = [
-  { label: "梳理学习路径", text: "帮我梳理《人工智能导论》的学习路径", icon: "🗺️" },
-  { label: "出练习题", text: "给我出一组神经网络入门练习题", icon: "📝" },
-  { label: "生成PPT", text: "帮我做一个Python基础的PPT", icon: "🖼️" },
-  { label: "答疑解惑", text: "什么是梯度下降？为什么它很重要？", icon: "💡" },
+  { label: "梳理学习路径", text: "帮我梳理《人工智能导论》的学习路径", icon: Map },
+  { label: "出练习题", text: "给我出一组神经网络入门练习题", icon: FileQuestion },
+  { label: "生成 PPT", text: "帮我做一个 Python 基础的 PPT", icon: Presentation },
+  { label: "答疑解惑", text: "什么是梯度下降？为什么它很重要？", icon: Lightbulb },
 ];
 
 function formatMinutes(sec: number): string {
@@ -47,17 +61,21 @@ export default function ChatHomePage() {
   // 学习打卡
   const [streak, setStreak] = useState(0);
   useEffect(() => {
-    const today = new Date().toISOString().slice(0, 10);
-    const stored = JSON.parse(localStorage.getItem("eduagent_checkin") || "{}");
-    const lastDate = stored.lastDate || "";
-    if (lastDate !== today) {
-      const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-      const newStreak = lastDate === yesterday ? (stored.streak || 0) + 1 : 1;
-      localStorage.setItem("eduagent_checkin", JSON.stringify({ lastDate: today, streak: newStreak }));
-      setStreak(newStreak);
-    } else {
-      setStreak(stored.streak || 1);
-    }
+    const timer = window.setTimeout(() => {
+      const today = new Date().toISOString().slice(0, 10);
+      const stored = JSON.parse(localStorage.getItem("eduagent_checkin") || "{}");
+      const lastDate = stored.lastDate || "";
+      if (lastDate !== today) {
+        const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+        const newStreak = lastDate === yesterday ? (stored.streak || 0) + 1 : 1;
+        localStorage.setItem("eduagent_checkin", JSON.stringify({ lastDate: today, streak: newStreak }));
+        setStreak(newStreak);
+      } else {
+        setStreak(stored.streak || 1);
+      }
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   const handleSend = async (message?: string) => {
@@ -95,7 +113,8 @@ export default function ChatHomePage() {
           </p>
           {streak > 0 && (
             <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[var(--color-ivory)] px-3 py-1 text-xs text-[var(--color-warm-gray-600)] ring-1 ring-[var(--color-warm-gray-200)]">
-              🔥 连续学习 <span className="font-medium text-[var(--color-terracotta)]">{streak}</span> 天
+              <Flame className="h-3.5 w-3.5 text-[var(--color-terracotta)]" />
+              连续学习 <span className="font-medium text-[var(--color-terracotta)]">{streak}</span> 天
             </div>
           )}
         </div>
@@ -113,16 +132,17 @@ export default function ChatHomePage() {
           />
           <div className="mt-3 flex items-center justify-between">
             <p className="text-xs text-[var(--color-warm-gray-400)]">
-              按 Enter 发送 · 试试输入"出几道题"或"帮我做个PPT"
+              按 Enter 发送 · 试试输入「出几道题」或「帮我做个 PPT」
             </p>
             <div className="flex items-center gap-2">
               <VoiceInput onResult={(text) => setInput((prev) => prev + text)} disabled={sending} />
               <button
                 onClick={() => handleSend()}
                 disabled={!input.trim() || sending}
-                className="rounded-xl bg-[var(--color-terracotta)] px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-terracotta-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-xl bg-[var(--color-terracotta)] px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-terracotta-hover)] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {sending ? "创建中..." : "开始对话"}
+              {!sending && <Send className="h-4 w-4" />}
             </button>
           </div>
         </div>
@@ -137,7 +157,9 @@ export default function ChatHomePage() {
               onClick={() => handleSend(p.text)}
               className="flex items-center gap-3 rounded-xl bg-[var(--color-ivory)] px-4 py-3 text-left ring-1 ring-[var(--color-warm-gray-200)] transition-all hover:bg-[var(--color-parchment)] hover:ring-[var(--color-terracotta)]/40 disabled:opacity-50"
             >
-              <span className="text-xl">{p.icon}</span>
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--color-parchment)] text-[var(--color-terracotta)] ring-1 ring-[var(--color-warm-gray-200)]">
+                <p.icon className="h-5 w-5" />
+              </span>
               <div>
                 <p className="text-sm font-medium text-[var(--color-warm-gray-700)]">{p.label}</p>
                 <p className="text-[11px] text-[var(--color-warm-gray-400)] truncate max-w-[140px]">{p.text}</p>
@@ -150,25 +172,25 @@ export default function ChatHomePage() {
         {!loading && hasStats && (
           <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard
-              icon="📚"
+              icon={BookOpen}
               label="学习活动"
               value={String(dashboard!.summary.total_activities)}
               href="/analytics"
             />
             <StatCard
-              icon="⏱️"
+              icon={Clock3}
               label="学习时长"
               value={formatMinutes(dashboard!.summary.total_duration_sec)}
               href="/analytics"
             />
             <StatCard
-              icon="📝"
+              icon={FileQuestion}
               label="测验均分"
               value={`${Math.round(dashboard!.summary.average_quiz_score)}分`}
               href="/analytics"
             />
             <StatCard
-              icon="🔄"
+              icon={Repeat2}
               label="待复习"
               value={`${dashboard!.summary.pending_review_count}项`}
               href="/review"
@@ -183,8 +205,9 @@ export default function ChatHomePage() {
           <div className="rounded-2xl bg-[var(--color-ivory)] p-5 ring-1 ring-[var(--color-warm-gray-200)]">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="font-serif text-lg text-[var(--color-warm-gray-800)]">我的学习画像</h3>
-              <Link href="/profile" className="text-xs text-[var(--color-terracotta)] hover:underline">
-                完善画像 →
+              <Link href="/profile" className="inline-flex items-center gap-1 text-xs text-[var(--color-terracotta)] hover:underline">
+                完善画像
+                <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
             {profile?.major ? (
@@ -221,13 +244,17 @@ export default function ChatHomePage() {
               <h3 className="font-serif text-lg text-[var(--color-warm-gray-800)]">
                 今日复习 {reviews.length > 0 && <span className="text-sm text-red-500">({reviews.length})</span>}
               </h3>
-              <Link href="/review" className="text-xs text-[var(--color-terracotta)] hover:underline">
-                查看全部 →
+              <Link href="/review" className="inline-flex items-center gap-1 text-xs text-[var(--color-terracotta)] hover:underline">
+                查看全部
+                <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
             {reviews.length === 0 ? (
               <div className="py-6 text-center">
-                <p className="text-sm text-[var(--color-warm-gray-500)]">🎉 今天没有到期复习，继续保持！</p>
+                <p className="inline-flex items-center gap-2 text-sm text-[var(--color-warm-gray-500)]">
+                  <CheckCircle2 className="h-4 w-4 text-[var(--color-resource-mindmap)]" />
+                  今天没有到期复习，继续保持！
+                </p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -282,8 +309,9 @@ export default function ChatHomePage() {
 function StatCard({
   icon, label, value, href, highlight,
 }: {
-  icon: string; label: string; value: string; href: string; highlight?: boolean;
+  icon: typeof BarChart3; label: string; value: string; href: string; highlight?: boolean;
 }) {
+  const Icon = icon;
   return (
     <Link
       href={href}
@@ -291,7 +319,9 @@ function StatCard({
         highlight ? "ring-[var(--color-terracotta)]" : "ring-[var(--color-warm-gray-200)]"
       }`}
     >
-      <span className="text-2xl">{icon}</span>
+      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-parchment)] text-[var(--color-terracotta)] ring-1 ring-[var(--color-warm-gray-200)]">
+        <Icon className="h-5 w-5" />
+      </span>
       <p className="mt-2 text-lg font-medium text-[var(--color-warm-gray-800)]">{value}</p>
       <p className="text-xs text-[var(--color-warm-gray-500)]">{label}</p>
     </Link>

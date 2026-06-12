@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { AlertCircle, ArrowRight, LockKeyhole, UserRound } from "lucide-react";
 import { register } from "@/lib/api";
 
 export default function RegisterPage() {
@@ -42,7 +43,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="rounded-2xl bg-[var(--color-ivory)] p-8 ring-1 ring-[var(--color-warm-gray-200)]">
+    <div className="rounded-2xl bg-[var(--color-ivory)] p-8 shadow-[var(--shadow-whisper)] ring-1 ring-[var(--color-warm-gray-200)]">
       <div className="mb-8 text-center">
         <h1 className="mb-2 text-3xl font-medium text-[var(--color-terracotta)] font-serif">
           EduAgent
@@ -57,56 +58,69 @@ export default function RegisterPage() {
           <label className="mb-1.5 block text-sm text-[var(--color-warm-gray-600)]">
             用户名
           </label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="请输入用户名"
-            className="w-full rounded-xl bg-[var(--color-parchment)] px-4 py-3 text-sm ring-1 ring-[var(--color-warm-gray-200)] placeholder:text-[var(--color-warm-gray-400)] focus:outline-none focus:ring-[var(--color-terracotta)]"
-            autoComplete="username"
-          />
+          <div className="flex items-center gap-3 rounded-xl bg-[var(--color-parchment)] px-4 py-3 ring-1 ring-[var(--color-warm-gray-200)] focus-within:ring-[var(--color-terracotta)]">
+            <UserRound className="h-4 w-4 shrink-0 text-[var(--color-warm-gray-400)]" />
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="请输入用户名"
+              className="min-w-0 flex-1 bg-transparent text-sm placeholder:text-[var(--color-warm-gray-400)] focus:outline-none"
+              autoComplete="username"
+            />
+          </div>
         </div>
         <div>
           <label className="mb-1.5 block text-sm text-[var(--color-warm-gray-600)]">
             昵称（选填）
           </label>
-          <input
-            type="text"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="给自己取个名字"
-            className="w-full rounded-xl bg-[var(--color-parchment)] px-4 py-3 text-sm ring-1 ring-[var(--color-warm-gray-200)] placeholder:text-[var(--color-warm-gray-400)] focus:outline-none focus:ring-[var(--color-terracotta)]"
-          />
+          <div className="flex items-center gap-3 rounded-xl bg-[var(--color-parchment)] px-4 py-3 ring-1 ring-[var(--color-warm-gray-200)] focus-within:ring-[var(--color-terracotta)]">
+            <UserRound className="h-4 w-4 shrink-0 text-[var(--color-warm-gray-400)]" />
+            <input
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="给自己取个名字"
+              className="min-w-0 flex-1 bg-transparent text-sm placeholder:text-[var(--color-warm-gray-400)] focus:outline-none"
+            />
+          </div>
         </div>
         <div>
           <label className="mb-1.5 block text-sm text-[var(--color-warm-gray-600)]">
             密码
           </label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="请输入密码"
-            className="w-full rounded-xl bg-[var(--color-parchment)] px-4 py-3 text-sm ring-1 ring-[var(--color-warm-gray-200)] placeholder:text-[var(--color-warm-gray-400)] focus:outline-none focus:ring-[var(--color-terracotta)]"
-            autoComplete="new-password"
-          />
+          <div className="flex items-center gap-3 rounded-xl bg-[var(--color-parchment)] px-4 py-3 ring-1 ring-[var(--color-warm-gray-200)] focus-within:ring-[var(--color-terracotta)]">
+            <LockKeyhole className="h-4 w-4 shrink-0 text-[var(--color-warm-gray-400)]" />
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="请输入密码"
+              className="min-w-0 flex-1 bg-transparent text-sm placeholder:text-[var(--color-warm-gray-400)] focus:outline-none"
+              autoComplete="new-password"
+            />
+          </div>
         </div>
         <div>
           <label className="mb-1.5 block text-sm text-[var(--color-warm-gray-600)]">
             确认密码
           </label>
-          <input
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="再次输入密码"
-            className="w-full rounded-xl bg-[var(--color-parchment)] px-4 py-3 text-sm ring-1 ring-[var(--color-warm-gray-200)] placeholder:text-[var(--color-warm-gray-400)] focus:outline-none focus:ring-[var(--color-terracotta)]"
-            autoComplete="new-password"
-          />
+          <div className="flex items-center gap-3 rounded-xl bg-[var(--color-parchment)] px-4 py-3 ring-1 ring-[var(--color-warm-gray-200)] focus-within:ring-[var(--color-terracotta)]">
+            <LockKeyhole className="h-4 w-4 shrink-0 text-[var(--color-warm-gray-400)]" />
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="再次输入密码"
+              className="min-w-0 flex-1 bg-transparent text-sm placeholder:text-[var(--color-warm-gray-400)] focus:outline-none"
+              autoComplete="new-password"
+            />
+          </div>
         </div>
 
         {error && (
-          <p className="rounded-lg bg-[var(--color-parchment)] px-3 py-2 text-sm text-[var(--color-terracotta)] ring-1 ring-[var(--color-warm-gray-200)]">
+          <p className="flex items-center gap-2 rounded-lg bg-[var(--color-parchment)] px-3 py-2 text-sm text-[var(--color-terracotta)] ring-1 ring-[var(--color-warm-gray-200)]">
+            <AlertCircle className="h-4 w-4 shrink-0" />
             {error}
           </p>
         )}
@@ -114,9 +128,10 @@ export default function RegisterPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-xl bg-[var(--color-terracotta)] py-3 text-sm font-medium text-white transition-colors hover:bg-[var(--color-terracotta-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-terracotta)] py-3 text-sm font-medium text-white transition-colors hover:bg-[var(--color-terracotta-hover)] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? "正在注册..." : "注册"}
+          {!loading && <ArrowRight className="h-4 w-4" />}
         </button>
       </form>
 

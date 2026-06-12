@@ -46,6 +46,17 @@ const QUESTION_TYPE_LABELS: Record<string, string> = {
   short_answer: "简答",
 };
 
+const CHART_COLORS = {
+  primary: "var(--color-terracotta)",
+  secondary: "var(--color-resource-mindmap)",
+  bar: "var(--color-resource-reading)",
+  grid: "var(--color-warm-gray-200)",
+  tick: "var(--color-warm-gray-600)",
+  label: "var(--color-warm-gray-800)",
+  tooltipBg: "var(--color-ivory)",
+  tooltipBorder: "var(--color-warm-gray-200)",
+};
+
 function formatDuration(seconds: number): string {
   if (!seconds) return "0 分钟";
   const minutes = Math.round(seconds / 60);
@@ -418,31 +429,36 @@ export default function AnalyticsPage() {
                     <AreaChart data={trendData} margin={{ left: -20, right: 12, top: 8 }}>
                       <defs>
                         <linearGradient id="activityFill" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#b86f52" stopOpacity={0.35} />
-                          <stop offset="95%" stopColor="#b86f52" stopOpacity={0.02} />
+                          <stop offset="5%" stopColor={CHART_COLORS.primary} stopOpacity={0.35} />
+                          <stop offset="95%" stopColor={CHART_COLORS.primary} stopOpacity={0.02} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid stroke="#e8dfd4" strokeDasharray="3 3" />
-                      <XAxis dataKey="label" tick={{ fontSize: 12, fill: "#8a8177" }} />
-                      <YAxis tick={{ fontSize: 12, fill: "#8a8177" }} allowDecimals={false} />
+                      <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="3 3" />
+                      <XAxis dataKey="label" tick={{ fontSize: 12, fill: CHART_COLORS.tick }} />
+                      <YAxis tick={{ fontSize: 12, fill: CHART_COLORS.tick }} allowDecimals={false} />
                       <Tooltip
                         formatter={(value, name) => [
                           value,
                           name === "activity_count" ? "活动" : name === "minutes" ? "分钟" : "均分",
                         ]}
-                        labelStyle={{ color: "#4f463d" }}
+                        contentStyle={{
+                          backgroundColor: CHART_COLORS.tooltipBg,
+                          border: `1px solid ${CHART_COLORS.tooltipBorder}`,
+                          borderRadius: "8px",
+                        }}
+                        labelStyle={{ color: CHART_COLORS.label }}
                       />
                       <Area
                         type="monotone"
                         dataKey="activity_count"
-                        stroke="#b86f52"
+                        stroke={CHART_COLORS.primary}
                         fill="url(#activityFill)"
                         strokeWidth={2}
                       />
                       <Area
                         type="monotone"
                         dataKey="minutes"
-                        stroke="#6f8f7a"
+                        stroke={CHART_COLORS.secondary}
                         fill="transparent"
                         strokeWidth={2}
                       />
@@ -502,18 +518,24 @@ export default function AnalyticsPage() {
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={dashboard.activity_types} margin={{ left: -20, right: 12 }}>
-                        <CartesianGrid stroke="#e8dfd4" strokeDasharray="3 3" />
+                        <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="3 3" />
                         <XAxis
                           dataKey="activity_type"
                           tickFormatter={(value) => ACTIVITY_LABELS[value] ?? value}
-                          tick={{ fontSize: 12, fill: "#8a8177" }}
+                          tick={{ fontSize: 12, fill: CHART_COLORS.tick }}
                         />
-                        <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: "#8a8177" }} />
+                        <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: CHART_COLORS.tick }} />
                         <Tooltip
                           formatter={(value) => [value, "次数"]}
                           labelFormatter={(value) => ACTIVITY_LABELS[String(value)] ?? value}
+                          contentStyle={{
+                            backgroundColor: CHART_COLORS.tooltipBg,
+                            border: `1px solid ${CHART_COLORS.tooltipBorder}`,
+                            borderRadius: "8px",
+                          }}
+                          labelStyle={{ color: CHART_COLORS.label }}
                         />
-                        <Bar dataKey="count" fill="#8b7355" radius={[6, 6, 0, 0]} />
+                        <Bar dataKey="count" fill={CHART_COLORS.bar} radius={[6, 6, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>

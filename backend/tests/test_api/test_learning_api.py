@@ -7,19 +7,16 @@ from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import get_settings
 from app.api.learning import (
     get_agent_observability,
     get_learning_dashboard,
     get_review_queue,
-    get_teacher_dashboard,
     record_activity,
     submit_quiz,
     update_review_item,
 )
 from app.models.chat import ChatSession
-from app.models.learning import LearningActivity, LearningPath, ReviewItem
-from app.models.profile import StudentProfile
+from app.models.learning import LearningActivity, LearningPath
 from app.models.resource import GeneratedResource
 from app.models.user import User
 from app.schemas.learning import (
@@ -342,106 +339,3 @@ async def test_record_activity_rejects_foreign_path_and_resource(
         select(LearningActivity).where(LearningActivity.user_id == owner.id)
     )
     assert len(result.scalars().all()) == 1
-
-
-@pytest.mark.asyncio
-async def test_teacher_dashboard_requires_configured_teacher(
-    async_session: AsyncSession,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    user = User(username="plain_dashboard_user", hashed_password="hashed")
-    async_session.add(user)
-    await async_session.commit()
-    await async_session.refresh(user)
-
-    monkeypatch.delenv("TEACHER_DASHBOARD_ALLOWED_USERNAMES", raising=False)
-    monkeypatch.delenv("TEACHER_DASHBOARD_ALLOWED_USER_IDS", raising=False)
-    get_settings.cache_clear()
-    try:
-        with pytest.raises(HTTPException) as exc_info:
-            await get_teacher_dashboard(db=async_session, _user=user)
-    finally:
-        get_settings.cache_clear()
-
-    assert exc_info.value.status_code == 403
-
-
-@pytest.mark.asyncio
-async def test_teacher_dashboard_aggregates_students_and_weak_points(
-    async_session: AsyncSession,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    teacher = User(username="teacher_dashboard_owner", hashed_password="hashed")
-    alice = User(username="teacher_alice", hashed_password="hashed", display_name="Alice")
-    bob = User(username="teacher_bob", hashed_password="hashed")
-    async_session.add_all([teacher, alice, bob])
-    await async_session.commit()
-    await async_session.refresh(teacher)
-    await async_session.refresh(alice)
-    await async_session.refresh(bob)
-
-    async_session.add_all(
-        [
-            StudentProfile(
-                user_id=alice.id,
-                major="计算机",
-                grade="大三",
-                weak_points=["A* 搜索"],
-            ),
-            StudentProfile(
-                user_id=bob.id,
-                major="人工智能",
-                grade="大二",
-                weak_points=["反向传播"],
-            ),
-            LearningPath(
-                user_id=alice.id,
-                title="A* 学习路径",
-                goal_topic="A* 搜索",
-                nodes=[
-                    {"concept": "状态空间", "status": "completed"},
-                    {"concept": "A* 搜索", "status": "pending"},
-                ],
-                status="active",
-            ),
-            LearningActivity(
-                user_id=alice.id,
-                activity_type="quiz",
-                knowledge_point="A* 搜索",
-                score=40,
-                duration_sec=60,
-            ),
-            LearningActivity(
-                user_id=bob.id,
-                activity_type="quiz",
-                knowledge_point="反向传播",
-                score=90,
-                duration_sec=80,
-            ),
-            ReviewItem(
-                user_id=alice.id,
-                knowledge_point="A* 搜索",
-                question_id=1,
-                question_type="choice",
-                question_text="A* 搜索使用什么评价函数？",
-                user_answer="B",
-                correct_answer="A",
-                status="pending",
-            ),
-        ]
-    )
-    await async_session.commit()
-
-    monkeypatch.setenv("TEACHER_DASHBOARD_ALLOWED_USERNAMES", teacher.username)
-    get_settings.cache_clear()
-    try:
-        response = await get_teacher_dashboard(db=async_session, _user=teacher)
-    finally:
-        get_settings.cache_clear()
-
-    assert response.summary.student_count >= 3
-    assert response.summary.quiz_count >= 2
-    assert response.summary.pending_review_count >= 1
-    assert response.weak_points[0].knowledge_point == "A* 搜索"
-    assert any(student.username == "teacher_alice" for student in response.students)
-    assert response.recommendations

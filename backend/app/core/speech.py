@@ -21,11 +21,7 @@ class SpeechRecognitionClient:
 
     def __init__(self) -> None:
         settings = get_settings()
-        self.api_key = (
-            settings.deepseek_api_key
-            or settings.spark_api_password
-            or settings.spark_api_key
-        )
+        self.api_key = settings.dashscope_api_key
         self.api_url = (
             "https://dashscope.aliyuncs.com/api/v1/services/audio/"
             "asr/paraformer-realtime-v2"
@@ -67,7 +63,7 @@ class SpeechRecognitionClient:
 
     def _validate(self) -> None:
         if not self.api_key:
-            raise SpeechRecognitionError("未配置 API Key，无法进行语音识别")
+            raise SpeechRecognitionError("未配置 DASHSCOPE_API_KEY，无法进行语音识别")
 
     @staticmethod
     def _safe_error(response: httpx.Response) -> str:

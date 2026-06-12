@@ -95,10 +95,13 @@ class ProfileService:
 
     async def save_profile_update(
         self,
-        session_id: int,
+        session_id: int | None,
         update: dict[str, Any],
         user_id: int = 1,
+        *,
+        source: str = "agent",
     ) -> ProfileResponse:
+        update = self.sanitize_profile_update(update)
         if self.session is None:
             payload = self.merge_profile(
                 ProfileResponse(user_id=user_id, session_id=session_id).model_dump(),
@@ -126,12 +129,39 @@ class ProfileService:
         await self._record_snapshot(
             profile=profile,
             session_id=session_id,
-            source="agent",
+            source=source,
             changed_fields=changed_fields,
         )
         await self._require_session().commit()
         await self._require_session().refresh(profile)
         return self._to_response(profile, session_id)
+
+    async def preview_profile_update(
+        self,
+        *,
+        user_id: int,
+        session_id: int | None,
+        update: dict[str, Any],
+    ) -> tuple[ProfileResponse, dict[str, Any], list[str]]:
+        sanitized = self.sanitize_profile_update(update)
+        if self.session is None:
+            current_response = ProfileResponse(user_id=user_id, session_id=session_id)
+        else:
+            profile = await self._get_profile_by_user(user_id)
+            current_response = (
+                self._to_response(profile, session_id)
+                if profile is not None
+                else ProfileResponse(user_id=user_id, session_id=session_id)
+            )
+        current = current_response.model_dump()
+        merged = self.merge_profile(current, sanitized)
+        changed_fields = self._changed_fields(current, merged)
+        proposed_update = {
+            field: merged[field]
+            for field in changed_fields
+            if field in merged
+        }
+        return current_response, proposed_update, changed_fields
 
     async def update_profile_direct(
         self,

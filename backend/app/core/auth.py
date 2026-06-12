@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
@@ -25,7 +26,11 @@ def verify_password(plain: str, hashed: str) -> bool:
     return bcrypt.checkpw(plain.encode(), hashed.encode())
 
 
-def create_access_token(user_id: int) -> str:
+def password_fingerprint(hashed_password: str) -> str:
+    return hashlib.sha256(hashed_password.encode("utf-8")).hexdigest()[:24]
+
+
+def create_access_token(user_id: int, hashed_password: str | None = None) -> str:
     settings = get_settings()
     issued_at = datetime.now(timezone.utc)
     expire = issued_at + timedelta(minutes=settings.jwt_expire_minutes)
@@ -35,6 +40,8 @@ def create_access_token(user_id: int) -> str:
         "exp": expire,
         "jti": uuid4().hex,
     }
+    if hashed_password:
+        payload["pwd"] = password_fingerprint(hashed_password)
     return jwt.encode(
         payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm
     )
@@ -69,5 +76,10 @@ async def get_current_user(
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="用户不存在"
+        )
+    token_fingerprint = payload.get("pwd")
+    if token_fingerprint and token_fingerprint != password_fingerprint(user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="登录状态已失效，请重新登录"
         )
     return user
