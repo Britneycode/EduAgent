@@ -1,7 +1,7 @@
 # EduAgent 个性化学习智能体
 
 > 以 **LLM Wiki（知识中枢）** 为核心、面向高等教育场景的个性化多 Agent 学习系统。
-> 参赛作品：2026 智能体 OPC 创新大会 · 金漪湖论剑（remio 赛道），前身为科大讯飞相关赛事作品。
+> 参赛作品：2026 智能体 OPC 创新大会 · 金漪湖论剑（remio 赛道）。
 
 EduAgent 不只是问答机器人，而是"**先理解学生，再组织知识，再生成资源，再陪伴学习**"的完整闭环：通过对话式 8 维学生画像理解学习者差异，以内置课程知识库做检索增强与防幻觉锚定，协同生成讲义、练习题、代码实操、思维导图、PPT、拓展阅读等多模态学习资源，并提供苏格拉底式答疑与学习路径规划。
 
@@ -45,7 +45,7 @@ EduAgent/
 ├── frontend/                # Next.js 15 (App Router) + React 19 + Tailwind
 │   └── src/app/(main)/      # chat / profile / resources / path / wiki / review / analytics
 ├── remio/                   # remio aApp 规格、赛道文档、MCP 说明
-├── docs/                    # 赛事文档（competition / competition-remio）
+├── docs/                    # 赛事文档（competition-remio）
 └── docker-compose.yml       # 可选基础设施：PostgreSQL + Redis + MinIO
 ```
 
@@ -108,7 +108,6 @@ cd backend && uv run python -m app.mcp_server --self-test
 | [remio/aapp/eduagent-aapp-spec.md](remio/aapp/eduagent-aapp-spec.md) | remio aApp 规格：10 端点定义、能力分工、防幻觉与联网双通道设计 |
 | [remio/mcp/README.md](remio/mcp/README.md) | MCP 工具集：12 个工具清单与宿主注册方法 |
 | [docs/competition-remio/](docs/competition-remio/) | remio 赛道：方案文档、演示脚本、视频分镜、合规说明 |
-| [docs/competition/](docs/competition/) | 原赛事（科大讯飞）文档 |
 | [frontend/README.md](frontend/README.md) | 前端说明 |
 
 ---

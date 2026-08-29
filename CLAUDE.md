@@ -37,7 +37,6 @@ EduAgent 是一个以 **LLM Wiki（知识中枢）** 为核心的个性化多 Ag
 2. **remio aApp 移植版**（`remio/`）：10 个 Agent 重表达为 remio 平台的语义端点，运行在 remio 睿妙上（部署副本在平台侧 `aapps/eduagent/eduagent.aapp/`）
 
 **核心文档：**
-- `docs/competition/` — 原赛事（科大讯飞）文档
 - `docs/competition-remio/` — remio 赛道文档（方案、演示脚本、合规说明）
 - `remio/aapp/eduagent-aapp-spec.md` — remio aApp 开发规格（10 端点 E1–E10）
 - `docs/DEPLOYMENT.md` — 部署运行说明
@@ -308,21 +307,6 @@ class DocAgent:
 - **降级纪律**：所有 web 调用必须 try/except 降级到知识库作答并提示（`web_search` 依赖用户配置商业搜索源，且可能额度耗尽）
 
 另外，`backend/app/mcp_server.py` 把 10 个 Agent 封装为 12 个 MCP 工具（stdio JSON-RPC，零三方依赖），可在 remio MCP 外部工具、Claude Desktop 等任何 MCP 宿主中注册运行，见 `remio/mcp/README.md`。
-
----
-
-## 赛题硬性要求清单
-
-开发时务必确保满足以下赛题刚性约束：
-
-1. **画像维度 >= 6 个** — 当前设计 8 个维度
-2. **资源类型 >= 5 种** — 当前设计 7 种（文档/思维导图/题目/代码/PPT/动画/拓展阅读）
-3. **必须体现"多智能体"架构** — 10 个 Agent 有明确角色分工和协同
-4. **讯飞工具** — AI 辅助工具需选用科大讯飞（星火 LLM / TTS / OCR / 内容审核）
-5. **防幻觉** — RAG + 自检 + 输出过滤三道防线
-6. **流式输出** — SSE 实现，不能白屏等待
-7. **初始知识库** — 需自行构造人工智能导论课程文档集
-8. **开源协议声明** — 使用的开源项目需在文档中标注
 
 ---
 
