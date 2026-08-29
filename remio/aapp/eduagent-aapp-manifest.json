@@ -1,0 +1,276 @@
+{
+  "$schema": "https://eduagent.example.com/schema/app-manifest.v1.json",
+  "manifest_version": 1,
+  "work": {
+    "name": "EduAgent 个性化学习智能体",
+    "slug": "eduagent-personalized-learning",
+    "track": "智能体融合创新赛道",
+    "platform": "remio",
+    "version": "0.2.0",
+    "description": "面向高校学生的个性化多智能体学习助手：画像构建 → 意图路由 → 多 Agent 协同产出讲义/题目/代码/思维导图/PPT/拓展阅读/动画，并苏格拉底式答疑。",
+    "categories": [
+      "教育",
+      "学习",
+      "多智能体"
+    ]
+  },
+  "developer": {
+    "name": "（填写开发者/团队名称）",
+    "email": "（填写联系邮箱）"
+  },
+  "knowledge_base": {
+    "course_id": "cn-net",
+    "title": "计算机网络",
+    "source_dir": "backend/knowledge/计算机网络知识库/",
+    "import_note_prefix": "[计算机网络]",
+    "notes": [
+      "章节文档（04_网络层、05_运输层、06_应用层、07_网络安全与无线网络…）",
+      "事实卡（TCP三次握手、TCP四次挥手、流量控制…）",
+      "习题与解析（选择/判断/简答/计算/综合）",
+      "代码案例（socket、子网计算、TCP状态机模拟…）",
+      "实验与工具（Wireshark、TCP抓包…）",
+      "媒体资源（PPT大纲、动画脚本、板书提纲…）"
+    ]
+  },
+  "endpoints": [
+    {
+      "id": "E1",
+      "name": "route_intent",
+      "agent": "RouterAgent",
+      "capabilities": [
+        "run_prompt",
+        "search_notes"
+      ],
+      "input": {
+        "text": "string"
+      },
+      "output": {
+        "topic": "string",
+        "update_profile": "boolean",
+        "is_tutor_question": "boolean",
+        "generate_document": "boolean",
+        "resource_types": [
+          "string"
+        ],
+        "quiz_only": "boolean"
+      },
+      "route": "update_profile → E2 | is_tutor_question → E10 | else → E3"
+    },
+    {
+      "id": "E2",
+      "name": "build_profile",
+      "agent": "ProfileAgent",
+      "capabilities": [
+        "run_prompt",
+        "read_note"
+      ],
+      "input": {
+        "text": "string"
+      },
+      "output_ui": "card",
+      "profile_dimensions": [
+        "专业",
+        "年级",
+        "知识基础",
+        "学习目标",
+        "编程水平",
+        "认知风格",
+        "可投入时长",
+        "偏好资源类型"
+      ]
+    },
+    {
+      "id": "E3",
+      "name": "plan_learning",
+      "agent": "PlannerAgent",
+      "capabilities": [
+        "run_prompt",
+        "search_notes"
+      ],
+      "input": {
+        "topic": "string",
+        "profile": "object"
+      },
+      "output_ui": "list",
+      "resource_types": [
+        "document",
+        "quiz",
+        "code",
+        "mindmap",
+        "reading",
+        "ppt",
+        "animation",
+        "video"
+      ]
+    },
+    {
+      "id": "E4",
+      "name": "generate_document",
+      "agent": "DocAgent",
+      "capabilities": [
+        "search_notes",
+        "read_note",
+        "run_prompt"
+      ],
+      "input": {
+        "topic": "string",
+        "profile": "object"
+      },
+      "output_ui": "card",
+      "structure": [
+        "主题概览",
+        "核心概念",
+        "学习步骤",
+        "常见误区",
+        "复习建议",
+        "来源引用"
+      ]
+    },
+    {
+      "id": "E5",
+      "name": "generate_quiz",
+      "agent": "QuizAgent",
+      "capabilities": [
+        "search_notes",
+        "read_note",
+        "run_prompt"
+      ],
+      "input": {
+        "topic": "string",
+        "document": "string"
+      },
+      "output_ui": "choice / input + button",
+      "types": [
+        "选择",
+        "判断",
+        "填空",
+        "简答",
+        "编程"
+      ]
+    },
+    {
+      "id": "E6",
+      "name": "generate_code",
+      "agent": "CodeAgent",
+      "capabilities": [
+        "search_notes",
+        "read_note",
+        "run_prompt"
+      ],
+      "input": {
+        "topic": "string",
+        "document": "string",
+        "quiz": "string"
+      },
+      "output_ui": "card + button"
+    },
+    {
+      "id": "E7",
+      "name": "generate_mindmap",
+      "agent": "MediaAgent",
+      "capabilities": [
+        "search_notes",
+        "read_note",
+        "run_prompt"
+      ],
+      "input": {
+        "topic": "string",
+        "document": "string"
+      },
+      "output_ui": "card / image"
+    },
+    {
+      "id": "E8",
+      "name": "generate_ppt",
+      "agent": "MediaAgent",
+      "capabilities": [
+        "search_notes",
+        "read_note",
+        "run_prompt"
+      ],
+      "input": {
+        "topic": "string",
+        "document": "string"
+      },
+      "output_ui": "list / image"
+    },
+    {
+      "id": "E9",
+      "name": "generate_reading",
+      "agent": "ReadingAgent",
+      "capabilities": [
+        "web_search",
+        "web_get",
+        "search_notes",
+        "run_prompt"
+      ],
+      "input": {
+        "topic": "string",
+        "document": "string"
+      },
+      "output_ui": "list"
+    },
+    {
+      "id": "E10",
+      "name": "tutor_answer",
+      "agent": "TutorAgent",
+      "capabilities": [
+        "search_notes",
+        "read_note",
+        "web_search",
+        "web_get",
+        "run_prompt"
+      ],
+      "input": {
+        "question": "string",
+        "profile": "object",
+        "study_mode": "boolean"
+      },
+      "output_ui": "chat + card（来源）"
+    }
+  ],
+  "automations": [
+    {
+      "id": "A1",
+      "name": "复习提醒",
+      "trigger": "POST /_event（定时/内容更新）",
+      "steps": [
+        "search_notes（薄弱点）",
+        "run_prompt（生成自测题）",
+        "send_chat_message（推送）"
+      ]
+    }
+  ],
+  "mcp": {
+    "enabled": true,
+    "server_file": "backend/app/mcp_server.py",
+    "transport": "stdio",
+    "tools": [
+      "route_intent",
+      "search_knowledge",
+      "extract_profile",
+      "generate_document",
+      "generate_quiz",
+      "generate_code",
+      "generate_mindmap",
+      "generate_ppt",
+      "generate_reading",
+      "generate_animation",
+      "tutor_answer",
+      "list_courses"
+    ]
+  },
+  "scoring": {
+    "profile_dimensions": 8,
+    "resource_types": 7,
+    "agent_count": 8,
+    "anti_hallucination": [
+      "rag 知识锚定",
+      "来源引用",
+      "输出过滤"
+    ],
+    "streaming": "rag_stream",
+    "initial_knowledge_base": true,
+    "open_source_compliance_doc": "remio/docs/05_AI工具与开源合规说明.md"
+  }
+}
