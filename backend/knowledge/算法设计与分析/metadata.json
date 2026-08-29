@@ -5,7 +5,7 @@
   "course_name_en": "Algorithm Design and Analysis",
   "description": "面向高等教育计算机专业学生的算法课程知识库，覆盖复杂度分析、分治、动态规划、贪心、图算法、字符串匹配、回溯与复杂度理论，配套习题、代码案例与学习路径。",
   "version": "0.1.0",
-  "last_updated": "2026-08-27",
+  "last_updated": "2026-08-29",
   "target_audience": "高等教育计算机相关专业学生、教师与多智能体学习系统",
   "prerequisites": [
     "程序设计语言基础（推荐 Python 或 C/C++）",
@@ -25,10 +25,12 @@
   "resource_types": [
     "讲解文档",
     "习题",
+    "实验",
     "代码案例",
     "思维导图",
     "PPT 大纲",
-    "动画脚本"
+    "动画脚本",
+    "图示说明"
   ],
   "difficulty_levels": {
     "1": "入门（需编程基础）",
@@ -47,7 +49,11 @@
       "files": [
         "01_算法基础与复杂度分析/算法基础与复杂度分析.md"
       ],
-      "resource_types": ["讲解文档", "习题", "代码案例"]
+      "resource_types": [
+        "讲解文档",
+        "习题",
+        "代码案例"
+      ]
     },
     {
       "chapter_id": "al02",
@@ -55,11 +61,18 @@
       "description": "归并排序、最大子数组、快速排序与二分查找。",
       "estimated_hours": 6,
       "difficulty": 2,
-      "prerequisites": ["al01"],
+      "prerequisites": [
+        "al01"
+      ],
       "files": [
         "02_分治策略/分治策略.md"
       ],
-      "resource_types": ["讲解文档", "习题", "代码案例", "动画脚本"]
+      "resource_types": [
+        "讲解文档",
+        "习题",
+        "代码案例",
+        "动画脚本"
+      ]
     },
     {
       "chapter_id": "al03",
@@ -67,11 +80,17 @@
       "description": "最优子结构与重叠子问题、背包、LCS、矩阵链乘。",
       "estimated_hours": 8,
       "difficulty": 3,
-      "prerequisites": ["al02"],
+      "prerequisites": [
+        "al02"
+      ],
       "files": [
         "03_动态规划/动态规划.md"
       ],
-      "resource_types": ["讲解文档", "习题", "代码案例"]
+      "resource_types": [
+        "讲解文档",
+        "习题",
+        "代码案例"
+      ]
     },
     {
       "chapter_id": "al04",
@@ -79,11 +98,17 @@
       "description": "贪心选择性质、活动选择、哈夫曼编码与最小生成树。",
       "estimated_hours": 6,
       "difficulty": 3,
-      "prerequisites": ["al02"],
+      "prerequisites": [
+        "al02"
+      ],
       "files": [
         "04_贪心算法/贪心算法.md"
       ],
-      "resource_types": ["讲解文档", "习题", "代码案例"]
+      "resource_types": [
+        "讲解文档",
+        "习题",
+        "代码案例"
+      ]
     },
     {
       "chapter_id": "al05",
@@ -91,11 +116,17 @@
       "description": "图的表示、BFS、DFS、拓扑排序与强连通分量。",
       "estimated_hours": 6,
       "difficulty": 2,
-      "prerequisites": ["al02"],
+      "prerequisites": [
+        "al02"
+      ],
       "files": [
         "05_图算法基础/图算法基础.md"
       ],
-      "resource_types": ["讲解文档", "习题", "代码案例"]
+      "resource_types": [
+        "讲解文档",
+        "习题",
+        "代码案例"
+      ]
     },
     {
       "chapter_id": "al06",
@@ -103,11 +134,17 @@
       "description": "Bellman-Ford、Dijkstra、Floyd-Warshall 与最短路径应用。",
       "estimated_hours": 6,
       "difficulty": 3,
-      "prerequisites": ["al05"],
+      "prerequisites": [
+        "al05"
+      ],
       "files": [
         "06_最短路径/最短路径.md"
       ],
-      "resource_types": ["讲解文档", "习题", "代码案例"]
+      "resource_types": [
+        "讲解文档",
+        "习题",
+        "代码案例"
+      ]
     },
     {
       "chapter_id": "al07",
@@ -115,11 +152,17 @@
       "description": "Kruskal、Prim 算法与并查集实现。",
       "estimated_hours": 5,
       "difficulty": 3,
-      "prerequisites": ["al05"],
+      "prerequisites": [
+        "al05"
+      ],
       "files": [
         "07_最小生成树/最小生成树.md"
       ],
-      "resource_types": ["讲解文档", "习题", "代码案例"]
+      "resource_types": [
+        "讲解文档",
+        "习题",
+        "代码案例"
+      ]
     },
     {
       "chapter_id": "al08",
@@ -127,11 +170,17 @@
       "description": "朴素匹配、Rabin-Karp 与 KMP 算法。",
       "estimated_hours": 5,
       "difficulty": 3,
-      "prerequisites": ["al01"],
+      "prerequisites": [
+        "al01"
+      ],
       "files": [
         "08_字符串匹配/字符串匹配.md"
       ],
-      "resource_types": ["讲解文档", "习题", "代码案例"]
+      "resource_types": [
+        "讲解文档",
+        "习题",
+        "代码案例"
+      ]
     },
     {
       "chapter_id": "al09",
@@ -139,11 +188,17 @@
       "description": "八皇后、0-1 背包、旅行商问题的回溯与分支限界求解。",
       "estimated_hours": 6,
       "difficulty": 3,
-      "prerequisites": ["al03"],
+      "prerequisites": [
+        "al03"
+      ],
       "files": [
         "09_回溯与分支限界/回溯与分支限界.md"
       ],
-      "resource_types": ["讲解文档", "习题", "代码案例"]
+      "resource_types": [
+        "讲解文档",
+        "习题",
+        "代码案例"
+      ]
     },
     {
       "chapter_id": "al10",
@@ -151,11 +206,16 @@
       "description": "P、NP、NP 完全与归约的概念和典型例子。",
       "estimated_hours": 2,
       "difficulty": 4,
-      "prerequisites": ["al01"],
+      "prerequisites": [
+        "al01"
+      ],
       "files": [
         "10_计算复杂度理论/计算复杂度理论.md"
       ],
-      "resource_types": ["讲解文档", "习题"]
+      "resource_types": [
+        "讲解文档",
+        "习题"
+      ]
     }
   ]
 }
