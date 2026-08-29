@@ -1,0 +1,161 @@
+{
+  "course_id": "ALG101",
+  "course_slug": "algorithm_design",
+  "course_name": "算法设计与分析",
+  "course_name_en": "Algorithm Design and Analysis",
+  "description": "面向高等教育计算机专业学生的算法课程知识库，覆盖复杂度分析、分治、动态规划、贪心、图算法、字符串匹配、回溯与复杂度理论，配套习题、代码案例与学习路径。",
+  "version": "0.1.0",
+  "last_updated": "2026-08-27",
+  "target_audience": "高等教育计算机相关专业学生、教师与多智能体学习系统",
+  "prerequisites": [
+    "程序设计语言基础（推荐 Python 或 C/C++）",
+    "离散数学（集合、图、逻辑基础）",
+    "数据结构基础（数组、链表、栈、队列、树、图）"
+  ],
+  "course_objectives": [
+    "掌握算法时间与空间复杂度的分析与比较方法",
+    "理解分治、动态规划、贪心等经典算法设计范式",
+    "掌握图算法、字符串匹配等核心算法及其应用",
+    "理解回溯与分支限界在组合优化中的应用",
+    "认识计算复杂性理论，理解 P、NP、NP 完全的基本概念",
+    "能够分析实际问题并设计正确、高效的算法"
+  ],
+  "total_chapters": 10,
+  "total_estimated_hours": 56,
+  "resource_types": [
+    "讲解文档",
+    "习题",
+    "代码案例",
+    "思维导图",
+    "PPT 大纲",
+    "动画脚本"
+  ],
+  "difficulty_levels": {
+    "1": "入门（需编程基础）",
+    "2": "基础（需数据结构和离散数学基础）",
+    "3": "进阶（需理解前置算法概念）",
+    "4": "综合应用（需整合多个算法范式）"
+  },
+  "chapters": [
+    {
+      "chapter_id": "al01",
+      "title": "算法基础与复杂度分析",
+      "description": "算法定义、渐近记号、递归分析与主定理。",
+      "estimated_hours": 6,
+      "difficulty": 1,
+      "prerequisites": [],
+      "files": [
+        "01_算法基础与复杂度分析/算法基础与复杂度分析.md"
+      ],
+      "resource_types": ["讲解文档", "习题", "代码案例"]
+    },
+    {
+      "chapter_id": "al02",
+      "title": "分治策略",
+      "description": "归并排序、最大子数组、快速排序与二分查找。",
+      "estimated_hours": 6,
+      "difficulty": 2,
+      "prerequisites": ["al01"],
+      "files": [
+        "02_分治策略/分治策略.md"
+      ],
+      "resource_types": ["讲解文档", "习题", "代码案例", "动画脚本"]
+    },
+    {
+      "chapter_id": "al03",
+      "title": "动态规划",
+      "description": "最优子结构与重叠子问题、背包、LCS、矩阵链乘。",
+      "estimated_hours": 8,
+      "difficulty": 3,
+      "prerequisites": ["al02"],
+      "files": [
+        "03_动态规划/动态规划.md"
+      ],
+      "resource_types": ["讲解文档", "习题", "代码案例"]
+    },
+    {
+      "chapter_id": "al04",
+      "title": "贪心算法",
+      "description": "贪心选择性质、活动选择、哈夫曼编码与最小生成树。",
+      "estimated_hours": 6,
+      "difficulty": 3,
+      "prerequisites": ["al02"],
+      "files": [
+        "04_贪心算法/贪心算法.md"
+      ],
+      "resource_types": ["讲解文档", "习题", "代码案例"]
+    },
+    {
+      "chapter_id": "al05",
+      "title": "图算法基础",
+      "description": "图的表示、BFS、DFS、拓扑排序与强连通分量。",
+      "estimated_hours": 6,
+      "difficulty": 2,
+      "prerequisites": ["al02"],
+      "files": [
+        "05_图算法基础/图算法基础.md"
+      ],
+      "resource_types": ["讲解文档", "习题", "代码案例"]
+    },
+    {
+      "chapter_id": "al06",
+      "title": "最短路径",
+      "description": "Bellman-Ford、Dijkstra、Floyd-Warshall 与最短路径应用。",
+      "estimated_hours": 6,
+      "difficulty": 3,
+      "prerequisites": ["al05"],
+      "files": [
+        "06_最短路径/最短路径.md"
+      ],
+      "resource_types": ["讲解文档", "习题", "代码案例"]
+    },
+    {
+      "chapter_id": "al07",
+      "title": "最小生成树",
+      "description": "Kruskal、Prim 算法与并查集实现。",
+      "estimated_hours": 5,
+      "difficulty": 3,
+      "prerequisites": ["al05"],
+      "files": [
+        "07_最小生成树/最小生成树.md"
+      ],
+      "resource_types": ["讲解文档", "习题", "代码案例"]
+    },
+    {
+      "chapter_id": "al08",
+      "title": "字符串匹配",
+      "description": "朴素匹配、Rabin-Karp 与 KMP 算法。",
+      "estimated_hours": 5,
+      "difficulty": 3,
+      "prerequisites": ["al01"],
+      "files": [
+        "08_字符串匹配/字符串匹配.md"
+      ],
+      "resource_types": ["讲解文档", "习题", "代码案例"]
+    },
+    {
+      "chapter_id": "al09",
+      "title": "回溯与分支限界",
+      "description": "八皇后、0-1 背包、旅行商问题的回溯与分支限界求解。",
+      "estimated_hours": 6,
+      "difficulty": 3,
+      "prerequisites": ["al03"],
+      "files": [
+        "09_回溯与分支限界/回溯与分支限界.md"
+      ],
+      "resource_types": ["讲解文档", "习题", "代码案例"]
+    },
+    {
+      "chapter_id": "al10",
+      "title": "计算复杂度理论",
+      "description": "P、NP、NP 完全与归约的概念和典型例子。",
+      "estimated_hours": 2,
+      "difficulty": 4,
+      "prerequisites": ["al01"],
+      "files": [
+        "10_计算复杂度理论/计算复杂度理论.md"
+      ],
+      "resource_types": ["讲解文档", "习题"]
+    }
+  ]
+}

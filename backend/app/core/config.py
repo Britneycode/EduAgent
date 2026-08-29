@@ -84,7 +84,7 @@ class Settings(BaseSettings):
     wiki_chroma_port: int = 8001
     wiki_chroma_ssl: bool = False
     wiki_chroma_collection: str = "eduagent_wiki"
-    wiki_knowledge_dir: str = "./knowledge/ai_intro"
+    wiki_knowledge_dir: str = "./knowledge/计算机网络知识库"
     wiki_embedding_dev_mode: bool = False
     wiki_auto_ingest: bool = True
 

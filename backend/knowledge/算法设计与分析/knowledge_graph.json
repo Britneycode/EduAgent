@@ -1,0 +1,308 @@
+{
+  "graph_id": "alg101_knowledge_graph",
+  "description": "《算法设计与分析》知识点依赖关系图（DAG）",
+  "version": "0.1.0",
+  "last_updated": "2026-08-27",
+  "nodes": [
+    {
+      "id": "al01_01_algorithm_definition",
+      "name": "算法与复杂度基本概念",
+      "type": "concept",
+      "chapter_id": "al01",
+      "difficulty": 1,
+      "tags": ["算法基础", "概念"]
+    },
+    {
+      "id": "al01_02_asymptotic_notation",
+      "name": "渐近记号与时间复杂度",
+      "type": "concept",
+      "chapter_id": "al01",
+      "difficulty": 1,
+      "tags": ["复杂度", "O记号"]
+    },
+    {
+      "id": "al01_03_recurrence",
+      "name": "递归分析与主定理",
+      "type": "method",
+      "chapter_id": "al01",
+      "difficulty": 2,
+      "tags": ["递归", "主定理"]
+    },
+    {
+      "id": "al02_01_divide_conquer",
+      "name": "分治策略",
+      "type": "paradigm",
+      "chapter_id": "al02",
+      "difficulty": 2,
+      "tags": ["分治", "范式"]
+    },
+    {
+      "id": "al02_02_mergesort",
+      "name": "归并排序",
+      "type": "algorithm",
+      "chapter_id": "al02",
+      "difficulty": 2,
+      "tags": ["排序", "分治"]
+    },
+    {
+      "id": "al02_03_quicksort",
+      "name": "快速排序",
+      "type": "algorithm",
+      "chapter_id": "al02",
+      "difficulty": 2,
+      "tags": ["排序", "分治"]
+    },
+    {
+      "id": "al02_04_binary_search",
+      "name": "二分查找",
+      "type": "algorithm",
+      "chapter_id": "al02",
+      "difficulty": 1,
+      "tags": ["查找", "分治"]
+    },
+    {
+      "id": "al03_01_dp_concepts",
+      "name": "动态规划核心概念",
+      "type": "paradigm",
+      "chapter_id": "al03",
+      "difficulty": 3,
+      "tags": ["动态规划", "最优子结构"]
+    },
+    {
+      "id": "al03_02_knapsack",
+      "name": "0-1背包问题",
+      "type": "problem",
+      "chapter_id": "al03",
+      "difficulty": 3,
+      "tags": ["动态规划", "背包"]
+    },
+    {
+      "id": "al03_03_lcs",
+      "name": "最长公共子序列",
+      "type": "problem",
+      "chapter_id": "al03",
+      "difficulty": 3,
+      "tags": ["动态规划", "字符串"]
+    },
+    {
+      "id": "al03_04_matrix_chain",
+      "name": "矩阵链乘",
+      "type": "problem",
+      "chapter_id": "al03",
+      "difficulty": 3,
+      "tags": ["动态规划", "区间DP"]
+    },
+    {
+      "id": "al04_01_greedy",
+      "name": "贪心选择性质",
+      "type": "paradigm",
+      "chapter_id": "al04",
+      "difficulty": 3,
+      "tags": ["贪心", "范式"]
+    },
+    {
+      "id": "al04_02_activity",
+      "name": "活动选择问题",
+      "type": "problem",
+      "chapter_id": "al04",
+      "difficulty": 2,
+      "tags": ["贪心", "区间调度"]
+    },
+    {
+      "id": "al04_03_huffman",
+      "name": "哈夫曼编码",
+      "type": "algorithm",
+      "chapter_id": "al04",
+      "difficulty": 2,
+      "tags": ["贪心", "编码"]
+    },
+    {
+      "id": "al05_01_graph_representation",
+      "name": "图的表示",
+      "type": "concept",
+      "chapter_id": "al05",
+      "difficulty": 1,
+      "tags": ["图", "邻接表"]
+    },
+    {
+      "id": "al05_02_bfs",
+      "name": "广度优先搜索BFS",
+      "type": "algorithm",
+      "chapter_id": "al05",
+      "difficulty": 2,
+      "tags": ["图", "BFS"]
+    },
+    {
+      "id": "al05_03_dfs",
+      "name": "深度优先搜索DFS",
+      "type": "algorithm",
+      "chapter_id": "al05",
+      "difficulty": 2,
+      "tags": ["图", "DFS"]
+    },
+    {
+      "id": "al05_04_topological",
+      "name": "拓扑排序",
+      "type": "algorithm",
+      "chapter_id": "al05",
+      "difficulty": 2,
+      "tags": ["图", "DAG"]
+    },
+    {
+      "id": "al06_01_shortest_path",
+      "name": "最短路径问题",
+      "type": "problem",
+      "chapter_id": "al06",
+      "difficulty": 3,
+      "tags": ["图", "最短路径"]
+    },
+    {
+      "id": "al06_02_dijkstra",
+      "name": "Dijkstra算法",
+      "type": "algorithm",
+      "chapter_id": "al06",
+      "difficulty": 3,
+      "tags": ["最短路径", "贪心"]
+    },
+    {
+      "id": "al06_03_bellman_ford",
+      "name": "Bellman-Ford算法",
+      "type": "algorithm",
+      "chapter_id": "al06",
+      "difficulty": 3,
+      "tags": ["最短路径", "负权"]
+    },
+    {
+      "id": "al06_04_floyd",
+      "name": "Floyd-Warshall算法",
+      "type": "algorithm",
+      "chapter_id": "al06",
+      "difficulty": 3,
+      "tags": ["最短路径", "动态规划"]
+    },
+    {
+      "id": "al07_01_mst",
+      "name": "最小生成树问题",
+      "type": "problem",
+      "chapter_id": "al07",
+      "difficulty": 3,
+      "tags": ["图", "MST"]
+    },
+    {
+      "id": "al07_02_kruskal",
+      "name": "Kruskal算法",
+      "type": "algorithm",
+      "chapter_id": "al07",
+      "difficulty": 3,
+      "tags": ["MST", "并查集"]
+    },
+    {
+      "id": "al07_03_prim",
+      "name": "Prim算法",
+      "type": "algorithm",
+      "chapter_id": "al07",
+      "difficulty": 3,
+      "tags": ["MST", "贪心"]
+    },
+    {
+      "id": "al08_01_string_matching",
+      "name": "字符串匹配问题",
+      "type": "problem",
+      "chapter_id": "al08",
+      "difficulty": 2,
+      "tags": ["字符串", "匹配"]
+    },
+    {
+      "id": "al08_02_rabin_karp",
+      "name": "Rabin-Karp算法",
+      "type": "algorithm",
+      "chapter_id": "al08",
+      "difficulty": 2,
+      "tags": ["字符串", "哈希"]
+    },
+    {
+      "id": "al08_03_kmp",
+      "name": "KMP算法",
+      "type": "algorithm",
+      "chapter_id": "al08",
+      "difficulty": 3,
+      "tags": ["字符串", "前缀函数"]
+    },
+    {
+      "id": "al09_01_backtracking",
+      "name": "回溯法",
+      "type": "paradigm",
+      "chapter_id": "al09",
+      "difficulty": 3,
+      "tags": ["回溯", "搜索"]
+    },
+    {
+      "id": "al09_02_branch_bound",
+      "name": "分支限界法",
+      "type": "paradigm",
+      "chapter_id": "al09",
+      "difficulty": 3,
+      "tags": ["分支限界", "搜索"]
+    },
+    {
+      "id": "al10_01_p_np",
+      "name": "P与NP问题",
+      "type": "concept",
+      "chapter_id": "al10",
+      "difficulty": 4,
+      "tags": ["复杂度理论", "P/NP"]
+    },
+    {
+      "id": "al10_02_np_complete",
+      "name": "NP完全与归约",
+      "type": "concept",
+      "chapter_id": "al10",
+      "difficulty": 4,
+      "tags": ["复杂度理论", "NP完全"]
+    }
+  ],
+  "edges": [
+    {"source": "al01_01_algorithm_definition", "target": "al01_02_asymptotic_notation", "relation": "supports"},
+    {"source": "al01_02_asymptotic_notation", "target": "al01_03_recurrence", "relation": "prerequisite"},
+    {"source": "al01_03_recurrence", "target": "al02_01_divide_conquer", "relation": "prerequisite"},
+    {"source": "al02_01_divide_conquer", "target": "al02_02_mergesort", "relation": "supports"},
+    {"source": "al02_01_divide_conquer", "target": "al02_03_quicksort", "relation": "supports"},
+    {"source": "al02_01_divide_conquer", "target": "al02_04_binary_search", "relation": "supports"},
+
+    {"source": "al02_01_divide_conquer", "target": "al03_01_dp_concepts", "relation": "prerequisite"},
+    {"source": "al03_01_dp_concepts", "target": "al03_02_knapsack", "relation": "supports"},
+    {"source": "al03_01_dp_concepts", "target": "al03_03_lcs", "relation": "supports"},
+    {"source": "al03_01_dp_concepts", "target": "al03_04_matrix_chain", "relation": "supports"},
+
+    {"source": "al02_01_divide_conquer", "target": "al04_01_greedy", "relation": "prerequisite"},
+    {"source": "al04_01_greedy", "target": "al04_02_activity", "relation": "supports"},
+    {"source": "al04_01_greedy", "target": "al04_03_huffman", "relation": "supports"},
+
+    {"source": "al01_02_asymptotic_notation", "target": "al05_01_graph_representation", "relation": "supports"},
+    {"source": "al05_01_graph_representation", "target": "al05_02_bfs", "relation": "supports"},
+    {"source": "al05_01_graph_representation", "target": "al05_03_dfs", "relation": "supports"},
+    {"source": "al05_02_bfs", "target": "al05_04_topological", "relation": "supports"},
+
+    {"source": "al05_01_graph_representation", "target": "al06_01_shortest_path", "relation": "prerequisite"},
+    {"source": "al05_02_bfs", "target": "al06_01_shortest_path", "relation": "supports"},
+    {"source": "al06_01_shortest_path", "target": "al06_02_dijkstra", "relation": "supports"},
+    {"source": "al06_01_shortest_path", "target": "al06_03_bellman_ford", "relation": "supports"},
+    {"source": "al04_01_greedy", "target": "al06_02_dijkstra", "relation": "supports"},
+    {"source": "al06_02_dijkstra", "target": "al06_04_floyd", "relation": "contrasts"},
+
+    {"source": "al05_01_graph_representation", "target": "al07_01_mst", "relation": "prerequisite"},
+    {"source": "al07_01_mst", "target": "al07_02_kruskal", "relation": "supports"},
+    {"source": "al07_01_mst", "target": "al07_03_prim", "relation": "supports"},
+    {"source": "al04_01_greedy", "target": "al07_03_prim", "relation": "supports"},
+
+    {"source": "al01_03_recurrence", "target": "al08_01_string_matching", "relation": "supports"},
+    {"source": "al08_01_string_matching", "target": "al08_02_rabin_karp", "relation": "supports"},
+    {"source": "al08_01_string_matching", "target": "al08_03_kmp", "relation": "supports"},
+
+    {"source": "al03_01_dp_concepts", "target": "al09_01_backtracking", "relation": "prerequisite"},
+    {"source": "al09_01_backtracking", "target": "al09_02_branch_bound", "relation": "extends"},
+
+    {"source": "al01_02_asymptotic_notation", "target": "al10_01_p_np", "relation": "prerequisite"},
+    {"source": "al10_01_p_np", "target": "al10_02_np_complete", "relation": "supports"}
+  ]
+}

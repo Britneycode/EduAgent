@@ -233,6 +233,55 @@
       "type": "resource",
       "chapter_id": "cn99",
       "description": "可供 RAG 高置信召回的短事实卡集合。"
+    },
+    {
+      "id": "cn_vlan",
+      "name": "VLAN虚拟局域网",
+      "type": "concept",
+      "chapter_id": "cn03",
+      "description": "通过划分广播域隔离二层流量，提升安全性与可管理性。"
+    },
+    {
+      "id": "cn_routing",
+      "name": "路由算法与协议",
+      "type": "concept",
+      "chapter_id": "cn04",
+      "description": "距离向量与链路状态算法，及 RIP、OSPF、BGP 等路由协议。"
+    },
+    {
+      "id": "cn_nat",
+      "name": "NAT",
+      "type": "mechanism",
+      "chapter_id": "cn04",
+      "description": "网络地址转换，在私有地址与公网地址间做映射。"
+    },
+    {
+      "id": "cn_dhcp",
+      "name": "DHCP",
+      "type": "protocol",
+      "chapter_id": "cn04",
+      "description": "动态主机配置协议，自动分配 IP、掩码、网关与 DNS。"
+    },
+    {
+      "id": "cn_ipv6",
+      "name": "IPv6基础",
+      "type": "protocol",
+      "chapter_id": "cn04",
+      "description": "128 位地址空间、地址表示与 IPv4 的差异。"
+    },
+    {
+      "id": "cn_email",
+      "name": "电子邮件协议",
+      "type": "protocol",
+      "chapter_id": "cn06",
+      "description": "SMTP 发送、POP3/IMAP 收取邮件的协议流程。"
+    },
+    {
+      "id": "cn_ftp",
+      "name": "FTP与文件传输",
+      "type": "protocol",
+      "chapter_id": "cn06",
+      "description": "文件传输协议的控制连接与数据连接机制。"
     }
   ],
   "edges": [
@@ -269,6 +318,18 @@
     {"source": "cn_wireshark", "target": "cn_exercises", "relation": "supports"},
     {"source": "cn_code_cases", "target": "cn_exercises", "relation": "supports"},
     {"source": "cn_fact_cards", "target": "cn_exercises", "relation": "supports"},
-    {"source": "cn_media_resources", "target": "cn_exercises", "relation": "supports"}
+    {"source": "cn_media_resources", "target": "cn_exercises", "relation": "supports"},
+    {"source": "cn_datalink", "target": "cn_vlan", "relation": "contains"},
+    {"source": "cn_mac_switch", "target": "cn_vlan", "relation": "extends"},
+    {"source": "cn_network_layer", "target": "cn_routing", "relation": "contains"},
+    {"source": "cn_ip", "target": "cn_routing", "relation": "supports"},
+    {"source": "cn_ip", "target": "cn_nat", "relation": "uses"},
+    {"source": "cn_subnet", "target": "cn_nat", "relation": "supports"},
+    {"source": "cn_ip", "target": "cn_dhcp", "relation": "uses"},
+    {"source": "cn_ip", "target": "cn_ipv6", "relation": "extends"},
+    {"source": "cn_application_layer", "target": "cn_email", "relation": "contains"},
+    {"source": "cn_application_layer", "target": "cn_ftp", "relation": "contains"},
+    {"source": "cn_tcp", "target": "cn_email", "relation": "supports"},
+    {"source": "cn_tcp", "target": "cn_ftp", "relation": "supports"}
   ]
 }
