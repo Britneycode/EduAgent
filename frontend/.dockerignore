@@ -1,0 +1,9 @@
+node_modules/
+.next/
+.env.local
+*.log
+*.tsbuildinfo
+tmp-*/
+tmp_*/
+.vscode/
+.idea/

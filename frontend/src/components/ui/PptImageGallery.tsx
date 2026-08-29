@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import { ChevronLeft, ChevronRight, ImageOff, Lightbulb, X } from "lucide-react";
 
 interface PptSlide {
@@ -91,12 +92,14 @@ export function PptImageGallery({ content }: { content: string }) {
           }}
         >
           {currentSlide.image_url && !imageErrors.has(currentIndex) ? (
-            <img
+            <Image
               src={currentSlide.image_url}
               alt={currentSlide.title}
-              className="h-full w-full object-contain"
+              fill
+              unoptimized
+              className="object-contain"
               onError={() => handleImageError(currentIndex)}
-              loading="lazy"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center">
@@ -202,13 +205,17 @@ export function PptImageGallery({ content }: { content: string }) {
               style={{ width: "100px", aspectRatio: "16/9" }}
             >
               {slide.image_url && !imageErrors.has(idx) ? (
-                <img
-                  src={slide.image_url}
-                  alt={slide.title}
-                  className="h-full w-full object-cover"
-                  onError={() => handleImageError(idx)}
-                  loading="lazy"
-                />
+                <div className="relative h-full w-full">
+                  <Image
+                    src={slide.image_url}
+                    alt={slide.title}
+                    fill
+                    unoptimized
+                    className="object-cover"
+                    onError={() => handleImageError(idx)}
+                    sizes="100px"
+                  />
+                </div>
               ) : (
                 <div className="flex h-full w-full items-center justify-center bg-[var(--color-warm-gray-100)] text-xs text-[var(--color-warm-gray-400)]">
                   N/A
@@ -232,12 +239,20 @@ export function PptImageGallery({ content }: { content: string }) {
           >
             <X className="h-6 w-6" />
           </button>
-          <img
-            src={zoomedImage}
-            alt="PPT 全屏预览"
-            className="max-h-[90vh] max-w-[90vw] object-contain"
+          <div
+            className="relative max-h-[90vh] max-w-[90vw] overflow-hidden"
+            style={{ width: "90vw", height: "90vh" }}
             onClick={(e) => e.stopPropagation()}
-          />
+          >
+            <Image
+              src={zoomedImage}
+              alt="PPT 全屏预览"
+              fill
+              unoptimized
+              className="object-contain"
+              sizes="90vw"
+            />
+          </div>
         </div>
       )}
     </div>

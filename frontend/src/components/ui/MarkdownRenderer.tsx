@@ -1,13 +1,94 @@
 "use client";
 
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
+import python from "highlight.js/lib/languages/python";
+import javascript from "highlight.js/lib/languages/javascript";
+import typescript from "highlight.js/lib/languages/typescript";
+import json from "highlight.js/lib/languages/json";
+import bash from "highlight.js/lib/languages/bash";
+import sql from "highlight.js/lib/languages/sql";
+import markdown from "highlight.js/lib/languages/markdown";
+import cpp from "highlight.js/lib/languages/cpp";
+import java from "highlight.js/lib/languages/java";
+import c from "highlight.js/lib/languages/c";
+import xml from "highlight.js/lib/languages/xml";
+import css from "highlight.js/lib/languages/css";
+import yaml from "highlight.js/lib/languages/yaml";
+import { Check, Copy } from "lucide-react";
 import "highlight.js/styles/github.css";
+
+const HIGHLIGHT_LANGUAGES = {
+  python,
+  py: python,
+  javascript,
+  js: javascript,
+  typescript,
+  ts: typescript,
+  json,
+  bash,
+  sh: bash,
+  shell: bash,
+  sql,
+  markdown,
+  md: markdown,
+  cpp,
+  java,
+  c,
+  xml,
+  html: xml,
+  css,
+  yaml,
+  yml: yaml,
+};
 
 interface MarkdownRendererProps {
   content: string;
   className?: string;
+}
+
+function PreBlock({ children }: { children?: React.ReactNode }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    // 提取纯文本
+    const text = typeof children === "string" 
+      ? children 
+      : (children as React.ReactElement<{ children?: string }>)?.props?.children?.toString() || "";
+    if (text) {
+      navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  return (
+    <div className="group relative my-2">
+      <button
+        type="button"
+        onClick={handleCopy}
+        className="absolute right-2 top-2 z-10 flex h-7 items-center gap-1 rounded bg-[var(--color-ivory)]/90 px-2 text-[11px] text-[var(--color-warm-gray-500)] opacity-0 shadow-sm ring-1 ring-[var(--color-warm-gray-200)] transition-opacity hover:text-[var(--color-terracotta)] group-hover:opacity-100"
+        title="复制代码"
+      >
+        {copied ? (
+          <>
+            <Check className="h-3.5 w-3.5 text-green-600" />
+            <span className="text-green-600">已复制</span>
+          </>
+        ) : (
+          <>
+            <Copy className="h-3.5 w-3.5" />
+            <span>复制</span>
+          </>
+        )}
+      </button>
+      <pre className="overflow-x-auto rounded-lg bg-[var(--color-warm-gray-50)] p-3 text-[13px] ring-1 ring-[var(--color-warm-gray-200)]">
+        {children}
+      </pre>
+    </div>
+  );
 }
 
 export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
@@ -15,7 +96,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
     <div className={`markdown-body ${className ?? ""}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeHighlight]}
+        rehypePlugins={[[rehypeHighlight, { languages: HIGHLIGHT_LANGUAGES }]]}
         components={{
           h1: ({ children }) => (
             <h1 className="mb-3 mt-5 text-xl font-medium text-[var(--color-warm-gray-800)] font-serif first:mt-0">
@@ -73,11 +154,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
               </code>
             );
           },
-          pre: ({ children }) => (
-            <pre className="my-2 overflow-x-auto rounded-lg bg-[var(--color-warm-gray-50)] p-3 text-[13px] ring-1 ring-[var(--color-warm-gray-200)]">
-              {children}
-            </pre>
-          ),
+          pre: ({ children }) => <PreBlock>{children}</PreBlock>,
           table: ({ children }) => (
             <div className="my-2 overflow-x-auto">
               <table className="w-full text-sm">{children}</table>

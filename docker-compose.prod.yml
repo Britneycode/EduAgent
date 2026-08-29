@@ -1,0 +1,79 @@
+# EduAgent 生产环境编排
+# 用法：docker compose -f docker-compose.prod.yml up -d --build
+#
+# 架构：
+#   浏览器 ──HTTPS──> Nginx(80/443) ──/api/──> backend(FastAPI:8000)
+#                       └──/────> frontend(Next.js:3000)
+#   数据持久化：backend_data 卷（SQLite + Chroma + 生成资产），全部落在 /data
+
+name: eduagent
+
+services:
+  backend:
+    build:
+      context: ./backend
+    env_file:
+      # 包含 LLM 密钥等敏感配置，需在服务器上单独创建（不随 git 上传）
+      - ./backend/.env
+    environment:
+      # 以下键覆盖 backend/.env 中的同名配置（docker compose 规则）
+      APP_ENV: production
+      DATABASE_URL: sqlite+aiosqlite:////data/eduagent.db
+      WIKI_CHROMA_DIR: /data/chroma_data
+      WIKI_KNOWLEDGE_DIR: /app/knowledge/ai_intro
+      WIKI_EMBEDDING_DEV_MODE: "false"
+      WIKI_AUTO_INGEST: "true"
+      ASSET_STORAGE_DIR: /data/storage/assets
+      BACKEND_CORS_ORIGINS: '["https://xwz0219.top","http://xwz0219.top"]'
+      REDIS_URL: ""
+      HF_ENDPOINT: https://hf-mirror.com
+    volumes:
+      - backend_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/health',timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      # 首次启动需导入知识库 + 加载 Embedding 模型，给予充足时间
+      start_period: 180s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # 构建时固化进前端包；浏览器经 Nginx 同源访问后端
+        NEXT_PUBLIC_API_URL: https://xwz0219.top
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # NGINX_MODE=http 用于首次签发证书；签发成功后在根目录 .env 改为 https
+      - ./deploy/nginx/app.${NGINX_MODE:-http}.conf:/etc/nginx/conf.d/default.conf:ro
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    # 每 12 小时检查一次续期；首次签发命令见 docs/DEPLOYMENT.md
+    entrypoint: /bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done'
+    restart: unless-stopped
+
+volumes:
+  backend_data:
+  certbot_conf:
+  certbot_www:

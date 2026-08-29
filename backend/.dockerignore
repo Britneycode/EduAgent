@@ -1,0 +1,20 @@
+# 环境与密钥（运行时通过 docker compose env_file 注入）
+.env
+.venv/
+
+# 本地运行数据（服务器端使用独立数据卷）
+*.db
+chroma_data/
+storage/
+*.log
+
+# 测试与缓存
+tests/
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+**/__pycache__/
+
+# 其他
+*.md
+!knowledge/**

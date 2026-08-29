@@ -1,23 +1,20 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { BrainCircuit, Check, Send, Sparkles, UserRoundCheck, X } from "lucide-react";
+import { BrainCircuit, Send, Sparkles, UserRoundCheck } from "lucide-react";
 import { streamChat } from "@/lib/sse";
-import {
-  confirmAgentProfileUpdate,
-  fetchSessionDetail,
-  fetchWikiCourses,
-} from "@/lib/api";
+import { confirmAgentProfileUpdate } from "@/lib/api";
 import { consumePendingMessage } from "@/lib/pendingMessage";
-import { setLastSessionId } from "@/lib/lastSession";
 import { ChatMessage } from "@/components/chat/ChatMessage";
 import { StreamingText } from "@/components/chat/StreamingText";
 import { VoiceInput } from "@/components/chat/VoiceInput";
 import { AgentFlow } from "@/components/chat/AgentFlow";
 import { AgentStatus } from "@/components/chat/AgentStatus";
 import { ResourceCard } from "@/components/chat/ResourceCard";
+import { ProfileUpdateBanner } from "@/components/chat/ProfileUpdateBanner";
+import { useChatSession } from "@/hooks/useChatSession";
 import {
   getStreamStateForSession,
   useChatStreamStore,
@@ -26,9 +23,6 @@ import type {
   ChatMessage as ChatMsg,
   ProfileUpdateProposedPayload,
   ResourceCard as ResourceCardType,
-  ResourceResponse,
-  SessionDetail,
-  WikiCourse,
 } from "@/lib/types";
 
 const STARTER_PROMPTS = [
@@ -37,120 +31,23 @@ const STARTER_PROMPTS = [
   "给我出一组神经网络入门练习题",
 ];
 
-const PROFILE_FIELD_LABELS: Record<string, string> = {
-  major: "专业",
-  grade: "年级",
-  knowledge_base: "知识基础",
-  cognitive_style: "认知风格",
-  learning_goal: "学习目标",
-  weak_points: "薄弱点",
-  learning_pace: "学习节奏",
-  interest_areas: "兴趣方向",
-  coding_level: "编程水平",
-  weekly_hours: "每周学习时间",
-};
-
-function toResourceCard(resource: ResourceResponse): ResourceCardType {
-  return {
-    id: resource.id,
-    turn_id: resource.turn_id,
-    course_id: resource.course_id,
-    resource_type: resource.resource_type,
-    title: resource.title,
-    content: resource.content,
-    knowledge_point: resource.knowledge_point,
-    agent_name: resource.agent_name,
-    is_favorite: resource.is_favorite,
-    confidence: resource.confidence,
-    sources: resource.sources,
-  };
-}
-
-function getDefaultCourseId(courses: WikiCourse[]): string | null {
-  const defaultCourse = courses.find((course) => course.is_default) || courses[0];
-  return defaultCourse?.id ?? null;
-}
-
-function buildHistoricalMessages(detail: SessionDetail): ChatMsg[] {
-  const msgs: ChatMsg[] = detail.messages.map((message) => ({
-    id: `history-${message.id}`,
-    role: message.role,
-    content: message.content,
-    turn_id: message.turn_id,
-  }));
-
-  const assistantIndexByTurnId = new Map<string, number>();
-  let latestAssistantIndex = -1;
-
-  msgs.forEach((message, index) => {
-    if (message.role !== "assistant") return;
-    latestAssistantIndex = index;
-    if (message.turn_id) {
-      assistantIndexByTurnId.set(message.turn_id, index);
-    }
-  });
-
-  const unmatchedResources: ResourceCardType[] = [];
-
-  for (const resource of detail.resources) {
-    const card = toResourceCard(resource);
-    const targetIndex = resource.turn_id
-      ? assistantIndexByTurnId.get(resource.turn_id)
-      : undefined;
-
-    if (typeof targetIndex === "number") {
-      msgs[targetIndex] = {
-        ...msgs[targetIndex],
-        resources: [...(msgs[targetIndex].resources ?? []), card],
-      };
-    } else {
-      unmatchedResources.push(card);
-    }
-  }
-
-  if (unmatchedResources.length > 0) {
-    if (latestAssistantIndex >= 0) {
-      msgs[latestAssistantIndex] = {
-        ...msgs[latestAssistantIndex],
-        resources: [
-          ...(msgs[latestAssistantIndex].resources ?? []),
-          ...unmatchedResources,
-        ],
-      };
-    } else {
-      msgs.push({
-        id: `history-resources-${detail.id}`,
-        role: "assistant",
-        content: "以下是本会话关联的学习资源。",
-        resources: unmatchedResources,
-      });
-    }
-  }
-
-  return msgs;
-}
-
 export default function ChatPage() {
   const params = useParams();
   const router = useRouter();
   const sessionIdParam = params.sessionId as string;
 
-  const parsedSessionId = parseInt(sessionIdParam, 10);
-  const hasValidSessionId = !isNaN(parsedSessionId) && parsedSessionId > 0;
-  const currentSessionId = hasValidSessionId ? parsedSessionId : null;
+  const {
+    parsedSessionId,
+    hasValidSessionId,
+    currentSessionId,
+    messages,
+    setMessages,
+    selectedCourseId,
+    loading,
+  } = useChatSession(sessionIdParam);
 
-  const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState("");
   const [studyMode, setStudyMode] = useState(true);
-  const [courses, setCourses] = useState<WikiCourse[]>([]);
-  const [sessionCourse, setSessionCourse] = useState<{
-    sessionId: number | null;
-    courseId: string | null;
-  }>({
-    sessionId: currentSessionId,
-    courseId: null,
-  });
-  const [loading, setLoading] = useState(hasValidSessionId);
   const [profileProposal, setProfileProposal] =
     useState<ProfileUpdateProposedPayload | null>(null);
   const [profileConfirmState, setProfileConfirmState] = useState<
@@ -159,6 +56,7 @@ export default function ChatPage() {
   const [profileConfirmMessage, setProfileConfirmMessage] = useState<string | null>(
     null
   );
+
   const lastUserMessageRef = useRef<string>("");
   const lastStudyModeRef = useRef(true);
   const lastCourseIdRef = useRef<string | null>(null);
@@ -188,292 +86,141 @@ export default function ChatPage() {
   const clearStream = useChatStreamStore((state) => state.clearStream);
   const setController = useChatStreamStore((state) => state.setController);
   const abortStream = useChatStreamStore((state) => state.abortStream);
-  const defaultCourseId = useMemo(() => getDefaultCourseId(courses), [courses]);
-  const sessionCourseId =
-    sessionCourse.sessionId === currentSessionId ? sessionCourse.courseId : null;
-  const selectedCourseId = sessionCourseId || defaultCourseId;
 
   useEffect(() => {
     activeSessionIdRef.current = currentSessionId;
-    if (hasValidSessionId) {
-      setLastSessionId(parsedSessionId);
-    }
-  }, [currentSessionId, hasValidSessionId, parsedSessionId]);
+  }, [currentSessionId]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages, streamState.streamingContent, scrollToBottom]);
 
-  useEffect(() => {
-    let cancelled = false;
+  const handleSend = useCallback(
+    async (overrideMessage?: string) => {
+      const trimmed = (overrideMessage ?? input).trim();
+      if (!trimmed || streamState.isStreaming || !hasValidSessionId) return;
 
-    fetchWikiCourses()
-      .then((items) => {
-        if (cancelled) return;
-        setCourses(items);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setCourses([]);
-      });
+      lastUserMessageRef.current = trimmed;
+      lastStudyModeRef.current = studyMode;
+      lastCourseIdRef.current = selectedCourseId;
 
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+      const userMsg: ChatMsg = {
+        id: `user-${Date.now()}`,
+        role: "user",
+        content: trimmed,
+      };
+      setMessages((prev) => [...prev, userMsg]);
+      setInput("");
+      setProfileProposal(null);
+      setProfileConfirmState("idle");
+      setProfileConfirmMessage(null);
+      clearStream(parsedSessionId);
+      startStream(parsedSessionId);
 
-  useEffect(() => {
-    if (!hasValidSessionId) {
-      return;
-    }
+      const collectedResources: ResourceCardType[] = [];
+      let collectedContent = "";
 
-    fetchSessionDetail(parsedSessionId)
-      .then((detail) => {
-        setSessionCourse({
-          sessionId: parsedSessionId,
-          courseId: detail.course_id ?? null,
-        });
-        setMessages(buildHistoricalMessages(detail));
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [hasValidSessionId, parsedSessionId]);
+      abortStream(parsedSessionId);
+      const controller = new AbortController();
+      setController(parsedSessionId, controller);
 
-  const handleSend = async (overrideMessage?: string) => {
-    const trimmed = (overrideMessage ?? input).trim();
-    if (!trimmed || streamState.isStreaming || !hasValidSessionId) return;
-
-    lastUserMessageRef.current = trimmed;
-    lastStudyModeRef.current = studyMode;
-    lastCourseIdRef.current = selectedCourseId;
-
-    const userMsg: ChatMsg = {
-      id: `user-${Date.now()}`,
-      role: "user",
-      content: trimmed,
-    };
-    setMessages((prev) => [...prev, userMsg]);
-    setInput("");
-    setProfileProposal(null);
-    setProfileConfirmState("idle");
-    setProfileConfirmMessage(null);
-    clearStream(parsedSessionId);
-    startStream(parsedSessionId);
-
-    const collectedResources: ResourceCardType[] = [];
-    let collectedContent = "";
-
-    abortStream(parsedSessionId);
-    const controller = new AbortController();
-    setController(parsedSessionId, controller);
-
-    await streamChat(
-      activeSessionIdRef.current,
-      trimmed,
-      {
-        onSessionId: (newSessionId) => {
-          if (activeSessionIdRef.current === newSessionId) {
-            return;
-          }
-          activeSessionIdRef.current = newSessionId;
-          router.replace(`/chat/${newSessionId}`);
+      await streamChat(
+        activeSessionIdRef.current,
+        trimmed,
+        {
+          onSessionId: (newSessionId) => {
+            if (activeSessionIdRef.current === newSessionId) {
+              return;
+            }
+            activeSessionIdRef.current = newSessionId;
+            router.replace(`/chat/${newSessionId}`);
+          },
+          onAgentStatus: (payload, sessionId) => {
+            const targetSessionId = sessionId ?? activeSessionIdRef.current;
+            if (targetSessionId === null) return;
+            setAgentStatus(targetSessionId, payload.agent || "", payload.message);
+          },
+          onProfileUpdateProposed: (payload, sessionId) => {
+            const targetSessionId = sessionId ?? activeSessionIdRef.current;
+            if (targetSessionId === null) return;
+            setProfileProposal(payload);
+            setProfileConfirmState("idle");
+            setProfileConfirmMessage(null);
+            clearAgentStatus(targetSessionId);
+          },
+          onProgress: (payload, sessionId) => {
+            const targetSessionId = sessionId ?? activeSessionIdRef.current;
+            if (targetSessionId === null) return;
+            setProgress(targetSessionId, payload);
+          },
+          onHeartbeat: () => {},
+          onToken: (payload, sessionId) => {
+            const targetSessionId = sessionId ?? activeSessionIdRef.current;
+            if (targetSessionId === null) return;
+            collectedContent += payload.token;
+            appendToken(targetSessionId, payload.token);
+          },
+          onResourceCard: (resource, sessionId) => {
+            const targetSessionId = sessionId ?? activeSessionIdRef.current;
+            if (targetSessionId === null) return;
+            collectedResources.push(resource);
+            setResources(targetSessionId, [...collectedResources]);
+          },
+          onWikiFallback: (payload, sessionId) => {
+            const targetSessionId = sessionId ?? activeSessionIdRef.current;
+            if (targetSessionId === null) return;
+            setWikiFallback(targetSessionId, payload.message);
+          },
+          onError: (payload, sessionId) => {
+            const targetSessionId = sessionId ?? activeSessionIdRef.current;
+            if (targetSessionId === null) return;
+            setStreamError(targetSessionId, payload.message);
+          },
+          onDone: (sessionId) => {
+            const targetSessionId = sessionId ?? activeSessionIdRef.current;
+            if (targetSessionId === null) return;
+            const assistantMsg: ChatMsg = {
+              id: `assistant-${Date.now()}`,
+              role: "assistant",
+              content: collectedContent,
+              resources: [...collectedResources],
+            };
+            setMessages((prev) => [...prev, assistantMsg]);
+            finishStream(targetSessionId);
+          },
         },
-        onAgentStatus: (payload, sessionId) => {
-          const targetSessionId = sessionId ?? activeSessionIdRef.current;
-          if (targetSessionId === null) return;
-          setAgentStatus(targetSessionId, payload.agent || "", payload.message);
-        },
-        onProfileUpdateProposed: (payload, sessionId) => {
-          const targetSessionId = sessionId ?? activeSessionIdRef.current;
-          if (targetSessionId === null) return;
-          setProfileProposal(payload);
-          setProfileConfirmState("idle");
-          setProfileConfirmMessage(null);
-          clearAgentStatus(targetSessionId);
-        },
-        onProgress: (payload, sessionId) => {
-          const targetSessionId = sessionId ?? activeSessionIdRef.current;
-          if (targetSessionId === null) return;
-          setProgress(targetSessionId, payload);
-        },
-        onHeartbeat: () => {},
-        onToken: (payload, sessionId) => {
-          const targetSessionId = sessionId ?? activeSessionIdRef.current;
-          if (targetSessionId === null) return;
-          collectedContent += payload.token;
-          appendToken(targetSessionId, payload.token);
-        },
-        onResourceCard: (resource, sessionId) => {
-          const targetSessionId = sessionId ?? activeSessionIdRef.current;
-          if (targetSessionId === null) return;
-          collectedResources.push(resource);
-          setResources(targetSessionId, [...collectedResources]);
-        },
-        onWikiFallback: (payload, sessionId) => {
-          const targetSessionId = sessionId ?? activeSessionIdRef.current;
-          if (targetSessionId === null) return;
-          setWikiFallback(targetSessionId, payload.message);
-        },
-        onError: (payload, sessionId) => {
-          const targetSessionId = sessionId ?? activeSessionIdRef.current;
-          if (targetSessionId === null) return;
-          setStreamError(targetSessionId, payload.message);
-        },
-        onDone: (sessionId) => {
-          const targetSessionId = sessionId ?? activeSessionIdRef.current;
-          if (targetSessionId === null) return;
-          const assistantMsg: ChatMsg = {
-            id: `assistant-${Date.now()}`,
-            role: "assistant",
-            content: collectedContent,
-            resources: [...collectedResources],
-          };
-          setMessages((prev) => [...prev, assistantMsg]);
-          finishStream(targetSessionId);
-        },
-      },
-      controller.signal,
-      { studyMode, courseId: selectedCourseId }
-    );
-  };
-
-  const pendingHandled = useRef(false);
-  useEffect(() => {
-    if (loading || pendingHandled.current) return;
-    const pending = consumePendingMessage();
-    if (pending) {
-      pendingHandled.current = true;
-      const timeoutId = window.setTimeout(() => {
-        void handleSend(pending);
-      }, 0);
-      return () => window.clearTimeout(timeoutId);
-    }
-  });
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && streamState.isStreaming && hasValidSessionId) {
-        abortStream(parsedSessionId);
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [streamState.isStreaming, hasValidSessionId, parsedSessionId, abortStream]);
+        controller.signal,
+        { studyMode: lastStudyModeRef.current, courseId: lastCourseIdRef.current }
+      );
+    },
+    [
+      input,
+      hasValidSessionId,
+      parsedSessionId,
+      studyMode,
+      selectedCourseId,
+      streamState.isStreaming,
+      router,
+      setMessages,
+      clearStream,
+      startStream,
+      abortStream,
+      setController,
+      setAgentStatus,
+      clearAgentStatus,
+      appendToken,
+      setResources,
+      setProgress,
+      setWikiFallback,
+      setStreamError,
+      finishStream,
+    ]
+  );
 
   const handleRegenerate = useCallback(() => {
-    const lastMsg = lastUserMessageRef.current;
-    if (!lastMsg || streamState.isStreaming || !hasValidSessionId) return;
-
-    setMessages((prev) => {
-      const lastAssistantIdx = prev.findLastIndex((m) => m.role === "assistant");
-      if (lastAssistantIdx === -1) return prev;
-      return prev.slice(0, lastAssistantIdx);
-    });
-
-    clearStream(parsedSessionId);
-    setProfileProposal(null);
-    setProfileConfirmState("idle");
-    setProfileConfirmMessage(null);
-    startStream(parsedSessionId);
-
-    const collectedResources: ResourceCardType[] = [];
-    let collectedContent = "";
-
-    abortStream(parsedSessionId);
-    const controller = new AbortController();
-    setController(parsedSessionId, controller);
-
-    streamChat(
-      activeSessionIdRef.current,
-      lastMsg,
-      {
-        onSessionId: (newSessionId) => {
-          if (activeSessionIdRef.current === newSessionId) return;
-          activeSessionIdRef.current = newSessionId;
-          router.replace(`/chat/${newSessionId}`);
-        },
-        onAgentStatus: (payload, sessionId) => {
-          const targetSessionId = sessionId ?? activeSessionIdRef.current;
-          if (targetSessionId === null) return;
-          setAgentStatus(targetSessionId, payload.agent || "", payload.message);
-        },
-        onProfileUpdateProposed: (payload, sessionId) => {
-          const targetSessionId = sessionId ?? activeSessionIdRef.current;
-          if (targetSessionId === null) return;
-          setProfileProposal(payload);
-          setProfileConfirmState("idle");
-          setProfileConfirmMessage(null);
-          clearAgentStatus(targetSessionId);
-        },
-        onProgress: (payload, sessionId) => {
-          const targetSessionId = sessionId ?? activeSessionIdRef.current;
-          if (targetSessionId === null) return;
-          setProgress(targetSessionId, payload);
-        },
-        onHeartbeat: () => {},
-        onToken: (payload, sessionId) => {
-          const targetSessionId = sessionId ?? activeSessionIdRef.current;
-          if (targetSessionId === null) return;
-          collectedContent += payload.token;
-          appendToken(targetSessionId, payload.token);
-        },
-        onResourceCard: (resource, sessionId) => {
-          const targetSessionId = sessionId ?? activeSessionIdRef.current;
-          if (targetSessionId === null) return;
-          collectedResources.push(resource);
-          setResources(targetSessionId, [...collectedResources]);
-        },
-        onWikiFallback: (payload, sessionId) => {
-          const targetSessionId = sessionId ?? activeSessionIdRef.current;
-          if (targetSessionId === null) return;
-          setWikiFallback(targetSessionId, payload.message);
-        },
-        onError: (payload, sessionId) => {
-          const targetSessionId = sessionId ?? activeSessionIdRef.current;
-          if (targetSessionId === null) return;
-          setStreamError(targetSessionId, payload.message);
-        },
-        onDone: (sessionId) => {
-          const targetSessionId = sessionId ?? activeSessionIdRef.current;
-          if (targetSessionId === null) return;
-          const assistantMsg: ChatMsg = {
-            id: `assistant-${Date.now()}`,
-            role: "assistant",
-            content: collectedContent,
-            resources: [...collectedResources],
-          };
-          setMessages((prev) => [...prev, assistantMsg]);
-          finishStream(targetSessionId);
-        },
-      },
-      controller.signal,
-      { studyMode: lastStudyModeRef.current, courseId: lastCourseIdRef.current }
-    );
-  }, [
-    hasValidSessionId,
-    parsedSessionId,
-    streamState.isStreaming,
-    router,
-    clearStream,
-    startStream,
-    abortStream,
-    setController,
-    setAgentStatus,
-    clearAgentStatus,
-    appendToken,
-    setResources,
-    setProgress,
-    setWikiFallback,
-    setStreamError,
-    finishStream,
-  ]);
+    if (!lastUserMessageRef.current || streamState.isStreaming) return;
+    handleSend(lastUserMessageRef.current);
+  }, [handleSend, streamState.isStreaming]);
 
   const handleConfirmProfileProposal = useCallback(async () => {
     if (!profileProposal || profileConfirmState === "saving") return;
@@ -496,6 +243,24 @@ export default function ChatPage() {
       );
     }
   }, [currentSessionId, profileConfirmState, profileProposal]);
+
+  useEffect(() => {
+    if (!hasValidSessionId) return;
+    const pending = consumePendingMessage();
+    if (pending) {
+      const timer = setTimeout(() => {
+        handleSend(pending);
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [hasValidSessionId, handleSend]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
 
   if (loading) {
     return (
@@ -574,55 +339,17 @@ export default function ChatPage() {
           ))}
 
           {profileProposal && (
-            <div className="mx-3 mb-3 rounded-xl bg-[var(--color-ivory)] px-4 py-3 text-sm shadow-[var(--shadow-ring)]">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0">
-                  <p className="font-medium text-[var(--color-warm-gray-800)]">
-                    Agent 建议更新学习画像
-                  </p>
-                  <p className="mt-1 text-xs leading-5 text-[var(--color-warm-gray-600)]">
-                    变更项：
-                    {profileProposal.changed_fields
-                      .map((field) => PROFILE_FIELD_LABELS[field] ?? field)
-                      .join("、") || "画像字段"}
-                  </p>
-                  {profileConfirmMessage && (
-                    <p
-                      className={`mt-1 text-xs ${
-                        profileConfirmState === "error"
-                          ? "text-red-600"
-                          : "text-[var(--color-terracotta)]"
-                      }`}
-                    >
-                      {profileConfirmMessage}
-                    </p>
-                  )}
-                </div>
-                <div className="flex shrink-0 gap-2">
-                  <button
-                    type="button"
-                    onClick={handleConfirmProfileProposal}
-                    disabled={profileConfirmState === "saving"}
-                    className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[var(--color-terracotta)] px-3 text-xs text-white hover:bg-[var(--color-terracotta-hover)] disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    <Check className="h-3.5 w-3.5" />
-                    {profileConfirmState === "saving" ? "保存中" : "确认"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setProfileProposal(null);
-                      setProfileConfirmState("idle");
-                      setProfileConfirmMessage(null);
-                    }}
-                    className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs text-[var(--color-warm-gray-600)] ring-1 ring-[var(--color-warm-gray-200)] hover:text-[var(--color-terracotta)]"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                    忽略
-                  </button>
-                </div>
-              </div>
-            </div>
+            <ProfileUpdateBanner
+              proposal={profileProposal}
+              confirmState={profileConfirmState}
+              confirmMessage={profileConfirmMessage}
+              onConfirm={handleConfirmProfileProposal}
+              onDismiss={() => {
+                setProfileProposal(null);
+                setProfileConfirmState("idle");
+                setProfileConfirmMessage(null);
+              }}
+            />
           )}
 
           {streamState.isStreaming && (

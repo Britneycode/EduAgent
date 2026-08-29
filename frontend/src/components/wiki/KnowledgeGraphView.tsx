@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useRef, useCallback, useEffect } from "react";
+import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import type { WikiConceptNode } from "@/lib/types";
 
 export interface WikiGraphNode {
@@ -162,31 +163,129 @@ export function KnowledgeGraphView({
     [graph.nodes]
   );
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const hasMovedRef = useRef(false);
+
+  const handleZoomIn = () => setZoom((prev) => Math.min(1.8, Number((prev + 0.15).toFixed(2))));
+  const handleZoomOut = () => setZoom((prev) => Math.max(0.5, Number((prev - 0.15).toFixed(2))));
+  const handleReset = () => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0) return; // 仅左键拖拽
+    setIsDragging(true);
+    hasMovedRef.current = false;
+    dragStartRef.current = { x: e.clientX - pan.x, y: e.clientY - pan.y };
+  };
+
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isDragging) return;
+      const newX = e.clientX - dragStartRef.current.x;
+      const newY = e.clientY - dragStartRef.current.y;
+      if (Math.abs(newX - pan.x) > 3 || Math.abs(newY - pan.y) > 3) {
+        hasMovedRef.current = true;
+      }
+      setPan({ x: newX, y: newY });
+    },
+    [isDragging, pan.x, pan.y]
+  );
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+      return () => {
+        window.removeEventListener("mousemove", handleMouseMove);
+        window.removeEventListener("mouseup", handleMouseUp);
+      };
+    }
+  }, [isDragging, handleMouseMove, handleMouseUp]);
+
+  // 滚轮缩放支持 (按住 Ctrl/Meta 缩放或平移)
+  const handleWheel = (e: React.WheelEvent) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -0.1 : 0.1;
+      setZoom((prev) => Math.min(1.8, Math.max(0.5, Number((prev + delta).toFixed(2)))));
+    }
+  };
+
   if (concepts.length === 0) return null;
 
   return (
-    <section className="mb-6 rounded-xl bg-[var(--color-ivory)] p-4 ring-1 ring-[var(--color-warm-gray-200)]">
-      <div className="mb-3 flex items-center justify-between gap-3">
+    <section className="mb-6 rounded-xl bg-[var(--color-ivory)] p-4 ring-1 ring-[var(--color-warm-gray-200)] select-none">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-sm font-medium text-[var(--color-warm-gray-700)]">
             知识图谱
           </h2>
           <p className="mt-1 text-xs text-[var(--color-warm-gray-400)]">
-            {graph.nodes.length} 个知识点 · {graph.edges.length} 条依赖
+            {graph.nodes.length} 个知识点 · {graph.edges.length} 条依赖 · 可拖拽平移与缩放
           </p>
         </div>
-        <span className="rounded-full bg-[var(--color-parchment)] px-3 py-1 text-[11px] text-[var(--color-warm-gray-500)] ring-1 ring-[var(--color-warm-gray-200)]">
-          DAG
-        </span>
+
+        {/* 缩放与控制器 */}
+        <div className="flex items-center gap-1.5 rounded-lg bg-[var(--color-parchment)] p-1 ring-1 ring-[var(--color-warm-gray-200)]">
+          <button
+            type="button"
+            onClick={handleZoomOut}
+            className="flex h-7 w-7 items-center justify-center rounded text-[var(--color-warm-gray-600)] transition-colors hover:bg-[var(--color-warm-gray-100)] hover:text-[var(--color-terracotta)]"
+            title="缩小"
+          >
+            <ZoomOut className="h-3.5 w-3.5" />
+          </button>
+          <span className="min-w-[42px] text-center text-xs font-medium text-[var(--color-warm-gray-600)]">
+            {Math.round(zoom * 100)}%
+          </span>
+          <button
+            type="button"
+            onClick={handleZoomIn}
+            className="flex h-7 w-7 items-center justify-center rounded text-[var(--color-warm-gray-600)] transition-colors hover:bg-[var(--color-warm-gray-100)] hover:text-[var(--color-terracotta)]"
+            title="放大"
+          >
+            <ZoomIn className="h-3.5 w-3.5" />
+          </button>
+          <div className="mx-0.5 h-3.5 w-px bg-[var(--color-warm-gray-200)]" />
+          <button
+            type="button"
+            onClick={handleReset}
+            className="flex h-7 w-7 items-center justify-center rounded text-[var(--color-warm-gray-600)] transition-colors hover:bg-[var(--color-warm-gray-100)] hover:text-[var(--color-terracotta)]"
+            title="重置视角"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div
+        ref={containerRef}
+        onMouseDown={handleMouseDown}
+        onWheel={handleWheel}
+        className={`relative h-[360px] w-full overflow-hidden rounded-lg bg-[var(--color-warm-gray-50)]/50 ring-1 ring-inset ring-[var(--color-warm-gray-200)]/60 ${
+          isDragging ? "cursor-grabbing" : "cursor-grab"
+        }`}
+      >
         <div
-          className="relative"
-          style={{ width: graph.width, height: graph.height }}
+          className="absolute inset-0 origin-center transition-transform duration-75 ease-out"
+          style={{
+            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+            width: graph.width,
+            height: graph.height,
+          }}
         >
           <svg
-            className="absolute inset-0"
+            className="absolute inset-0 pointer-events-none"
             width={graph.width}
             height={graph.height}
             viewBox={`0 0 ${graph.width} ${graph.height}`}
@@ -228,11 +327,18 @@ export function KnowledgeGraphView({
               <button
                 key={item.id}
                 type="button"
-                onClick={() => onSelectConcept(item.concept)}
+                onClick={(e) => {
+                  // 如果发生了拖拽位移，不触发选中
+                  if (hasMovedRef.current) {
+                    e.preventDefault();
+                    return;
+                  }
+                  onSelectConcept(item.concept);
+                }}
                 className={`absolute h-[72px] w-40 -translate-x-1/2 -translate-y-1/2 rounded-xl border px-3 py-2 text-left shadow-sm transition-transform hover:scale-[1.02] ${
                   selected
-                    ? "border-[var(--color-terracotta)] bg-[var(--color-terracotta)] text-white"
-                    : "border-[var(--color-warm-gray-200)] bg-[var(--color-parchment)] text-[var(--color-warm-gray-700)]"
+                    ? "border-[var(--color-terracotta)] bg-[var(--color-terracotta)] text-white shadow-md ring-2 ring-[var(--color-terracotta)]/20"
+                    : "border-[var(--color-warm-gray-200)] bg-[var(--color-parchment)] text-[var(--color-warm-gray-700)] hover:border-[var(--color-warm-gray-300)]"
                 }`}
                 style={{ left: item.x, top: item.y }}
                 title={item.concept.description || item.label}
