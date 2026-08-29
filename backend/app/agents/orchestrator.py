@@ -516,7 +516,7 @@ class Orchestrator:
             return {"events": events, "stop": True}
 
         for warning in audit_warnings:
-            logger.info("Tutor 讯飞安全护栏警告: %s", warning)
+            logger.info("Tutor 内容安全审核警告: %s", warning)
 
         if audit_allowed:
             guarded_answer, tutor_warnings = guard_content(answer, topic=decision.topic)
@@ -947,7 +947,7 @@ class Orchestrator:
         )
         content = audited
         for warning in audit_warnings:
-            logger.info("讯飞安全护栏警告 [%s]: %s", resource.title, warning)
+            logger.info("内容安全审核警告 [%s]: %s", resource.title, warning)
 
         if audit_allowed and resource.resource_type not in ("quiz", "ppt", "video"):
             guarded, warnings = guard_content(

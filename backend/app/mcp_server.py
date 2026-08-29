@@ -10,7 +10,7 @@
 - 启动时完整复用 EduAgent 现有生命周期：init_db() + init_wiki()，随后按
   build_orchestrator 同款装配逻辑实例化各 Agent。
 
-运行方式（在 backend/ 目录，需已配置 SPARK / DeepSeek 等 LLM 凭证）：
+运行方式（在 backend/ 目录，需已配置 LLM 凭证（DeepSeek 或 OpenAI 兼容接口））：
 
     uv run python -m app.mcp_server             # 以 MCP stdio 服务启动
     uv run python -m app.mcp_server --self-test # 离线自检：工具清单 + 正则路由冒烟

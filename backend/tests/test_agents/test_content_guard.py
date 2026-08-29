@@ -5,90 +5,37 @@ import asyncio
 from app.agents.content_guard import (
     audit_model_output,
     audit_user_input,
+    filter_content,
     format_source_citations,
 )
-from app.core.xunfei_safety import SafetyAuditResult
 
 
-class BlockingInputClient:
-    async def audit_input(self, *args, **kwargs) -> SafetyAuditResult:
-        return SafetyAuditResult(action="discontinue")
-
-
-class FortifyInputClient:
-    async def audit_input(self, *args, **kwargs) -> SafetyAuditResult:
-        return SafetyAuditResult(
-            action="fortify_prompt",
-            append_prompt="请用安全的学习场景回答。",
-        )
-
-
-class RecordingOutputClient:
-    def __init__(self, action: str = "none") -> None:
-        self.action = action
-        self.calls: list[dict[str, object]] = []
-
-    async def audit_output(self, content: str, **kwargs) -> SafetyAuditResult:
-        self.calls.append({"content": content, **kwargs})
-        return SafetyAuditResult(action=self.action)
-
-
-def test_audit_user_input_blocks_high_risk_prompt() -> None:
+def test_audit_user_input_passes_content_through() -> None:
     content, warnings, allowed = asyncio.run(
-        audit_user_input(
-            "高风险输入",
-            chat_sid="chat-1",
-            client=BlockingInputClient(),
-        )
+        audit_user_input("帮我学习反向传播", chat_sid="chat-1")
     )
 
-    assert content == "高风险输入"
-    assert allowed is False
-    assert "高风险" in warnings[0]
-
-
-def test_audit_user_input_applies_fortified_prompt() -> None:
-    content, warnings, allowed = asyncio.run(
-        audit_user_input(
-            "帮我学习反向传播",
-            chat_sid="chat-1",
-            client=FortifyInputClient(),
-        )
-    )
-
-    assert allowed is True
-    assert "帮我学习反向传播" in content
-    assert "请用安全的学习场景回答" in content
-    assert "增强" in warnings[0]
-
-
-def test_audit_model_output_chunks_long_content() -> None:
-    client = RecordingOutputClient()
-
-    content, warnings, allowed = asyncio.run(
-        audit_model_output("a" * 9500, chat_sid="chat-1", client=client)
-    )
-
-    assert allowed is True
+    assert content == "帮我学习反向传播"
     assert warnings == []
-    assert content == "a" * 9500
-    assert len(client.calls) == 2
-    assert client.calls[0]["pindex"] == 1
-    assert client.calls[0]["is_end"] is False
-    assert client.calls[1]["pindex"] == 2
-    assert client.calls[1]["is_end"] is True
+    assert allowed is True
 
 
-def test_audit_model_output_blocks_high_risk_response() -> None:
-    client = RecordingOutputClient(action="discontinue")
-
+def test_audit_model_output_passes_content_through() -> None:
     content, warnings, allowed = asyncio.run(
-        audit_model_output("高风险输出", chat_sid="chat-1", client=client)
+        audit_model_output("反向传播通过链式法则计算梯度。", chat_sid="chat-1")
     )
 
-    assert allowed is False
-    assert "审核未通过" in content
-    assert "高风险" in warnings[0]
+    assert content == "反向传播通过链式法则计算梯度。"
+    assert warnings == []
+    assert allowed is True
+
+
+def test_filter_content_removes_unsafe_fragments_and_adds_disclaimer() -> None:
+    filtered = filter_content("先执行 <script>alert(1)</script> 再讲解概念")
+
+    assert "<script>" not in filtered
+    assert "[已过滤]" in filtered
+    assert "建议结合教材和课堂内容进行验证" in filtered
 
 
 def test_format_source_citations_includes_confidence_and_snippets() -> None:

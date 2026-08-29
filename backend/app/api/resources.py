@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import base64
 from enum import Enum
 from typing import Any, Literal
 
@@ -24,18 +23,12 @@ from app.agents.video_agent import VideoAgent
 from app.api.chat import encode_sse_event, iter_with_heartbeat
 from app.core.speech import SpeechRecognitionClient, SpeechRecognitionError
 from app.core.auth import get_current_user
-from app.core.cache import get_cache_backend, make_cache_key
 from app.core.code_sandbox import CodeSandboxError, execute_python_code, extract_python_code
 from app.core.config import get_settings
 from app.core.database import get_db
 from app.core.pptx_export import build_pptx
 from app.core.storage import get_asset_storage
 from app.core.video_export import build_animation_export_package
-from app.core.xunfei_tts import (
-    XunfeiTTSError,
-    get_xunfei_tts_client,
-    prepare_resource_tts_text,
-)
 from app.models.user import User
 from app.schemas.chat import (
     CodeExecutionRequest,
@@ -88,75 +81,6 @@ async def list_resources(
         )
         for r in resources
     ]
-
-
-@router.post("/{resource_id}/speech")
-async def synthesize_resource_speech(
-    resource_id: int,
-    db: AsyncSession = Depends(get_db),
-    user: User = Depends(get_current_user),
-) -> Response:
-    chat_service = ChatService(session=db)
-    resource = await chat_service.get_resource(resource_id, user_id=user.id)
-    if resource is None:
-        raise HTTPException(status_code=404, detail="资源不存在")
-
-    tts_client = get_xunfei_tts_client()
-    if tts_client is None:
-        raise HTTPException(status_code=503, detail="讯飞 TTS 未启用")
-
-    text = prepare_resource_tts_text(
-        title=resource.title,
-        content=resource.content,
-        resource_type=resource.resource_type,
-    )
-    try:
-        audio = await _synthesize_tts_with_cache(text)
-    except XunfeiTTSError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
-
-    return Response(
-        content=audio,
-        media_type="audio/mpeg",
-        headers={
-            "Content-Disposition": f'inline; filename="resource-{resource_id}.mp3"',
-            "Cache-Control": "private, max-age=300",
-        },
-    )
-
-
-@router.post("/{resource_id}/assets/speech", response_model=ResourceAssetResponse)
-async def create_resource_speech_asset(
-    resource_id: int,
-    db: AsyncSession = Depends(get_db),
-    user: User = Depends(get_current_user),
-) -> ResourceAssetResponse:
-    chat_service = ChatService(session=db)
-    resource = await chat_service.get_resource(resource_id, user_id=user.id)
-    if resource is None:
-        raise HTTPException(status_code=404, detail="资源不存在")
-
-    tts_client = get_xunfei_tts_client()
-    if tts_client is None:
-        raise HTTPException(status_code=503, detail="讯飞 TTS 未启用")
-
-    text = prepare_resource_tts_text(
-        title=resource.title,
-        content=resource.content,
-        resource_type=resource.resource_type,
-    )
-    try:
-        audio = await _synthesize_tts_with_cache(text)
-    except XunfeiTTSError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
-
-    asset = get_asset_storage().save_bytes(
-        data=audio,
-        filename=f"resource-{resource_id}.mp3",
-        media_type="audio/mpeg",
-        namespace=f"resource-{resource_id}",
-    )
-    return _asset_response(asset)
 
 
 @router.patch("/{resource_id}/favorite", response_model=ResourceResponse)
@@ -318,7 +242,6 @@ async def create_resource_export_asset(
 @router.post("/{resource_id}/assets/animation", response_model=ResourceAssetResponse)
 async def create_animation_export_asset(
     resource_id: int,
-    include_audio: bool = Query(default=True),
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> ResourceAssetResponse:
@@ -329,23 +252,10 @@ async def create_animation_export_asset(
     if resource.resource_type != ResourceType.animation.value:
         raise HTTPException(status_code=400, detail="只有算法动画资源可以导出动画包")
 
-    audio: bytes | None = None
-    tts_client = get_xunfei_tts_client() if include_audio else None
-    if tts_client is not None:
-        text = prepare_resource_tts_text(
-            title=resource.title,
-            content=resource.content,
-            resource_type=resource.resource_type,
-        )
-        try:
-            audio = await _synthesize_tts_with_cache(text)
-        except XunfeiTTSError as exc:
-            raise HTTPException(status_code=502, detail=str(exc)) from exc
-
     payload = build_animation_export_package(
         title=resource.title,
         content=resource.content,
-        audio=audio,
+        audio=None,
     )
     asset = get_asset_storage().save_bytes(
         data=payload,
@@ -520,7 +430,7 @@ async def _finalize_regenerated_content(
     )
     content = audited
     for warning in audit_warnings:
-        logger.info("讯飞安全护栏警告 [%s]: %s", resource.title, warning)
+        logger.info("内容安全审核警告 [%s]: %s", resource.title, warning)
 
     if audit_allowed and resource.resource_type not in {
         ResourceType.quiz.value,
@@ -663,32 +573,6 @@ def _build_resource_markdown(resource: Any) -> str:
         lines.append(f"- 生成 Agent：{resource.agent_name}")
     lines.extend(["", "---", "", resource.content])
     return "\n".join(lines)
-
-
-async def _synthesize_tts_with_cache(text: str) -> bytes:
-    cache = get_cache_backend()
-    cache_key = make_cache_key("tts_binary", text)
-    try:
-        cached = await cache.get(cache_key)
-        if cached:
-            return base64.b64decode(cached.encode("ascii"))
-    except Exception:
-        logger.debug("读取 TTS 缓存失败，继续实时合成", exc_info=True)
-
-    tts_client = get_xunfei_tts_client()
-    if tts_client is None:
-        raise HTTPException(status_code=503, detail="讯飞 TTS 未启用")
-    audio = await tts_client.synthesize(text)
-
-    try:
-        await cache.set(
-            cache_key,
-            base64.b64encode(audio).decode("ascii"),
-            ttl_seconds=get_settings().cache_ttl_seconds,
-        )
-    except Exception:
-        logger.debug("写入 TTS 缓存失败", exc_info=True)
-    return audio
 
 
 def _asset_response(asset: Any) -> ResourceAssetResponse:

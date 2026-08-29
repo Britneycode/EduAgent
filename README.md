@@ -15,7 +15,6 @@ EduAgent 不只是问答机器人，而是"**先理解学生，再组织知识�
 - **多课程知识库**：人工智能导论（13 章）、计算机网络（160+ 篇全栈资源）、算法设计与分析（10 章 + 习题/代码/实验/媒体全套配套），多课程自动发现与切换
 - **防幻觉三防线**：RAG 检索锚定 → 生成约束（只依据检索片段、不足则标注）→ 输出过滤（`content_guard` 校验来源引用）
 - **流式交互**：SSE 流式输出 + 阶段状态提示，前端 Next.js 多模态卡片渲染
-- **讯飞工具链**：星火 LLM 主模型、讯飞内容审核护栏、讯飞 TTS 资源朗读
 
 ## 两种运行形态
 
@@ -69,7 +68,7 @@ EduAgent/
 cd backend
 uv sync                                   # 安装依赖
 
-cp .env.example .env 2>/dev/null || true  # 配置 LLM 凭证（星火 / DeepSeek / OpenAI 兼容，任选其一）
+cp .env.example .env 2>/dev/null || true  # 配置 LLM 凭证（DeepSeek / OpenAI 兼容，任选其一）
 # 数据库默认 SQLite，本地开发零配置
 
 uv run uvicorn app.main:app --reload --port 8000
@@ -116,5 +115,5 @@ cd backend && uv run python -m app.mcp_server --self-test
 
 - **后端**：Python 3.12 · FastAPI · LangGraph · SQLAlchemy (async) · SQLite/PostgreSQL · numpy/Chroma 向量检索 · bge-small-zh-v1.5 Embedding
 - **前端**：Next.js 15 (App Router) · React 19 · TypeScript · Tailwind CSS · shadcn/ui · SSE
-- **LLM**：讯飞星火（主）· DeepSeek · OpenAI 兼容接口（均可配置）
+- **LLM**：DeepSeek（主）· OpenAI 兼容接口（备，均可配置）
 - **平台移植**：remio aApp（语义端点 + run_prompt/search_notes/web_search 编排）· MCP stdio

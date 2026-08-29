@@ -196,7 +196,7 @@ def test_orchestrator_records_agent_observability_events() -> None:
 
 def test_orchestrator_stops_when_document_generation_fails() -> None:
     orchestrator = _build_orchestrator(
-        doc_llm=ErrorLLMClient("星火调用失败"),
+        doc_llm=ErrorLLMClient("LLM 调用失败"),
     )
 
     events = asyncio.run(_collect_events(orchestrator, "帮我复习反向传播"))

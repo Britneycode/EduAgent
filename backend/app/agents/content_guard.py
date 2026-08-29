@@ -12,13 +12,6 @@ import re
 
 from typing import Any
 
-from app.core.xunfei_safety import (
-    SafetyAuditResult,
-    XunfeiSafetyClient,
-    XunfeiSafetyError,
-    get_xunfei_safety_client,
-)
-
 logger = logging.getLogger(__name__)
 
 _UNSAFE_PATTERNS: list[re.Pattern[str]] = [
@@ -60,8 +53,6 @@ _DATE_STAT_RISK_PATTERNS: list[re.Pattern[str]] = [
 
 _DISCLAIMER_SUFFIX = "\n\n> 注意：以上内容由 AI 基于知识库生成，建议结合教材和课堂内容进行验证。"
 _INPUT_BLOCKED_MESSAGE = "内容安全审核未通过，已停止本轮生成。请换一种更适合学习场景的表达。"
-_OUTPUT_BLOCKED_MESSAGE = "内容安全审核未通过，已停止展示这段回答。请重新提问或缩小范围。"
-_AUDIT_CHUNK_SIZE = 9000
 
 
 def verify_content(
@@ -166,65 +157,24 @@ async def audit_user_input(
     *,
     chat_sid: str,
     history: list[dict[str, str]] | None = None,
-    client: XunfeiSafetyClient | None = None,
 ) -> tuple[str, list[str], bool]:
-    """使用讯飞安全护栏审核用户输入。
+    """外部审核护栏已移除，输入安全由本地过滤规则（filter_content）承担。
 
-    返回（可传给后续 Agent 的内容, 警告列表, 是否允许继续）。
+    保留异步签名以兼容调用链。返回（原内容, 空警告, 允许继续）。
     """
-    audit_client = client if client is not None else get_xunfei_safety_client()
-    if audit_client is None:
-        return content, [], True
-
-    try:
-        result = await audit_client.audit_input(
-            _limit_for_audit(content),
-            chat_sid=chat_sid,
-            context_list=_build_safety_context(history),
-        )
-    except XunfeiSafetyError as exc:
-        logger.warning("讯飞安全护栏输入审核失败: %s", exc)
-        return content, [f"讯飞安全护栏输入审核失败：{exc}"], True
-
-    return _apply_input_audit_result(content, result)
+    return content, [], True
 
 
 async def audit_model_output(
     content: str,
     *,
     chat_sid: str,
-    client: XunfeiSafetyClient | None = None,
 ) -> tuple[str, list[str], bool]:
-    """使用讯飞安全护栏审核 Agent 输出。"""
-    audit_client = client if client is not None else get_xunfei_safety_client()
-    if audit_client is None:
-        return content, [], True
+    """外部审核护栏已移除，输出安全由本地过滤规则（guard_content）承担。
 
-    warnings: list[str] = []
-    chunks = _split_for_audit(content)
-    if not chunks:
-        return content, warnings, True
-
-    for index, chunk in enumerate(chunks, start=1):
-        try:
-            result = await audit_client.audit_output(
-                chunk,
-                chat_sid=chat_sid,
-                pindex=index,
-                is_end=index == len(chunks),
-            )
-        except XunfeiSafetyError as exc:
-            logger.warning("讯飞安全护栏输出审核失败: %s", exc)
-            warnings.append(f"讯飞安全护栏输出审核失败：{exc}")
-            return content, warnings, True
-
-        if result.blocked:
-            warnings.append("讯飞安全护栏判定输出高风险，已阻断展示")
-            return _OUTPUT_BLOCKED_MESSAGE, warnings, False
-        if result.fortified:
-            warnings.append("讯飞安全护栏建议增强输出防护，已保留本地防护流程")
-
-    return content, warnings, True
+    保留异步签名以兼容调用链。返回（原内容, 空警告, 允许继续）。
+    """
+    return content, [], True
 
 
 def format_source_citations(
@@ -268,50 +218,3 @@ def _extract_keywords(text: str, min_len: int = 2) -> set[str]:
 
 def input_blocked_message() -> str:
     return _INPUT_BLOCKED_MESSAGE
-
-
-def _apply_input_audit_result(
-    content: str,
-    result: SafetyAuditResult,
-) -> tuple[str, list[str], bool]:
-    if result.blocked:
-        return content, ["讯飞安全护栏判定输入高风险，已阻断生成"], False
-    if result.fortified:
-        fortified = result.apply_to_prompt(content)
-        return fortified, ["讯飞安全护栏已增强本轮输入提示"], True
-    return content, [], True
-
-
-def _build_safety_context(
-    history: list[dict[str, str]] | None,
-) -> list[dict[str, str]] | None:
-    if not history:
-        return None
-
-    context: list[dict[str, str]] = []
-    for item in history[-8:]:
-        role = item.get("role")
-        content = item.get("content")
-        if role not in {"user", "assistant"}:
-            continue
-        if not isinstance(content, str) or not content.strip():
-            continue
-        context.append({"role": role, "content": _limit_for_audit(content, 1200)})
-
-    return context or None
-
-
-def _split_for_audit(content: str) -> list[str]:
-    stripped = content.strip()
-    if not stripped:
-        return []
-    return [
-        stripped[i : i + _AUDIT_CHUNK_SIZE]
-        for i in range(0, len(stripped), _AUDIT_CHUNK_SIZE)
-    ]
-
-
-def _limit_for_audit(content: str, max_chars: int = _AUDIT_CHUNK_SIZE) -> str:
-    if len(content) <= max_chars:
-        return content
-    return content[:max_chars]

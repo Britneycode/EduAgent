@@ -181,7 +181,7 @@ def build_animation_html(
     audio_markup = (
         '<audio controls src="narration.mp3" class="audio"></audio>'
         if has_audio
-        else '<p class="audio-note">未包含旁白音频：请启用讯飞 TTS 后重新导出。</p>'
+        else '<p class="audio-note">未包含旁白音频。</p>'
     )
     return f"""<!doctype html>
 <html lang="zh-CN">

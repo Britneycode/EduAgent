@@ -28,75 +28,6 @@ async def _register_and_get_auth(
     return data["user_id"], {"Authorization": f"Bearer {data['access_token']}"}
 
 
-class StubTTSClient:
-    def __init__(self) -> None:
-        self.text = ""
-
-    async def synthesize(self, text: str) -> bytes:
-        self.text = text
-        return b"fake-mp3"
-
-
-@pytest.mark.asyncio
-async def test_resource_speech_returns_mp3_for_owner(monkeypatch) -> None:
-    from app.api import resources as resources_api
-
-    stub_tts = StubTTSClient()
-    monkeypatch.setattr(resources_api, "get_xunfei_tts_client", lambda: stub_tts)
-
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        user_id, headers = await _register_and_get_auth(client, "speech_owner")
-        async with AsyncSessionLocal() as db:
-            service = ChatService(session=db)
-            session_id = await service.create_session(user_id=user_id)
-            resource = await service.save_resource(
-                session_id=session_id,
-                resource_type="document",
-                title="反向传播讲义",
-                content="# 反向传播\n\n这是一份讲义。",
-                knowledge_point="反向传播",
-            )
-
-        response = await client.post(
-            f"/api/resources/{resource.id}/speech",
-            headers=headers,
-        )
-
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "audio/mpeg"
-    assert response.content == b"fake-mp3"
-    assert "学习文档：反向传播讲义" in stub_tts.text
-
-
-@pytest.mark.asyncio
-async def test_resource_speech_returns_503_when_tts_disabled(monkeypatch) -> None:
-    from app.api import resources as resources_api
-
-    monkeypatch.setattr(resources_api, "get_xunfei_tts_client", lambda: None)
-
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        user_id, headers = await _register_and_get_auth(client, "speech_disabled")
-        async with AsyncSessionLocal() as db:
-            service = ChatService(session=db)
-            session_id = await service.create_session(user_id=user_id)
-            resource = await service.save_resource(
-                session_id=session_id,
-                resource_type="document",
-                title="测试文档",
-                content="内容",
-            )
-
-        response = await client.post(
-            f"/api/resources/{resource.id}/speech",
-            headers=headers,
-        )
-
-    assert response.status_code == 503
-    assert response.json()["detail"] == "讯飞 TTS 未启用"
-
-
 @pytest.mark.asyncio
 async def test_execute_code_resource_returns_stdout_for_owner() -> None:
     transport = ASGITransport(app=app)
@@ -480,16 +411,14 @@ async def test_asset_download_requires_auth_and_resource_ownership(
 
 
 @pytest.mark.asyncio
-async def test_create_animation_export_asset_includes_audio_and_subtitles(
+async def test_create_animation_export_asset_includes_subtitles(
     monkeypatch,
     tmp_path,
 ) -> None:
     from app.api import resources as resources_api
 
     storage = LocalAssetStorage(tmp_path, public_url_prefix="/api/assets")
-    stub_tts = StubTTSClient()
     monkeypatch.setattr(resources_api, "get_asset_storage", lambda: storage)
-    monkeypatch.setattr(resources_api, "get_xunfei_tts_client", lambda: stub_tts)
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -519,7 +448,6 @@ async def test_create_animation_export_asset_includes_audio_and_subtitles(
     assert response.status_code == 200
     data = response.json()
     assert data["media_type"] == "application/zip"
-    assert "算法动画：搜索算法动画" in stub_tts.text
 
     saved_path = storage.resolve(data["url"].replace("/api/assets/", ""))
     assert saved_path is not None
@@ -529,8 +457,8 @@ async def test_create_animation_export_asset_includes_audio_and_subtitles(
 
     assert "index.html" in names
     assert "subtitles.vtt" in names
-    assert "narration.mp3" in names
-    assert '"has_audio": true' in manifest
+    assert "narration.mp3" not in names
+    assert '"has_audio": false' in manifest
 
 
 @pytest.mark.asyncio

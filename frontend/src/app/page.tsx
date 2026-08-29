@@ -81,7 +81,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-4xl text-center">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-[var(--color-ivory)] px-4 py-1.5 text-xs text-[var(--color-warm-gray-600)] ring-1 ring-[var(--color-warm-gray-200)]">
             <Trophy className="h-3.5 w-3.5 text-[var(--color-terracotta)]" />
-            基于 LangGraph 多智能体架构 · 讯飞星火驱动
+            基于 LangGraph 多智能体架构 · 大模型驱动
           </div>
           <h1 className="mb-6 text-5xl font-medium leading-tight text-[var(--color-warm-gray-800)] font-serif md:text-7xl">
             你的 <span className="text-[var(--color-terracotta)]">AI</span> 个性化<br />学习伙伴
@@ -169,7 +169,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t border-[var(--color-warm-gray-200)] bg-[var(--color-ivory)] px-6 py-8 text-center">
         <p className="text-xs text-[var(--color-warm-gray-400)]">
-          © 2025 EduAgent · 基于 LangGraph + 讯飞星火 · 高等教育 AI 学习平台
+          © 2025 EduAgent · 基于 LangGraph 多智能体 · 高等教育 AI 学习平台
         </p>
       </footer>
     </div>

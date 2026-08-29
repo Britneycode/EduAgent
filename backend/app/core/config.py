@@ -17,13 +17,8 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://127.0.0.1:3000",
     ]
-    spark_app_id: str = ""
-    spark_api_key: str = ""
-    spark_api_secret: str = ""
-    spark_api_password: str = ""
-    spark_model: str = "lite"
-    spark_api_base_url: str = "https://spark-api-open.xf-yun.com/v1"
-    spark_dev_mode: bool = False
+    # 开发模式：LLM 返回模拟内容，不调用真实模型。
+    llm_dev_mode: bool = False
     # 资源 Agent 并发上限，免费 API 建议保持较低数值。
     resource_concurrency: int = 2
     deepseek_enabled: bool = False
@@ -39,23 +34,6 @@ class Settings(BaseSettings):
     openai_compatible_model: str = "qwen3.6-plus"
     openai_compatible_enable_thinking: bool | None = None
     dashscope_api_key: str = ""
-    # 讯飞安全护栏：关闭或凭证缺失时，调用方会回退本地规则。
-    xunfei_safety_enabled: bool = False
-    xunfei_safety_app_id: str = ""
-    xunfei_safety_access_key_id: str = ""
-    xunfei_safety_access_key_secret: str = ""
-    xunfei_safety_api_base_url: str = "http://audit-api-spark-dx.iflyaisol.com"
-    xunfei_safety_template_id: str = ""
-    # 讯飞 TTS：关闭时资源朗读接口不可用；凭证默认可复用 SPARK_*。
-    xunfei_tts_enabled: bool = False
-    xunfei_tts_app_id: str = ""
-    xunfei_tts_api_key: str = ""
-    xunfei_tts_api_secret: str = ""
-    xunfei_tts_url: str = "wss://tts-api.xfyun.cn/v2/tts"
-    xunfei_tts_voice: str = "xiaoyan"
-    xunfei_tts_speed: int = 50
-    xunfei_tts_volume: int = 50
-    xunfei_tts_pitch: int = 50
 
     # 相关视频联网搜索：默认使用 Tavily，并限制到 B站域名。
     video_search_enabled: bool = True

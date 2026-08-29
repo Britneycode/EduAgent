@@ -50,7 +50,7 @@ EduAgent 是一个以 **LLM Wiki（知识中枢）** 为核心的个性化多 Ag
 - **语言**: Python 3.12
 - **框架**: FastAPI
 - **Agent**: LangGraph（多 Agent 编排，见 `app/agents/orchestrator.py`）
-- **LLM**: 讯飞星火（主）+ DeepSeek / OpenAI 兼容接口（辅，可配置切换）
+- **LLM**: DeepSeek（主）+ OpenAI 兼容接口（备，可配置切换；开发模式 LLM_DEV_MODE=true 返回模拟内容）
 - **ORM**: SQLAlchemy（async）+ Alembic (迁移)
 - **数据库**: 默认 SQLite（`eduagent.db`，零配置启动），可通过 `DATABASE_URL` 切换 PostgreSQL
 - **向量库**: 内置 numpy + JSON 持久化（默认），可切换 Chroma HTTP Server
@@ -325,22 +325,18 @@ MINIO_SECRET_KEY=minioadmin
 # 知识库目录（默认 ./knowledge，多课程自动发现）
 WIKI_KNOWLEDGE_DIR=./knowledge
 
-# LLM：讯飞星火（主）
-SPARK_APP_ID=xxx
-SPARK_API_KEY=xxx
-SPARK_API_SECRET=xxx
-
-# LLM：DeepSeek（备用）
+# LLM：DeepSeek（主）
 DEEPSEEK_ENABLED=true
 DEEPSEEK_API_KEY=xxx
 
-# LLM：OpenAI 兼容接口（备用，可接 qwen 等）
+# LLM：OpenAI 兼容接口（备用，可接 qwen 等；主模型失败时自动回退）
 OPENAI_COMPATIBLE_ENABLED=true
 OPENAI_COMPATIBLE_API_KEY=xxx
 OPENAI_COMPATIBLE_API_BASE_URL=https://xxx/v1
 OPENAI_COMPATIBLE_MODEL=qwen3.6-plus
 
-# 讯飞 TTS（凭证默认复用 SPARK_*，不配则朗读接口不可用）
+# 开发模式（true 时 LLM 返回模拟内容，仅用于本地调试）
+LLM_DEV_MODE=false
 
 # JWT
 JWT_SECRET_KEY=xxx

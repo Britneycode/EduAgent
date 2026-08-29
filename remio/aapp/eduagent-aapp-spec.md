@@ -244,4 +244,4 @@ EduAgent 已内置结构化课程知识库：`backend/knowledge/计算机网络�
 | 防幻觉 | `rag` 知识锚定 + 来源引用 + 输出过滤三重防线 |
 | 流式输出 | `rag_stream` 答疑流式，UI 卡片即时渲染 |
 | 初始知识库 | 内置《计算机网络》全课程知识库（md → notes） |
-| AI 辅助工具 | remio 平台能力 + 讯飞星火/DeepSeek（MCP 引擎侧）双轨 |
+| AI 辅助工具 | remio 平台能力 + DeepSeek/OpenAI 兼容（MCP 引擎侧）双轨 |

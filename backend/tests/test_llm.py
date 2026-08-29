@@ -143,7 +143,7 @@ def test_llm_warning_is_suppressed_when_deepseek_is_configured(
 
 
 def test_llm_mode_reports_dev_mode(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("SPARK_DEV_MODE", "true")
+    monkeypatch.setenv("LLM_DEV_MODE", "true")
     get_settings.cache_clear()
 
     try:
@@ -152,17 +152,31 @@ def test_llm_mode_reports_dev_mode(monkeypatch: pytest.MonkeyPatch) -> None:
         get_settings.cache_clear()
 
 
-def test_llm_mode_reports_spark_when_spark_is_configured(
+def test_llm_mode_reports_deepseek_when_deepseek_is_configured(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setenv("SPARK_DEV_MODE", "false")
+    monkeypatch.setenv("LLM_DEV_MODE", "false")
     monkeypatch.setenv("OPENAI_COMPATIBLE_ENABLED", "false")
-    monkeypatch.setenv("DEEPSEEK_ENABLED", "false")
-    monkeypatch.setenv("SPARK_APP_ID", "spark-app")
-    monkeypatch.setenv("SPARK_API_PASSWORD", "spark-password")
+    monkeypatch.setenv("DEEPSEEK_ENABLED", "true")
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "deepseek-key")
     get_settings.cache_clear()
 
     try:
-        assert get_llm_mode() == "spark"
+        assert get_llm_mode() == "deepseek"
+    finally:
+        get_settings.cache_clear()
+
+
+def test_llm_mode_reports_openai_compatible_when_configured(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("LLM_DEV_MODE", "false")
+    monkeypatch.setenv("DEEPSEEK_ENABLED", "false")
+    monkeypatch.setenv("OPENAI_COMPATIBLE_ENABLED", "true")
+    monkeypatch.setenv("OPENAI_COMPATIBLE_API_KEY", "compat-key")
+    get_settings.cache_clear()
+
+    try:
+        assert get_llm_mode() == "openai_compatible"
     finally:
         get_settings.cache_clear()

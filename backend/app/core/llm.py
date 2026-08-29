@@ -7,7 +7,6 @@ from collections.abc import AsyncGenerator
 import json
 
 import httpx
-import tenacity
 
 from app.core.config import get_settings
 
@@ -30,147 +29,6 @@ class BaseLLMClient(ABC):
         """逐 token 流式生成。默认回退到 generate_text 整体返回。"""
         text = await self.generate_text(prompt)
         yield text
-
-
-class SparkLLMClient(BaseLLMClient):
-    """讯飞星火大模型客户端。"""
-
-    def __init__(self) -> None:
-        settings = get_settings()
-        self.app_id = settings.spark_app_id
-        self.api_key = settings.spark_api_key
-        self.api_secret = settings.spark_api_secret
-        self.api_password = settings.spark_api_password or settings.spark_api_key
-        self.api_url = f"{settings.spark_api_base_url.rstrip('/')}/chat/completions"
-        self.model = settings.spark_model
-
-    async def generate_text(self, prompt: str) -> str:
-        self._validate_credentials()
-        headers, payload = self._build_request(prompt)
-
-        try:
-            parts: list[str] = []
-            async for token in self._iter_stream_tokens(headers, payload):
-                parts.append(token)
-            content = "".join(parts)
-        except httpx.TimeoutException:
-            raise LLMClientError("讯飞星火请求超时，请稍后重试")
-        except httpx.HTTPStatusError as exc:
-            raise LLMClientError(self._build_http_error_message(exc))
-        except httpx.HTTPError:
-            raise LLMClientError("讯飞星火网络连接失败，请检查网络")
-
-        if not content.strip():
-            raise LLMClientError("讯飞星火返回数据格式异常")
-
-        return content.strip()
-
-    async def generate_stream(self, prompt: str) -> AsyncGenerator[str, None]:
-        self._validate_credentials()
-        headers, payload = self._build_request(prompt)
-
-        try:
-            async for token in self._iter_stream_tokens(headers, payload):
-                yield token
-        except httpx.TimeoutException:
-            raise LLMClientError("讯飞星火请求超时，请稍后重试")
-        except httpx.HTTPStatusError as exc:
-            raise LLMClientError(self._build_http_error_message(exc))
-        except httpx.HTTPError:
-            raise LLMClientError("讯飞星火网络连接失败，请检查网络")
-
-    def _build_request(self, prompt: str) -> tuple[dict[str, str], dict]:
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_password}",
-        }
-        payload = {
-            "model": self.model,
-            "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": 4096,
-            "temperature": 0.7,
-            "stream": True,
-        }
-        return headers, payload
-
-    @tenacity.retry(
-        retry=tenacity.retry_if_exception_type(httpx.TimeoutException),
-        stop=tenacity.stop_after_attempt(2),
-        wait=tenacity.wait_fixed(1),
-        reraise=True,
-    )
-    async def _iter_stream_tokens(
-        self, headers: dict[str, str], payload: dict
-    ) -> AsyncGenerator[str, None]:
-        timeout = httpx.Timeout(connect=10.0, read=180.0, write=10.0, pool=10.0)
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            async with client.stream(
-                "POST",
-                self.api_url,
-                headers=headers,
-                json=payload,
-            ) as response:
-                response.raise_for_status()
-                async for line in response.aiter_lines():
-                    if not line.startswith("data: "):
-                        continue
-                    raw = line[len("data: ") :]
-                    if raw.strip() == "[DONE]":
-                        break
-                    try:
-                        chunk = json.loads(raw)
-                    except json.JSONDecodeError:
-                        continue
-                    error_code = chunk.get("code")
-                    if error_code and error_code != 0:
-                        error_msg = chunk.get("message", "")
-                        if str(error_code) == "11200" or "AppIdNoAuthError" in str(
-                            error_msg
-                        ):
-                            raise LLMClientError(
-                                f"讯飞星火鉴权失败：当前 AppID 未开通 {self.model} 模型权限，"
-                                "请在控制台检查配置。"
-                            )
-                        raise LLMClientError(
-                            f"讯飞星火请求失败（错误码 {error_code}）：{error_msg}"
-                        )
-                    try:
-                        delta = chunk["choices"][0]["delta"]
-                        token = delta.get("content", "")
-                        if token:
-                            yield token
-                    except (KeyError, IndexError):
-                        continue
-
-    def _validate_credentials(self) -> None:
-        if not self.app_id or not self.api_password:
-            raise LLMClientError(
-                "讯飞星火凭证未配置，请设置 SPARK_APP_ID 和 SPARK_API_PASSWORD"
-            )
-
-    def _build_http_error_message(self, exc: httpx.HTTPStatusError) -> str:
-        status_code = exc.response.status_code
-        try:
-            error_data = exc.response.json().get("error", {})
-        except ValueError:
-            error_data = {}
-
-        error_code = str(error_data.get("code", "")).strip()
-        error_message = str(error_data.get("message", "")).strip()
-
-        if error_code == "11200" or "AppIdNoAuthError" in error_message:
-            return (
-                f"讯飞星火鉴权失败：当前 AppID 未开通 {self.model} 模型权限，"
-                "或 AppID 与 APIPassword 不匹配，请在控制台检查配置。"
-            )
-
-        if status_code == 401:
-            return "讯飞星火鉴权失败，请检查 APIPassword 是否正确"
-
-        if error_message:
-            return f"讯飞星火请求失败（HTTP {status_code}）：{error_message}"
-
-        return f"讯飞星火请求失败（HTTP {status_code}），请稍后重试"
 
 
 class OpenAICompatibleLLMClient(BaseLLMClient):
@@ -386,7 +244,7 @@ class FallbackLLMClient(BaseLLMClient):
 class DevLLMClient(BaseLLMClient):
     """开发模式 LLM 客户端，返回模拟内容。
 
-    仅在 SPARK_DEV_MODE=true 时使用。
+    仅在 LLM_DEV_MODE=true 时使用。
     """
 
     async def generate_text(self, prompt: str) -> str:
@@ -408,67 +266,51 @@ class DevLLMClient(BaseLLMClient):
 
 def get_llm_configuration_warning() -> str | None:
     settings = get_settings()
-    has_credentials = bool(
-        settings.spark_app_id
-        and (settings.spark_api_password or settings.spark_api_key)
-    )
     has_deepseek = bool(settings.deepseek_enabled and settings.deepseek_api_key)
     has_openai_compatible = bool(
         settings.openai_compatible_enabled and settings.openai_compatible_api_key
     )
-    if has_credentials or settings.spark_dev_mode or has_deepseek or has_openai_compatible:
+    if settings.llm_dev_mode or has_deepseek or has_openai_compatible:
         return None
     return (
-        "讯飞星火未配置，当前为真实调用模式，聊天时会失败。"
-        "请设置 SPARK_APP_ID、SPARK_API_PASSWORD，"
-        "或启用 SPARK_DEV_MODE=true / DEEPSEEK_ENABLED=true / "
-        "OPENAI_COMPATIBLE_ENABLED=true。"
+        "LLM 未配置，当前为真实调用模式，聊天时会失败。"
+        "请设置 DEEPSEEK_API_KEY 或 OPENAI_COMPATIBLE_API_KEY，"
+        "或启用 LLM_DEV_MODE=true。"
     )
 
 
 def get_llm_mode() -> str:
     settings = get_settings()
-    has_spark_credentials = bool(
-        settings.spark_app_id
-        and (settings.spark_api_password or settings.spark_api_key)
-    )
     has_deepseek = bool(settings.deepseek_enabled and settings.deepseek_api_key)
     has_openai_compatible = bool(
         settings.openai_compatible_enabled and settings.openai_compatible_api_key
     )
 
-    if settings.spark_dev_mode:
+    if settings.llm_dev_mode:
         return "dev"
-    if has_openai_compatible:
-        return "openai_compatible"
-    if has_spark_credentials:
-        return "spark"
     if has_deepseek:
         return "deepseek"
+    if has_openai_compatible:
+        return "openai_compatible"
     return "unconfigured"
 
 
 def get_llm_client() -> BaseLLMClient:
-    """根据配置返回合适的 LLM 客户端。"""
+    """根据配置返回合适的 LLM 客户端（DeepSeek 主，OpenAI 兼容备）。"""
     settings = get_settings()
-    if settings.spark_dev_mode:
+    if settings.llm_dev_mode:
         logger.warning("⚠️ 当前为开发模式，LLM 响应为模拟内容")
         return DevLLMClient()
 
-    has_spark_credentials = bool(
-        settings.spark_app_id
-        and (settings.spark_api_password or settings.spark_api_key)
-    )
     has_deepseek = bool(settings.deepseek_enabled and settings.deepseek_api_key)
     has_openai_compatible = bool(
         settings.openai_compatible_enabled and settings.openai_compatible_api_key
     )
 
-    if has_openai_compatible:
-        return OpenAICompatibleLLMClient()
-
-    if has_spark_credentials and has_deepseek:
-        return FallbackLLMClient(SparkLLMClient(), DeepSeekLLMClient())
+    if has_deepseek and has_openai_compatible:
+        return FallbackLLMClient(DeepSeekLLMClient(), OpenAICompatibleLLMClient())
     if has_deepseek:
         return DeepSeekLLMClient()
-    return SparkLLMClient()
+    if has_openai_compatible:
+        return OpenAICompatibleLLMClient()
+    return DeepSeekLLMClient()

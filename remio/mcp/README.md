@@ -33,7 +33,7 @@
 
 ## 三、运行
 
-前置条件：与现有后端一致——已配置 LLM 凭证（讯飞星火 `SPARK_*`，或 DeepSeek，或
+前置条件：与现有后端一致——已配置 LLM 凭证（DeepSeek，或
 OpenAI 兼容 `/ DeepSeek`），并确保 `backend/.env` 的 `WIKI_KNOWLEDGE_DIR` 指向
 `./knowledge/计算机网络知识库`。
 

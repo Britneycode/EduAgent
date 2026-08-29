@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 TEST_DB_PATH = Path(__file__).parent / "test.db"
 os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///{TEST_DB_PATH.as_posix()}"
-os.environ["SPARK_DEV_MODE"] = "false"
+os.environ["LLM_DEV_MODE"] = "false"
 
 from app.core.config import get_settings  # noqa: E402
 

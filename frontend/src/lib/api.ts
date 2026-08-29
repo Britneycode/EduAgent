@@ -282,17 +282,6 @@ export async function fetchResources(
   return parseJSON<ResourceResponse[]>(response);
 }
 
-export async function fetchResourceSpeech(resourceId: number): Promise<Blob> {
-  const response = await fetch(`${API_BASE}/api/resources/${resourceId}/speech`, {
-    method: "POST",
-    headers: { ...authHeaders() },
-  });
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({}));
-    throw new Error(formatErrorDetail(data.detail, "生成语音失败"));
-  }
-  return response.blob();
-}
 
 export async function executeResourceCode(
   resourceId: number,
@@ -360,20 +349,6 @@ export async function createResourceExportAsset(
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
     throw new Error(formatErrorDetail(data.detail, "生成导出链接失败"));
-  }
-  return parseJSON<ResourceAssetResponse>(response);
-}
-
-export async function createResourceSpeechAsset(
-  resourceId: number
-): Promise<ResourceAssetResponse> {
-  const response = await fetch(`${API_BASE}/api/resources/${resourceId}/assets/speech`, {
-    method: "POST",
-    headers: { ...authHeaders() },
-  });
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({}));
-    throw new Error(formatErrorDetail(data.detail, "生成语音链接失败"));
   }
   return parseJSON<ResourceAssetResponse>(response);
 }

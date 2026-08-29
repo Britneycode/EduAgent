@@ -20,9 +20,7 @@ import {
   Presentation,
   RefreshCw,
   Share2,
-  Square,
   Star,
-  Volume2,
 } from "lucide-react";
 import type {
   ResourceCard as ResourceCardType,
@@ -34,7 +32,6 @@ import {
   exportResourceMarkdown,
   exportResourcePptx,
   fetchAssetBlob,
-  fetchResourceSpeech,
   regenerateResource,
   setResourceFavorite,
 } from "@/lib/api";
@@ -453,8 +450,6 @@ function TrustedCitationPanel({
 export function ResourceCard({ resource: initialResource, sessionId }: ResourceCardProps) {
   const [resource, setResource] = useState(initialResource);
   const [expanded, setExpanded] = useState(true);
-  const [speechState, setSpeechState] = useState<"idle" | "loading" | "playing" | "error">("idle");
-  const [speechError, setSpeechError] = useState<string | null>(null);
   const [isFavorite, setIsFavorite] = useState(Boolean(resource.is_favorite));
   const [actionError, setActionError] = useState<string | null>(null);
   const [exportingFormat, setExportingFormat] = useState<"markdown" | "pptx" | null>(null);
@@ -462,8 +457,6 @@ export function ResourceCard({ resource: initialResource, sessionId }: ResourceC
   const [regenerating, setRegenerating] = useState(false);
   const [favoriteSaving, setFavoriteSaving] = useState(false);
   const [shared, setShared] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const audioUrlRef = useRef<string | null>(null);
   const typeLabel = RESOURCE_TYPE_LABELS[resource.resource_type] ?? resource.resource_type;
   const colorClass = RESOURCE_TYPE_COLORS[resource.resource_type] ?? "bg-[var(--color-terracotta)]";
   const ResourceIcon =
@@ -507,49 +500,6 @@ export function ResourceCard({ resource: initialResource, sessionId }: ResourceC
     setResource(initialResource);
     setIsFavorite(Boolean(initialResource.is_favorite));
   }, [initialResource]);
-
-  useEffect(() => {
-    return () => {
-      audioRef.current?.pause();
-      if (audioUrlRef.current) {
-        URL.revokeObjectURL(audioUrlRef.current);
-      }
-    };
-  }, []);
-
-  async function handleSpeechClick() {
-    if (!resource.id || speechState === "loading") return;
-    setSpeechError(null);
-
-    if (speechState === "playing" && audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      setSpeechState("idle");
-      return;
-    }
-
-    setSpeechState("loading");
-    try {
-      const blob = await fetchResourceSpeech(resource.id);
-      if (audioUrlRef.current) {
-        URL.revokeObjectURL(audioUrlRef.current);
-      }
-      const audioUrl = URL.createObjectURL(blob);
-      audioUrlRef.current = audioUrl;
-      const audio = new Audio(audioUrl);
-      audioRef.current = audio;
-      audio.onended = () => setSpeechState("idle");
-      audio.onerror = () => {
-        setSpeechState("error");
-        setSpeechError("语音播放失败");
-      };
-      await audio.play();
-      setSpeechState("playing");
-    } catch (error) {
-      setSpeechState("error");
-      setSpeechError(error instanceof Error ? error.message : "生成语音失败");
-    }
-  }
 
   async function handleRegenerateClick() {
     if (!resource.id || regenerating) return;
@@ -636,9 +586,6 @@ export function ResourceCard({ resource: initialResource, sessionId }: ResourceC
     }
   }
 
-  const speechLabel =
-    speechState === "loading" ? "生成中" : speechState === "playing" ? "停止" : "朗读";
-
   return (
     <div className="overflow-hidden rounded-xl bg-[var(--color-ivory)] shadow-[var(--shadow-ring)]">
       <div className="flex flex-wrap items-center gap-2 border-b border-[var(--color-warm-gray-200)] px-4 py-3 transition-colors hover:bg-[var(--color-parchment)]">
@@ -658,18 +605,6 @@ export function ResourceCard({ resource: initialResource, sessionId }: ResourceC
             {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </span>
         </button>
-        {!isVideo && (
-          <button
-            type="button"
-            onClick={handleSpeechClick}
-            disabled={!resource.id || speechState === "loading"}
-            title={resource.id ? "使用讯飞 TTS 朗读资源" : "资源保存后可朗读"}
-            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-[var(--color-warm-gray-200)] px-2.5 text-xs text-[var(--color-warm-gray-600)] hover:border-[var(--color-terracotta)] hover:text-[var(--color-terracotta)] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {speechState === "playing" ? <Square className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
-            {speechLabel}
-          </button>
-        )}
         <button
           type="button"
           onClick={handleFavoriteClick}
@@ -754,11 +689,6 @@ export function ResourceCard({ resource: initialResource, sessionId }: ResourceC
           {actionError && (
             <div className="mb-3 rounded-md bg-red-50 px-3 py-2 text-xs text-red-700">
               {actionError}
-            </div>
-          )}
-          {speechError && (
-            <div className="mb-3 rounded-md bg-red-50 px-3 py-2 text-xs text-red-700">
-              {speechError}
             </div>
           )}
           <TrustedCitationPanel data={citationData} resourceTitle={resource.title} />
