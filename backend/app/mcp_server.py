@@ -1,6 +1,6 @@
 """金漪湖 · 个性化学习智能体 —— MCP 服务器。
 
-把 EduAgent 的 8 个协同 Agent 引擎，以 MCP（Model Context Protocol）工具形式
+把 EduAgent 的 10 个协同 Agent 引擎，以 MCP（Model Context Protocol）的 12 个工具形式
 暴露给 remio 睿妙及其他支持 MCP 的智能体宿主，落地「如能在其他智能体产品中
 正常运行更佳」这一加分项。
 
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 JSONRPC_VERSION = "2.0"
 MCP_PROTOCOL_VERSION = "2024-11-05"
 
-# 8 个 Agent 对应的 MCP 工具清单（JSON Schema 输入）。
+# 10 个 Agent + Wiki 知识中枢对应的 12 个 MCP 工具（JSON Schema 输入）。
 # profile 字段在各工具中均为可选对象，缺省按空画像处理。
 TOOLS: list[dict[str, Any]] = [
     {
@@ -395,7 +395,9 @@ async def _build_tools() -> EduAgentTools:
     await init_db()
     async with AsyncSessionLocal() as session:
         await init_wiki(session=session)
-        wiki = get_wiki_service(session=session)
+    # MCP 工具只走 search/list_courses（不读写 DB 会话），传 None 避免持有
+    # 已关闭的 session；write_back/ingest 等需会话的路径不在此使用。
+    wiki = get_wiki_service()
 
     llm = get_llm_client()
     return EduAgentTools(
@@ -509,6 +511,13 @@ def _self_test() -> None:
 
 
 def main() -> None:
+    # stdio 传输必须为 UTF-8：MCP 规范要求，且 Windows 宿主以管道启动时
+    # 默认使用本地 ANSI 代码页（如 cp936），LLM 输出中的 emoji 会触发
+    # UnicodeEncodeError 使服务崩溃。
+    for stream in (sys.stdin, sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8")
     logging.basicConfig(level=logging.INFO)
     if "--self-test" in sys.argv:
         _self_test()
