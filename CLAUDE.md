@@ -40,7 +40,7 @@ EduAgent 是一个以 **LLM Wiki（知识中枢）** 为核心的个性化多 Ag
 - `docs/competition/` — 原赛事（科大讯飞）文档
 - `docs/competition-remio/` — remio 赛道文档（方案、演示脚本、合规说明）
 - `remio/aapp/eduagent-aapp-spec.md` — remio aApp 开发规格（10 端点 E1–E10）
-- `DEPLOYMENT.md` — 部署运行说明
+- `docs/DEPLOYMENT.md` — 部署运行说明
 - `remio/mcp/README.md` — MCP 工具集说明（跨智能体宿主运行）
 
 ---
