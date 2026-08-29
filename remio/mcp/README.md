@@ -1,6 +1,6 @@
 # EduAgent MCP 工具集 — 跨智能体产品运行
 
-把 EduAgent 的 8 个协同 Agent 引擎，封装为符合 **MCP（Model Context Protocol）** 的
+把 EduAgent 的 10 个协同 Agent 引擎，封装为符合 **MCP（Model Context Protocol）** 的
 工具集，可在 **remio 睿妙**（赛事"系统调用覆盖 MCP 外部工具"）以及任何支持 MCP 的
 智能体宿主（Claude Desktop、各类 Agent 客户端等）中注册调用。
 

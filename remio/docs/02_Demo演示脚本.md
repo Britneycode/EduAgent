@@ -7,7 +7,7 @@
 
 - 画面：作品名「EduAgent 个性化学习智能体」+「智能体融合创新赛道」。
 - 口播：高校学习"千人一面"，一台问答 AI 完不成"画像→规划→多模态产出→答疑"闭环。
-  我做的是 8 个 Agent 协同的个性化学习智能体。
+  我做的是 10 个 Agent 协同的个性化学习智能体。
 
 ## 屏 1 · 原应用直连演示（作为"其他产品可运行"佐证，可选）
 
@@ -48,5 +48,5 @@
 
 ## 屏 7 · 收束（10 秒）
 
-- 回到"8 Agent 一张图"：Router → Profile → Planner → {Doc, Quiz, Code, Media, Tutor}。
+- 回到"10 Agent 一张图"：Router → Profile → Planner → {Doc, Quiz, Code, Media, Reading, Tutor}。
 - 口播：一句话收束——多 Agent 不是炫技，是让"个性化学习"真正变成一个可交付的闭环。

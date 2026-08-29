@@ -106,7 +106,7 @@ cd backend && uv run python -m app.mcp_server --self-test
 | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | 部署运行说明（Docker Compose / 生产环境） |
 | [remio/aapp/eduagent-aapp-spec.md](remio/aapp/eduagent-aapp-spec.md) | remio aApp 规格：10 端点定义、能力分工、防幻觉与联网双通道设计 |
 | [remio/mcp/README.md](remio/mcp/README.md) | MCP 工具集：12 个工具清单与宿主注册方法 |
-| [docs/competition-remio/](docs/competition-remio/) | remio 赛道：方案文档、演示脚本、视频分镜、合规说明 |
+| [docs/competition-remio/](docs/competition-remio/) | remio 赛道：方案说明书（需求 / 系统设计 / 验收口径） |
 | [frontend/README.md](frontend/README.md) | 前端说明 |
 
 ---

@@ -30,7 +30,7 @@ remio/
 
 ## 实现文件（在原有代码基础上增量新增）
 
-- `backend/app/mcp_server.py` — 把 8 Agent 多智能体引擎封装为 MCP 工具集（零新增依赖，已自检通过）。
+- `backend/app/mcp_server.py` — 把 10 Agent 多智能体引擎封装为 MCP 工具集（12 个工具，零新增依赖，已自检通过）。
 
 ## 改造思路（差距分析结果）
 
