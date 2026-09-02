@@ -14,21 +14,23 @@
 - 服务文件：`backend/app/mcp_server.py`（实现见该文件内 `TOOLS` 与 `EduAgentTools`）
 - 依赖：**零新增三方依赖**，仅用标准库实现 MCP stdio 传输（JSON-RPC 2.0）。
 
-## 二、暴露的工具（12 个）
+## 二、暴露的工具（14 个）
 
 | 工具名 | 对应 Agent | 说明 |
 | --- | --- | --- |
 | `route_intent` | Router | 意图路由：主题/是否建档/是否答疑/资源类型 |
 | `search_knowledge` | Wiki RAG | 向量 + BM25 混合检索，带来源，防幻觉 |
+| `attach_material` | SessionMaterial | 挂载学习材料到会话（知识库未命中的兜底源） |
+| `search_material` | SessionMaterial | 在指定会话材料内 RAG 检索 |
 | `extract_profile` | Profile | 抽取 8 维度学习画像 |
-| `generate_document` | Doc | 个性化中文学习讲义 |
+| `generate_document` | Doc | 个性化中文学习讲义（可传 session_id 基于材料生成） |
 | `generate_quiz` | Quiz | 多类型练习题 |
 | `generate_code` | Code | 可运行 Python 实操案例 |
 | `generate_mindmap` | Media | 思维导图（Markdown 结构） |
 | `generate_ppt` | Media | 教学 PPT 大纲 |
 | `generate_reading` | Reading | 拓展阅读材料 |
 | `generate_animation` | Media | 动画分镜脚本 |
-| `tutor_answer` | Tutor | 知识库锚定答疑 + 苏格拉底引导 |
+| `tutor_answer` | Tutor | 知识库锚定答疑 + 苏格拉底引导（可传 session_id 材料兜底） |
 | `list_courses` | Wiki | 列出知识库课程模板 |
 
 ## 三、运行

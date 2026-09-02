@@ -55,6 +55,32 @@ TOOLS: list[dict[str, Any]] = [
         },
     },
     {
+        "name": "attach_material",
+        "description": "上传/挂载学习材料到某会话（支持 md/txt 文本）。材料按会话隔离，课程知识库未命中时 Agent 会优先基于这些材料生成。",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "session_id": {"type": "integer", "description": "目标聊天会话 ID"},
+                "content": {"type": "string", "description": "材料文本内容（markdown/纯文本）"},
+                "filename": {"type": "string", "description": "材料文件名，默认 notes.md"},
+            },
+            "required": ["session_id", "content"],
+        },
+    },
+    {
+        "name": "search_material",
+        "description": "在指定会话的学习材料内做 RAG 检索，返回与查询相关的材料片段（知识库覆盖不足时使用）。",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "session_id": {"type": "integer"},
+                "query": {"type": "string"},
+                "top_k": {"type": "integer", "minimum": 1, "maximum": 10},
+            },
+            "required": ["session_id", "query"],
+        },
+    },
+    {
         "name": "extract_profile",
         "description": "画像 Agent：从学生描述中抽取多维度学习画像更新。",
         "inputSchema": {
@@ -65,13 +91,14 @@ TOOLS: list[dict[str, Any]] = [
     },
     {
         "name": "generate_document",
-        "description": "文档 Agent：基于 Wiki RAG 检索生成个性化中文学习讲义。",
+        "description": "文档 Agent：基于 Wiki RAG 检索生成个性化中文学习讲义；传 session_id 时知识库未命中会基于该会话材料生成。",
         "inputSchema": {
             "type": "object",
             "properties": {
                 "topic": {"type": "string"},
                 "profile": {"type": "object", "description": "学生画像，可缺省"},
                 "course_id": {"type": "string"},
+                "session_id": {"type": "integer", "description": "会话 ID，知识库不足时基于该会话材料生成"},
             },
             "required": ["topic"],
         },
@@ -163,7 +190,7 @@ TOOLS: list[dict[str, Any]] = [
     },
     {
         "name": "tutor_answer",
-        "description": "答疑 Agent：基于知识库即时答疑，可选苏格拉底式引导。",
+        "description": "答疑 Agent：基于知识库即时答疑，可选苏格拉底式引导；传 session_id 时知识库未命中会基于该会话材料回答并标注来源。",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -171,6 +198,7 @@ TOOLS: list[dict[str, Any]] = [
                 "profile": {"type": "object"},
                 "study_mode": {"type": "boolean", "description": "是否用苏格拉底式引导而非直接给答案"},
                 "course_id": {"type": "string"},
+                "session_id": {"type": "integer", "description": "会话 ID，知识库不足时基于该会话材料回答"},
             },
             "required": ["question"],
         },
@@ -211,6 +239,8 @@ class EduAgentTools:
         self._handlers: dict[str, Callable[..., Awaitable[dict[str, Any]]]] = {
             "route_intent": self.route_intent,
             "search_knowledge": self.search_knowledge,
+            "attach_material": self.attach_material,
+            "search_material": self.search_material,
             "extract_profile": self.extract_profile,
             "generate_document": self.generate_document,
             "generate_quiz": self.generate_quiz,
@@ -255,6 +285,74 @@ class EduAgentTools:
             for r in results
         ]
 
+    async def attach_material(
+        self,
+        session_id: int,
+        content: str,
+        filename: str = "notes.md",
+    ) -> dict[str, Any]:
+        """把一段文本材料挂载到会话（仅支持文本，供 MCP 宿主便捷使用）。"""
+        if not content or not content.strip():
+            raise ValueError(
+                "材料内容不能为空。请提供 Markdown/纯文本内容（或右转文件上传形态）。"
+            )
+        content_bytes = content.encode("utf-8")
+        if len(content_bytes) > 10 * 1024 * 1024:
+            raise ValueError("材料内容超过 10MB 上限，请拆分为多份材料后分次上传")
+        from app.core.database import AsyncSessionLocal
+        from app.services.material_service import (
+            SessionMaterialError,
+            SessionMaterialService,
+        )
+        from app.wiki import get_wiki_service
+
+        async with AsyncSessionLocal() as db:
+            wiki = get_wiki_service(session=db)
+            service = SessionMaterialService(session=db, wiki_service=wiki)
+            try:
+                material = await service.attach_material(
+                    session_id=session_id,
+                    user_id=None,
+                    filename=filename or "notes.md",
+                    content=content_bytes,
+                    mime_type="text/markdown",
+                )
+            except SessionMaterialError as exc:
+                raise ValueError(str(exc)) from exc
+            return {
+                "id": material.id,
+                "filename": material.filename,
+                "chunk_count": material.chunk_count,
+                "char_count": material.char_count,
+            }
+
+    async def search_material(
+        self,
+        session_id: int,
+        query: str,
+        top_k: int = 5,
+    ) -> list[dict[str, Any]]:
+        from sqlalchemy import select
+        from app.core.database import AsyncSessionLocal
+        from app.models.chat import ChatSession
+
+        async with AsyncSessionLocal() as db:
+            session_exists = await db.scalar(
+                select(ChatSession.id).where(ChatSession.id == session_id)
+            )
+        if session_exists is None:
+            raise ValueError(f"会话 {session_id} 不存在，无法检索其学习材料")
+        results = await self.wiki.search(query, top_k=top_k, session_id=session_id)
+        return [
+            {
+                "title": r.title,
+                "content": r.content,
+                "score": r.score,
+                "course_id": r.course_id,
+            }
+            for r in results
+        ]
+
     async def extract_profile(self, text: str) -> dict[str, Any]:
         return await self.profile.extract_profile_update_async(text)
 
@@ -263,8 +361,11 @@ class EduAgentTools:
         topic: str,
         profile: dict[str, Any] | None = None,
         course_id: str | None = None,
+        session_id: int | None = None,
     ) -> dict[str, Any]:
-        resource = await self.doc.generate_document(topic, profile, course_id=course_id)
+        resource = await self.doc.generate_document(
+            topic, profile, course_id=course_id, session_id=session_id
+        )
         return _resource_to_dict(resource)
 
     async def generate_quiz(
@@ -350,12 +451,14 @@ class EduAgentTools:
         profile: dict[str, Any] | None = None,
         study_mode: bool = False,
         course_id: str | None = None,
+        session_id: int | None = None,
     ) -> dict[str, Any]:
         answer = await self.tutor.answer(
             question,
             profile,
             study_mode=study_mode,
             course_id=course_id,
+            session_id=session_id,
         )
         return {"answer": answer}
 
@@ -372,6 +475,7 @@ def _resource_to_dict(resource: Any) -> dict[str, Any]:
         "knowledge_point": resource.knowledge_point,
         "agent_name": resource.agent_name,
         "wiki_fallback": resource.wiki_fallback,
+        "context_kind": resource.context_kind,
         "confidence": resource.confidence,
         "sources": resource.sources,
         "metadata": resource.metadata,
@@ -422,7 +526,8 @@ def _initialize_result() -> dict[str, Any]:
             "version": "0.1.0",
         },
         "instructions": "EduAgent 个性化多智能体学习引擎：支持意图路由、知识检索、画像抽取、"
-        "文档/题目/代码/思维导图/PPT/拓展阅读/动画脚本生成与苏格拉底式答疑。",
+        "文档/题目/代码/思维导图/PPT/拓展阅读/动画脚本生成与苏格拉底式答疑；"
+        "支持 attach_material 挂载会话学习材料，知识库未命中时自动基于材料生成。",
     }
 
 

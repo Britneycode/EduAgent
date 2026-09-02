@@ -4,8 +4,9 @@ import asyncio
 import json
 import logging
 from collections.abc import AsyncGenerator, AsyncIterator
+from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -33,17 +34,24 @@ from app.schemas.chat import (
     RenameSessionRequest,
     ResourceResponse,
     SessionDetailResponse,
+    SessionMaterialResponse,
     SSEEvent,
     error_event,
     heartbeat_event,
 )
 from app.services.chat_service import ChatService
 from app.services.learning_path_service import LearningPathService
+from app.services.material_service import (
+    SessionMaterialError,
+    SessionMaterialService,
+)
 from app.services.profile_service import ProfileService
+from app.wiki.ingestion import DocumentIngestionError, UnsupportedDocumentTypeError
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 logger = logging.getLogger(__name__)
 HEARTBEAT_INTERVAL_SECONDS = 15.0
+MAX_MATERIAL_UPLOAD_BYTES = 10 * 1024 * 1024
 
 
 def build_orchestrator(db_session: AsyncSession) -> Orchestrator:
@@ -353,3 +361,110 @@ async def get_session_detail(
             for r in resources
         ],
     )
+
+
+def _build_material_service(db: AsyncSession) -> SessionMaterialService:
+    from app.wiki import get_wiki_service
+
+    try:
+        wiki_service = get_wiki_service(session=db)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail="知识中枢未初始化") from exc
+    return SessionMaterialService(session=db, wiki_service=wiki_service)
+
+
+def _material_response(m: Any) -> SessionMaterialResponse:
+    return SessionMaterialResponse(
+        id=m.id,
+        filename=m.filename,
+        content_type=m.content_type,
+        char_count=m.char_count,
+        chunk_count=m.chunk_count,
+        chapter=m.chapter,
+        section=m.section,
+        created_at=m.created_at.isoformat(),
+    )
+
+
+@router.post(
+    "/sessions/{session_id}/materials",
+    response_model=SessionMaterialResponse,
+)
+async def upload_session_material(
+    session_id: int,
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> SessionMaterialResponse:
+    """上传学习材料到会话，作为课程知识库未命中时的兜底检索源。
+
+    支持 md/txt/pdf/pptx，按会话隔离；Agent 在知识库覆盖不足时自动切换为
+    「基于该会话材料生成」并标注材料来源。
+    """
+    payload = await file.read()
+    await file.close()
+    if not payload:
+        raise HTTPException(status_code=400, detail="上传材料为空")
+    if len(payload) > MAX_MATERIAL_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="上传材料不能超过 10MB")
+
+    service = _build_material_service(db)
+    try:
+        material = await service.attach_material(
+            session_id=session_id,
+            user_id=user.id,
+            filename=file.filename or "uploaded-material",
+            content=payload,
+            mime_type=file.content_type or "",
+        )
+    except UnsupportedDocumentTypeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail=str(exc),
+        ) from exc
+    except DocumentIngestionError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except SessionMaterialError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return _material_response(material)
+
+
+@router.get(
+    "/sessions/{session_id}/materials",
+    response_model=list[SessionMaterialResponse],
+)
+async def list_session_materials(
+    session_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> list[SessionMaterialResponse]:
+    """列出会话已绑定的学习材料。"""
+    service = _build_material_service(db)
+    try:
+        materials = await service.list_materials(session_id, user_id=user.id)
+    except SessionMaterialError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return [_material_response(m) for m in materials]
+
+
+@router.delete("/sessions/{session_id}/materials/{material_id}")
+async def delete_session_material(
+    session_id: int,
+    material_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict[str, bool]:
+    """删除会话的一份学习材料（含向量块与原始文件）。"""
+    service = _build_material_service(db)
+    try:
+        deleted = await service.delete_material(
+            session_id=session_id,
+            material_id=material_id,
+            user_id=user.id,
+        )
+    except SessionMaterialError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    if not deleted:
+        raise HTTPException(status_code=404, detail="材料不存在")
+    return {"success": True}

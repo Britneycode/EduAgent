@@ -16,7 +16,14 @@ def wiki_service():
     vs.add(
         chunk_ids=["c1"],
         documents=["神经网络是一种模拟人脑的计算模型"],
-        metadatas=[{"title": "神经网络", "chapter": "ch3", "section": "s1"}],
+        metadatas=[
+            {
+                "title": "神经网络",
+                "chapter": "ch3",
+                "section": "s1",
+                "scope": "knowledge",
+            }
+        ],
     )
     rag = RAGEngine(vector_store=vs)
     graph = KnowledgeGraph()

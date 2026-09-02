@@ -87,20 +87,43 @@ class RAGEngine:
         chapter: str | None = None,
         course_id: str | None = None,
         min_score: float = 0.0,
+        *,
+        scope: str | None = None,
+        session_id: int | None = None,
     ) -> list[SearchResult]:
-        """混合检索，返回排序后的结果列表。"""
+        """混合检索，返回排序后的结果列表。
+
+        - `scope=None`：保持旧行为，仅按 chapter/course_id 过滤（兼容测试与历史调用）。
+        - `scope="knowledge"`：只在知识库（含课程与回写内容）中检索。
+        - `scope="session"` + `session_id`：只在某会话的学习材料中检索。
+        """
         cache_key = make_cache_key(
-            self._CACHE_NAMESPACE, query, top_k, chapter, course_id, min_score
+            self._CACHE_NAMESPACE,
+            query,
+            top_k,
+            chapter,
+            course_id,
+            min_score,
+            scope,
+            session_id,
         )
         cached_results = await self._get_cached_search_results(cache_key)
         if cached_results is not None:
             return cached_results
 
         where: dict[str, Any] = {}
-        if chapter:
-            where["chapter"] = chapter
-        if course_id:
-            where["course_id"] = course_id
+        if session_id is not None:
+            where["scope"] = "session"
+            where["session_id"] = str(session_id)
+            if chapter:
+                where["chapter"] = chapter
+        else:
+            if scope == "knowledge":
+                where["scope"] = "knowledge"
+            if chapter:
+                where["chapter"] = chapter
+            if course_id:
+                where["course_id"] = course_id
         normalized_where = where or None
         candidate_k = max(top_k * 4, 8)
         vector_task = asyncio.to_thread(
@@ -263,6 +286,9 @@ class RAGEngine:
         top_k: int = 3,
         chapter: str | None = None,
         course_id: str | None = None,
+        *,
+        scope: str | None = None,
+        session_id: int | None = None,
     ) -> str:
         """检索相关知识并格式化为可注入 prompt 的上下文字符串。
 
@@ -273,6 +299,8 @@ class RAGEngine:
             top_k=top_k,
             chapter=chapter,
             course_id=course_id,
+            scope=scope,
+            session_id=session_id,
         )
         return result.context
 
@@ -282,6 +310,9 @@ class RAGEngine:
         top_k: int = 3,
         chapter: str | None = None,
         course_id: str | None = None,
+        *,
+        scope: str | None = None,
+        session_id: int | None = None,
     ) -> ContextWithSources:
         """检索相关知识并返回带来源引用的上下文。"""
         results = await self.search(
@@ -289,6 +320,8 @@ class RAGEngine:
             top_k=top_k,
             chapter=chapter,
             course_id=course_id,
+            scope=scope,
+            session_id=session_id,
         )
         if not results:
             return ContextWithSources(context="", sources=[], confidence=0.0)

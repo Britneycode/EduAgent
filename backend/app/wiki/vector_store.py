@@ -318,6 +318,21 @@ class VectorStore:
 
         self._save()
 
+    def ensure_scope_backfilled(self, scope: str = "knowledge") -> int:
+        """为缺少 scope 字段的存量向量补充默认 scope，返回更新条数。
+
+        用于启动时一次性回填：老版本写入的课程/回写数据没有 scope 标记，
+        统一视为知识库（knowledge），避免被会话材料隔离过滤误排除。
+        """
+        changed = 0
+        for metadata in self._metadatas:
+            if "scope" not in metadata:
+                metadata["scope"] = scope
+                changed += 1
+        if changed:
+            self._save()
+        return changed
+
     def count(self) -> int:
         """返回存储的文档总数。"""
         return len(self._ids)
@@ -489,6 +504,42 @@ class ChromaHttpVectorStore:
     def delete(self, chunk_ids: list[str]) -> None:
         if chunk_ids:
             self._collection.delete(ids=chunk_ids)
+
+    def ensure_scope_backfilled(self, scope: str = "knowledge") -> int:
+        """为缺少 scope 字段的存量向量补充默认 scope（Chroma update 保留向量）。"""
+        if self.count() == 0:
+            return 0
+        try:
+            payload = self._collection.get(
+                include=["metadatas"],
+                limit=2**31 - 1,
+            )
+        except Exception:
+            logger.warning("Chroma 存量数据回填失败", exc_info=True)
+            return 0
+        ids = payload.get("ids", []) or []
+        metadatas = [dict(item or {}) for item in payload.get("metadatas", []) or []]
+        to_update_ids: list[str] = []
+        to_update_metadatas: list[dict[str, Any]] = []
+        for chunk_id, metadata in zip(ids, metadatas):
+            if "scope" not in metadata:
+                updated = dict(metadata)
+                updated["scope"] = scope
+                to_update_ids.append(chunk_id)
+                to_update_metadatas.append(updated)
+        if not to_update_ids:
+            return 0
+        try:
+            self._collection.update(
+                ids=to_update_ids,
+                metadatas=[
+                    _sanitize_chroma_metadata(item) for item in to_update_metadatas
+                ],
+            )
+        except Exception:
+            logger.warning("Chroma 存量数据回填失败", exc_info=True)
+            return 0
+        return len(to_update_ids)
 
     def count(self) -> int:
         return int(self._collection.count())

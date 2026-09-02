@@ -86,6 +86,19 @@ class SessionDetailResponse(BaseModel):
     resources: list[ResourceResponse] = Field(default_factory=list)
 
 
+class SessionMaterialResponse(BaseModel):
+    """会话学习材料（上传后可被 Agent 在知识库未命中时用作兜底检索源）。"""
+
+    id: int
+    filename: str
+    content_type: str = "text"
+    char_count: int = 0
+    chunk_count: int = 0
+    chapter: str | None = None
+    section: str | None = None
+    created_at: str
+
+
 class ResourceCardPayload(BaseModel):
     id: int | None = Field(default=None, description="资源 ID（落库后可填）")
     resource_type: Literal[
@@ -210,9 +223,15 @@ def error_event(*, message: str, session_id: int | None = None) -> SSEEvent:
     return SSEEvent(type="error", session_id=session_id, payload={"message": message})
 
 
-def wiki_fallback_event(*, session_id: int | None = None) -> SSEEvent:
+def wiki_fallback_event(
+    *, session_id: int | None = None, context_kind: str = "none"
+) -> SSEEvent:
+    """知识库与会话材料均未锚定时向用户发出的透明性提示。"""
     return SSEEvent(
         type="wiki_fallback",
         session_id=session_id,
-        payload={"message": "当前知识库未命中相关内容，生成结果未附带知识引用"},
+        payload={
+            "context_kind": context_kind,
+            "message": "当前知识库与会话学习材料均未命中相关内容，生成结果未附带知识引用",
+        },
     )

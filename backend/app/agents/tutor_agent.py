@@ -4,7 +4,11 @@ import logging
 from collections.abc import AsyncGenerator
 from typing import TYPE_CHECKING, Any
 
-from app.agents.common import build_plain_wiki_context, build_profile_lines
+from app.agents.common import (
+    AnchoredContext,
+    build_anchored_context,
+    build_profile_lines,
+)
 from app.core.llm import BaseLLMClient, get_llm_client
 
 if TYPE_CHECKING:
@@ -14,7 +18,11 @@ logger = logging.getLogger(__name__)
 
 
 class TutorAgent:
-    """智能辅导 Agent — 即时答疑 + 苏格拉底式引导。"""
+    """智能辅导 Agent — 即时答疑 + 苏格拉底式引导。
+
+    知识来源按「课程知识库 → 会话学习材料 → 无覆盖」三级兜底：
+    知识库置信度不足时切到学生上传的会话材料，两者都没有则如实说明，不编造。
+    """
 
     def __init__(
         self,
@@ -32,16 +40,19 @@ class TutorAgent:
         history: list[dict[str, str]] | None = None,
         study_mode: bool = False,
         course_id: str | None = None,
+        session_id: int | None = None,
     ) -> str:
         normalized = question.strip() if question else ""
         if not normalized:
             return "请告诉我你的问题，我来帮你解答。"
 
-        wiki_context = await self._build_wiki_context(normalized, course_id=course_id)
+        anchored = await self._build_anchored_context(
+            normalized, course_id=course_id, session_id=session_id
+        )
         prompt = self._build_prompt(
             normalized,
             profile or {},
-            wiki_context,
+            anchored,
             history or [],
             study_mode=study_mode,
         )
@@ -55,30 +66,37 @@ class TutorAgent:
         history: list[dict[str, str]] | None = None,
         study_mode: bool = False,
         course_id: str | None = None,
+        session_id: int | None = None,
     ) -> AsyncGenerator[str, None]:
         normalized = question.strip() if question else ""
         if not normalized:
             yield "请告诉我你的问题，我来帮你解答。"
             return
 
-        wiki_context = await self._build_wiki_context(normalized, course_id=course_id)
+        anchored = await self._build_anchored_context(
+            normalized, course_id=course_id, session_id=session_id
+        )
         prompt = self._build_prompt(
             normalized,
             profile or {},
-            wiki_context,
+            anchored,
             history or [],
             study_mode=study_mode,
         )
         async for token in self.llm_client.generate_stream(prompt):
             yield token
 
-    async def _build_wiki_context(
-        self, query: str, course_id: str | None = None
-    ) -> str:
-        return await build_plain_wiki_context(
+    async def _build_anchored_context(
+        self,
+        query: str,
+        course_id: str | None = None,
+        session_id: int | None = None,
+    ) -> AnchoredContext:
+        return await build_anchored_context(
             self.wiki_service,
             query=query,
             course_id=course_id,
+            session_id=session_id,
             logger=logger,
         )
 
@@ -86,7 +104,7 @@ class TutorAgent:
         self,
         question: str,
         profile: dict[str, Any],
-        wiki_context: str,
+        anchored: AnchoredContext,
         history: list[dict[str, str]],
         *,
         study_mode: bool = False,
@@ -112,8 +130,17 @@ class TutorAgent:
 
         parts.extend(["", f"学生问题：{question}"])
 
-        if wiki_context:
-            parts.extend(["", "参考知识：", wiki_context])
+        if anchored.context:
+            if anchored.kind == "material":
+                parts.extend(
+                    [
+                        "",
+                        "学生上传的学习材料（以下为检索到的相关片段）：",
+                        anchored.context,
+                    ]
+                )
+            else:
+                parts.extend(["", "参考知识：", anchored.context])
 
         profile_lines = self._build_profile_lines(profile)
         if any(line.split("：", 1)[-1].strip() != "未提供" for line in profile_lines):
@@ -123,7 +150,7 @@ class TutorAgent:
             [
                 "",
                 "回答要求：",
-                *self._build_answer_requirements(study_mode),
+                *self._build_answer_requirements(anchored, study_mode),
             ]
         )
 
@@ -135,21 +162,43 @@ class TutorAgent:
             ("learning_goal", "cognitive_style", "learning_pace", "coding_level"),
         )
 
-    def _build_answer_requirements(self, study_mode: bool) -> list[str]:
+    def _build_answer_requirements(
+        self, anchored: AnchoredContext, study_mode: bool
+    ) -> list[str]:
+        base_rules = []
         if study_mode:
-            return [
+            base_rules = [
                 "1. 先诊断学生的目标、当前理解和可能卡点；信息不足时先提出一个聚焦问题。",
                 "2. 用 2-3 个逐步提示引导学生自己推理，避免一开始直接给最终答案。",
                 "3. 每一步都要有一个小的理解检查问题，便于学生回应。",
                 "4. 如果学生明显需要结论，最后给出简短总结和下一步练习建议。",
-                "5. 如有参考知识，基于参考知识回答并注明出处章节。",
-                "6. 输出使用 Markdown 格式，结构要清晰、短段落优先。",
+                "5. 输出使用 Markdown 格式，结构要清晰、短段落优先。",
             ]
-        return [
-            "1. 优先使用苏格拉底式引导：先问一个小问题帮学生回忆，再给出解答。",
-            "2. 如果问题简单明确，直接给出清晰解答即可。",
-            "3. 适当使用类比和生活例子帮助理解。",
-            "4. 如有参考知识，基于参考知识回答并注明出处章节。",
-            "5. 如果参考知识不足以回答，可以适当补充但需说明。",
-            "6. 输出使用 Markdown 格式，可包含代码块、列表、公式等。",
-        ]
+        else:
+            base_rules = [
+                "1. 优先使用苏格拉底式引导：先问一个小问题帮学生回忆，再给出解答。",
+                "2. 如果问题简单明确，直接给出清晰解答即可。",
+                "3. 适当使用类比和生活例子帮助理解。",
+                "4. 输出使用 Markdown 格式，可包含代码块、列表、公式等。",
+            ]
+
+        if anchored.kind == "knowledge":
+            base_rules.append("5. 基于参考知识回答并注明出处章节；知识不足时如实说明。")
+        elif anchored.kind == "material":
+            material_label = "、".join(anchored.material_titles) or "已上传材料"
+            base_rules.extend(
+                [
+                    "5. 本回答必须仅依据学生上传的学习材料生成，不要引入材料之外的事实。",
+                    f"6. 回答中标注材料来源：📎 {material_label}；材料未覆盖的问题如实说明。",
+                ]
+            )
+        else:
+            base_rules.extend(
+                [
+                    "5. 课程知识库与学生已上传材料均未覆盖该问题：先明确告知学生这一点，"
+                    "再给出通用学习方法/查阅建议，并建议上传相关学习材料以获得更准确的辅导。",
+                    "6. 不要编造具体事实、数据或教材内容。",
+                ]
+            )
+
+        return base_rules

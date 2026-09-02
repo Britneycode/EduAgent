@@ -110,11 +110,13 @@
       "capabilities": [
         "search_notes",
         "read_note",
+        "search_material",
         "run_prompt"
       ],
       "input": {
         "topic": "string",
-        "profile": "object"
+        "profile": "object",
+        "session_id": "integer"
       },
       "output_ui": "card",
       "structure": [
@@ -124,7 +126,8 @@
         "常见误区",
         "复习建议",
         "来源引用"
-      ]
+      ],
+      "note": "知识库未命中时基于会话学习材料生成并标注材料来源；两者均未命中时标注未锚定"
     },
     {
       "id": "E5",
@@ -217,6 +220,7 @@
       "capabilities": [
         "search_notes",
         "read_note",
+        "search_material",
         "web_search",
         "web_get",
         "run_prompt"
@@ -224,9 +228,31 @@
       "input": {
         "question": "string",
         "profile": "object",
-        "study_mode": "boolean"
+        "study_mode": "boolean",
+        "session_id": "integer"
       },
-      "output_ui": "chat + card（来源）"
+      "output_ui": "chat + card（分级来源）",
+      "coverage_tiers": [
+        "一级：课程知识库（GROUNDED）",
+        "二级：会话学习材料（MATERIAL）",
+        "三级：网络（INSUFFICIENT 显式升级）"
+      ]
+    },
+    {
+      "id": "E11",
+      "name": "attach_material",
+      "agent": "SessionMaterialService",
+      "capabilities": [
+        "write_note",
+        "search_notes"
+      ],
+      "input": {
+        "session_id": "integer",
+        "filename": "string",
+        "content": "string（md/txt/pdf/pptx 文本）"
+      },
+      "output_ui": "card（已挂载材料摘要）",
+      "note": "材料按会话写入 remio notes（source=session-material 元数据），课程知识库未命中时供 E4/E10 兜底检索"
     }
   ],
   "automations": [
@@ -248,6 +274,8 @@
     "tools": [
       "route_intent",
       "search_knowledge",
+      "attach_material",
+      "search_material",
       "extract_profile",
       "generate_document",
       "generate_quiz",
@@ -266,6 +294,7 @@
     "agent_count": 8,
     "anti_hallucination": [
       "rag 知识锚定",
+      "会话材料锚定（知识库未命中时的兜底层）",
       "来源引用",
       "输出过滤"
     ],

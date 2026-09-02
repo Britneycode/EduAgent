@@ -70,6 +70,11 @@ async def init_wiki(session: AsyncSession | None = None) -> None:
         chroma_dir,
     )
 
+    # 为老版本写入的存量向量补充 scope=knowledge，避免被「会话材料隔离」过滤误排除。
+    backfilled = _vector_store.ensure_scope_backfilled(scope="knowledge")
+    if backfilled:
+        logger.info("已为 %d 条存量知识向量补充 scope=knowledge", backfilled)
+
     # 3. 知识图谱
     knowledge_dir = Path(settings.wiki_knowledge_dir)
     _course_templates = discover_course_templates(knowledge_dir)

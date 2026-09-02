@@ -44,13 +44,20 @@ class WikiService:
         top_k: int = 5,
         chapter: str | None = None,
         course_id: str | None = None,
+        *,
+        session_id: int | None = None,
     ) -> list[SearchResult]:
-        """语义检索知识片段。"""
+        """语义检索知识片段。
+
+        传 `session_id` 时只在对应会话的学习材料中检索，否则在课程知识库中检索。
+        """
         return await self._rag_engine.search(
             query=query,
             top_k=top_k,
             chapter=chapter,
             course_id=course_id,
+            scope="knowledge" if session_id is None else None,
+            session_id=session_id,
         )
 
     async def build_context(
@@ -59,6 +66,8 @@ class WikiService:
         top_k: int = 3,
         chapter: str | None = None,
         course_id: str | None = None,
+        *,
+        session_id: int | None = None,
     ) -> str:
         """检索并格式化为 prompt 上下文（Agent 主要使用此接口）。"""
         return await self._rag_engine.build_context(
@@ -66,6 +75,8 @@ class WikiService:
             top_k=top_k,
             chapter=chapter,
             course_id=course_id,
+            scope="knowledge" if session_id is None else None,
+            session_id=session_id,
         )
 
     async def build_context_with_sources(
@@ -74,13 +85,20 @@ class WikiService:
         top_k: int = 3,
         chapter: str | None = None,
         course_id: str | None = None,
+        *,
+        session_id: int | None = None,
     ) -> ContextWithSources:
-        """检索并返回带来源引用的上下文。"""
+        """检索并返回带来源引用的上下文。
+
+        传 `session_id` 时只在对应会话的学习材料中检索，否则在课程知识库中检索。
+        """
         return await self._rag_engine.build_context_with_sources(
             query=query,
             top_k=top_k,
             chapter=chapter,
             course_id=course_id,
+            scope="knowledge" if session_id is None else None,
+            session_id=session_id,
         )
 
     def get_prerequisites(
@@ -196,6 +214,7 @@ class WikiService:
                         "course_id": course_id or "",
                         "title": title,
                         "source_agent": source_agent,
+                        "scope": "knowledge",
                     }
                 ],
             )
@@ -235,8 +254,12 @@ class WikiService:
         section: str | None = None,
         tags: list[str] | None = None,
         course_id: str | None = None,
+        session_id: int | None = None,
     ) -> UploadedDocumentIngestionResult:
-        """将用户上传的课程资料写入 Wiki 和向量库。"""
+        """将用户上传的资料写入 Wiki 和向量库。
+
+        传 `session_id` 时作为会话学习材料按会话隔离，否则作为课程补充资料。
+        """
         ingestion = KnowledgeIngestion(
             vector_store=self._vector_store,
             session=self._session,
@@ -249,6 +272,30 @@ class WikiService:
             section=section,
             tags=tags,
             course_id=course_id,
+            session_id=session_id,
         )
         await self._rag_engine.clear_cache()
         return result
+
+    async def delete_chunks(self, chunk_ids: list[str]) -> None:
+        """按 chunk_id 删除向量块与数据库条目（会话材料删除时使用）。"""
+        if not chunk_ids:
+            return
+        try:
+            await asyncio.to_thread(self._vector_store.delete, chunk_ids)
+        except Exception:
+            logger.warning("删除向量块失败: %d 条", len(chunk_ids), exc_info=True)
+        await self._rag_engine.clear_cache()
+
+        if self._session is not None:
+            try:
+                from sqlalchemy import delete as sa_delete
+
+                await self._session.execute(
+                    sa_delete(WikiEntry).where(
+                        WikiEntry.chunk_id.in_(chunk_ids)
+                    )
+                )
+                await self._session.commit()
+            except Exception:
+                logger.warning("删除 WikiEntry 失败", exc_info=True)

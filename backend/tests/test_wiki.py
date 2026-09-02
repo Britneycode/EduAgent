@@ -644,7 +644,14 @@ async def _test_wiki_service() -> None:
     vector_store.add(
         chunk_ids=["ch5_反向传播"],
         documents=["反向传播\n\n反向传播通过链式法则计算梯度。"],
-        metadatas=[{"chapter": "ch5", "section": "ch5_s1", "title": "反向传播"}],
+        metadatas=[
+            {
+                "chapter": "ch5",
+                "section": "ch5_s1",
+                "title": "反向传播",
+                "scope": "knowledge",
+            }
+        ],
     )
 
     graph = KnowledgeGraph()

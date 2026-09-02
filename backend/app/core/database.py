@@ -35,7 +35,15 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 async def init_db() -> None:
     """初始化数据库并创建所有已注册的数据表。"""
-    from app.models import chat, learning, profile, resource, user, wiki  # noqa: F401
+    from app.models import (  # noqa: F401
+        chat,
+        learning,
+        material,
+        profile,
+        resource,
+        user,
+        wiki,
+    )
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

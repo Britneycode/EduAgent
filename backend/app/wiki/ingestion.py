@@ -38,6 +38,8 @@ class DocumentChunk:
     source_agent: str | None = None
     source_name: str = ""
     mime_type: str = ""
+    scope: str = "knowledge"
+    session_id: str = ""
 
 
 @dataclass(slots=True)
@@ -135,32 +137,51 @@ class KnowledgeIngestion:
         section: str | None = None,
         tags: list[str] | None = None,
         course_id: str | None = None,
+        session_id: int | None = None,
     ) -> UploadedDocumentIngestionResult:
-        """导入用户上传的 Markdown/TXT/PDF/PPTX 资料。"""
+        """导入用户上传的 Markdown/TXT/PDF/PPTX 资料。
+
+        传 `session_id` 时资料按会话隔离（scope="session"，
+        course_id="session:{id}"），作为会话学习材料；否则作为课程补充资料
+        （scope="knowledge"，course_id 由调用方指定）。
+        """
         source_name = Path(filename).name or "uploaded-document"
         title = Path(source_name).stem or source_name
         text = extract_upload_text(filename=source_name, content=content)
         if not text.strip():
             raise DocumentIngestionError("上传资料未解析出可入库文本")
 
-        resolved_chapter = (chapter or "uploaded").strip() or "uploaded"
+        if session_id is not None:
+            resolved_course_id = f"session:{session_id}"
+            resolved_chapter = (chapter or "material").strip() or "material"
+            resolved_tags = [tag.strip() for tag in tags or [] if tag.strip()]
+            scope = "session"
+            resolved_session_id = str(session_id)
+        else:
+            resolved_course_id = (course_id or "").strip()
+            resolved_chapter = (chapter or "uploaded").strip() or "uploaded"
+            resolved_tags = [tag.strip() for tag in tags or [] if tag.strip()]
+            scope = "knowledge"
+            resolved_session_id = ""
+
         resolved_section = (section or "").strip()
-        resolved_tags = [tag.strip() for tag in tags or [] if tag.strip()]
         chunks = build_uploaded_document_chunks(
             title=title,
             text=text,
             source_name=source_name,
             mime_type=mime_type,
-            course_id=(course_id or "").strip(),
+            course_id=resolved_course_id,
             chapter=resolved_chapter,
             section=resolved_section,
             tags=resolved_tags,
+            scope=scope,
+            session_id=resolved_session_id,
         )
         await self._store_chunks(chunks)
         return UploadedDocumentIngestionResult(
             filename=source_name,
             title=title,
-            course_id=(course_id or "").strip(),
+            course_id=resolved_course_id,
             content_type=_detect_upload_kind(source_name),
             chunk_count=len(chunks),
             chunk_ids=[chunk.chunk_id for chunk in chunks],
@@ -378,6 +399,8 @@ class KnowledgeIngestion:
                 "source_name": c.source_name,
                 "mime_type": c.mime_type,
                 "tags": c.tags,
+                "scope": c.scope,
+                "session_id": c.session_id,
             }
             for c in chunks
         ]
@@ -518,6 +541,8 @@ def build_uploaded_document_chunks(
     chapter: str,
     section: str,
     tags: list[str],
+    scope: str = "knowledge",
+    session_id: str = "",
 ) -> list[DocumentChunk]:
     """把上传资料切分为可检索知识块。"""
     normalized_text = _normalize_text(text)
@@ -547,6 +572,8 @@ def build_uploaded_document_chunks(
                     source_agent="upload",
                     source_name=source_name,
                     mime_type=mime_type,
+                    scope=scope,
+                    session_id=session_id,
                 )
             )
 

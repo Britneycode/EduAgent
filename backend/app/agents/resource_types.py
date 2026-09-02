@@ -30,3 +30,5 @@ class AgentResource:
     confidence: float = 0.0
     sources: list[dict[str, Any]] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
+    # 锚定来源三态：knowledge（知识库）/ material（会话材料）/ none（未锚定）
+    context_kind: str = ""

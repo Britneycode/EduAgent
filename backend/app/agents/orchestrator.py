@@ -486,6 +486,7 @@ class Orchestrator:
                 history=chat_history,
                 study_mode=bool(state.get("study_mode")),
                 course_id=state.get("course_id"),
+                session_id=session_id,
             ):
                 buffer_parts.append(token)
                 current_buffer = "".join(buffer_parts)
@@ -678,6 +679,7 @@ class Orchestrator:
                 decision.topic,
                 state.get("profile", {}),
                 course_id=state.get("course_id"),
+                session_id=session_id,
             )
         except Exception as exc:
             await self._record_agent_event(
@@ -702,7 +704,12 @@ class Orchestrator:
         generated_resources = dict(state.get("generated_resources", {}))
         generated_resources["document"] = doc_resource
         if doc_resource.wiki_fallback:
-            events.append(wiki_fallback_event(session_id=session_id))
+            events.append(
+                wiki_fallback_event(
+                    session_id=session_id,
+                    context_kind=doc_resource.context_kind or "none",
+                )
+            )
         events.append(
             await self._save_and_emit_resource(
                 session_id,
@@ -731,6 +738,7 @@ class Orchestrator:
             event_metadata={
                 "title": doc_resource.title,
                 "wiki_fallback": doc_resource.wiki_fallback,
+                "context_kind": doc_resource.context_kind,
                 "source_count": len(doc_resource.sources),
             },
             llm_holder=self.doc_agent,
@@ -1021,6 +1029,7 @@ class Orchestrator:
                     topic,
                     profile,
                     course_id=state.get("course_id"),
+                    session_id=state.get("session_id"),
                 )
             elif resource_type == "quiz":
                 resource = await self.quiz_agent.generate_quiz(
