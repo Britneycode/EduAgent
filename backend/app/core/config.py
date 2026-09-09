@@ -11,12 +11,8 @@ class Settings(BaseSettings):
     """应用基础配置。"""
 
     app_name: str = "EduAgent API"
-    app_version: str = "0.1.0"
+    app_version: str = "2.0.0"
     database_url: str = "sqlite+aiosqlite:///./eduagent.db"
-    backend_cors_origins: list[str] = [
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ]
     # 开发模式：LLM 返回模拟内容，不调用真实模型。
     llm_dev_mode: bool = False
     # 资源 Agent 并发上限，免费 API 建议保持较低数值。
@@ -62,7 +58,7 @@ class Settings(BaseSettings):
     wiki_chroma_port: int = 8001
     wiki_chroma_ssl: bool = False
     wiki_chroma_collection: str = "eduagent_wiki"
-    wiki_knowledge_dir: str = "./knowledge/计算机网络知识库"
+    wiki_knowledge_dir: str = "../knowledge/计算机网络知识库"
     wiki_embedding_dev_mode: bool = False
     wiki_auto_ingest: bool = True
 

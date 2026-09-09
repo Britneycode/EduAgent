@@ -193,7 +193,7 @@ class KnowledgeGraph:
         *,
         course_id: str | None = None,
     ) -> None:
-        """加载章节标题元数据，用于前端展示。"""
+        """加载章节标题元数据，供界面 / 调用方展示。"""
         resolved_course_id = _resolve_course_id(course_id, data)
         chapters = data.get("chapters", [])
         if not isinstance(chapters, list):

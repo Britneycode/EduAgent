@@ -24,7 +24,7 @@ AsyncSessionLocal = async_sessionmaker(
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    """FastAPI 依赖注入：提供异步数据库会话，请求结束后自动关闭。"""
+    """异步数据库会话产量器，供 Service / Agent 使用，用毕自动关闭。"""
     async with AsyncSessionLocal() as session:
         try:
             yield session
