@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "C:\Users\13372\AppData\Roaming\TRAE SOLO CN\ModularData\ai-agent\vm\tools\python\lib\site-packages\pdf2image\pdf2image.py", line 581, in pdfinfo_from_path
+    proc = Popen(command, env=env, stdout=PIPE, stderr=PIPE)
+  File "subprocess.py", line 971, in __init__
+  File "subprocess.py", line 1456, in _execute_child
+FileNotFoundError: [WinError 2] 系统找不到指定的文件。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\a-program\EduAgent\docs\competition-remio\roadshow-ppt\render_slides.py", line 273, in <module>
+    main()
+  File "D:\a-program\EduAgent\docs\competition-remio\roadshow-ppt\render_slides.py", line 267, in main
+    dpi = calc_dpi_via_pdf(input_path, args.width, args.height)
+  File "D:\a-program\EduAgent\docs\competition-remio\roadshow-ppt\render_slides.py", line 55, in calc_dpi_via_pdf
+    info = pdfinfo_from_path(pdf_path)
+  File "C:\Users\13372\AppData\Roaming\TRAE SOLO CN\ModularData\ai-agent\vm\tools\python\lib\site-packages\pdf2image\pdf2image.py", line 607, in pdfinfo_from_path
+    raise PDFInfoNotInstalledError(
+pdf2image.exceptions.PDFInfoNotInstalledError: Unable to get page count. Is poppler installed and in PATH?

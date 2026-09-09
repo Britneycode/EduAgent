@@ -6,22 +6,17 @@
     "slug": "eduagent-personalized-learning",
     "track": "智能体融合创新赛道",
     "platform": "remio",
-    "version": "0.2.0",
-    "description": "面向高校学生的个性化多智能体学习助手：画像构建 → 意图路由 → 多 Agent 协同产出讲义/题目/代码/思维导图/PPT/拓展阅读/动画，并苏格拉底式答疑。",
-    "categories": [
-      "教育",
-      "学习",
-      "多智能体"
-    ]
+    "version": "2.0.0",
+    "description": "面向高校学生的个性化多智能体学习助手：画像构建 → 意图路由 → 多 Agent 协同产出讲义/题目/代码/思维导图/PPT/拓展阅读/动画，并苏格拉底式答疑。生成与答疑统一三级知识来源：课程知识库 → 会话材料 → 网络。"
   },
   "developer": {
-    "name": "（填写开发者/团队名称）",
-    "email": "（填写联系邮箱）"
+    "name": "wannaw",
+    "email": "2186498057@qq.com"
   },
   "knowledge_base": {
     "course_id": "cn-net",
     "title": "计算机网络",
-    "source_dir": "backend/knowledge/计算机网络知识库/",
+    "source_dir": "knowledge/计算机网络知识库/",
     "import_note_prefix": "[计算机网络]",
     "notes": [
       "章节文档（04_网络层、05_运输层、06_应用层、07_网络安全与无线网络…）",
@@ -32,14 +27,30 @@
       "媒体资源（PPT大纲、动画脚本、板书提纲…）"
     ]
   },
+  "knowledge_source_tiers": [
+    "一级 📚 课程知识库（folder=计算机网络知识库，search_notes → read_note 注入正文）",
+    "二级 📎 会话材料（collection=EduAgent 学习材料，需 E11 挂载；一级未命中才触发）",
+    "三级 🌐 网络（web_search → web_get 抓正文注入，仅引用实际抓取成功的 URL；一、二级均未命中才触发）"
+  ],
   "endpoints": [
+    {
+      "id": "IN",
+      "name": "home",
+      "method": "GET",
+      "path": "/",
+      "type": "ui",
+      "agent": "入口",
+      "description": "主视图：画像感知问候 + 画像/规划/答疑入口按钮"
+    },
     {
       "id": "E1",
       "name": "route_intent",
+      "method": "POST",
+      "path": "/route_intent",
+      "type": "data",
       "agent": "RouterAgent",
       "capabilities": [
-        "run_prompt",
-        "search_notes"
+        "run_prompt"
       ],
       "input": {
         "text": "string"
@@ -54,20 +65,24 @@
         ],
         "quiz_only": "boolean"
       },
+      "note": "LLM 路由，失败回退关键词正则",
       "route": "update_profile → E2 | is_tutor_question → E10 | else → E3"
     },
     {
       "id": "E2",
       "name": "build_profile",
+      "method": "GET",
+      "path": "/build_profile_ui",
+      "type": "ui",
       "agent": "ProfileAgent",
       "capabilities": [
         "run_prompt",
         "read_note"
       ],
       "input": {
-        "text": "string"
+        "text": "string（学生自我描述）"
       },
-      "output_ui": "card",
+      "output_ui": "card（画像确认）",
       "profile_dimensions": [
         "专业",
         "年级",
@@ -77,21 +92,24 @@
         "认知风格",
         "可投入时长",
         "偏好资源类型"
-      ]
+      ],
+      "note": "画像持久化到 note《EduAgent 学生画像》"
     },
     {
       "id": "E3",
       "name": "plan_learning",
+      "method": "GET",
+      "path": "/plan_learning_ui",
+      "type": "ui",
       "agent": "PlannerAgent",
       "capabilities": [
         "run_prompt",
         "search_notes"
       ],
       "input": {
-        "topic": "string",
-        "profile": "object"
+        "topic": "string"
       },
-      "output_ui": "list",
+      "output_ui": "list（资源计划，逐项可点击触发 E4–E9）",
       "resource_types": [
         "document",
         "quiz",
@@ -101,24 +119,27 @@
         "ppt",
         "animation",
         "video"
-      ]
+      ],
+      "note": "规划不依赖知识命中；主题未被知识库/材料覆盖时计划照常产出，由 E4–E8 按三级来源自行兜底"
     },
     {
       "id": "E4",
       "name": "generate_document",
+      "method": "GET",
+      "path": "/generate_document_ui",
+      "type": "ui",
       "agent": "DocAgent",
       "capabilities": [
         "search_notes",
         "read_note",
-        "search_material",
+        "web_search",
+        "web_get",
         "run_prompt"
       ],
       "input": {
-        "topic": "string",
-        "profile": "object",
-        "session_id": "integer"
+        "topic": "string"
       },
-      "output_ui": "card",
+      "output_ui": "card（讲义，subtitle 为来源层级）",
       "structure": [
         "主题概览",
         "核心概念",
@@ -127,144 +148,265 @@
         "复习建议",
         "来源引用"
       ],
-      "note": "知识库未命中时基于会话学习材料生成并标注材料来源；两者均未命中时标注未锚定"
+      "note": "三级来源兜底（见 knowledge_source_tiers）：课程知识库 → 会话材料 → 网络（只引用实抓 URL），层级由代码判定并显式标注；三层均未命中标注 ⚠️ 请核对教材"
     },
     {
       "id": "E5",
       "name": "generate_quiz",
+      "method": "GET",
+      "path": "/generate_quiz_ui",
+      "type": "ui",
       "agent": "QuizAgent",
       "capabilities": [
         "search_notes",
         "read_note",
+        "web_search",
+        "web_get",
         "run_prompt"
       ],
       "input": {
-        "topic": "string",
-        "document": "string"
+        "topic": "string"
       },
       "output_ui": "choice / input + button",
       "types": [
-        "选择",
-        "判断",
-        "填空",
-        "简答",
-        "编程"
-      ]
+        "选择（choice）",
+        "判断（choice）",
+        "填空（input）",
+        "简答（input）"
+      ],
+      "note": "生成 4–6 道混合题型；三级来源兜底（见 knowledge_source_tiers），基于材料（📎）或网络（🌐）出题时提示学生核对原始来源"
+    },
+    {
+      "id": "E5b",
+      "name": "grade_quiz",
+      "method": "POST",
+      "path": "/grade_quiz_ui",
+      "type": "ui",
+      "agent": "QuizAgent",
+      "capabilities": [
+        "run_prompt"
+      ],
+      "input": {
+        "payload": "string（题目 JSON）",
+        "q1…q6": "string（逐题作答）"
+      },
+      "output_ui": "card（逐题对错 + 苏格拉底式提示）",
+      "note": "答错/未答的知识点自动写入画像 weak_points"
     },
     {
       "id": "E6",
       "name": "generate_code",
+      "method": "GET",
+      "path": "/generate_code_ui",
+      "type": "ui",
       "agent": "CodeAgent",
       "capabilities": [
         "search_notes",
         "read_note",
+        "web_search",
+        "web_get",
         "run_prompt"
       ],
       "input": {
-        "topic": "string",
-        "document": "string",
-        "quiz": "string"
+        "topic": "string"
       },
-      "output_ui": "card + button"
+      "output_ui": "card（可运行 Python + 运行说明 + 预期输出）",
+      "note": "三级来源兜底（见 knowledge_source_tiers）：知识库代码案例/实验文档优先，材料次之，网络兜底"
     },
     {
       "id": "E7",
       "name": "generate_mindmap",
+      "method": "GET",
+      "path": "/generate_mindmap_ui",
+      "type": "ui",
       "agent": "MediaAgent",
       "capabilities": [
         "search_notes",
         "read_note",
+        "web_search",
+        "web_get",
         "run_prompt"
       ],
       "input": {
-        "topic": "string",
-        "document": "string"
+        "topic": "string"
       },
-      "output_ui": "card / image"
+      "output_ui": "card（Markdown 层级结构，≤3 层）",
+      "note": "三级来源兜底（见 knowledge_source_tiers）"
     },
     {
       "id": "E8",
       "name": "generate_ppt",
+      "method": "GET",
+      "path": "/generate_ppt_ui",
+      "type": "ui",
       "agent": "MediaAgent",
       "capabilities": [
         "search_notes",
         "read_note",
+        "web_search",
+        "web_get",
         "run_prompt"
       ],
       "input": {
-        "topic": "string",
-        "document": "string"
+        "topic": "string"
       },
-      "output_ui": "list / image"
+      "output_ui": "list（6–8 页大纲）+ button（生成配图建议）",
+      "note": "三级来源兜底（见 knowledge_source_tiers）"
+    },
+    {
+      "id": "E8b",
+      "name": "generate_ppt_images",
+      "method": "GET",
+      "path": "/generate_ppt_images_ui",
+      "type": "ui",
+      "agent": "MediaAgent",
+      "capabilities": [
+        "run_prompt"
+      ],
+      "input": {
+        "topic": "string"
+      },
+      "output_ui": "card（逐页配图主题 + 作图提示词）",
+      "note": "大纲确认后触发"
     },
     {
       "id": "E9",
       "name": "generate_reading",
+      "method": "GET",
+      "path": "/generate_reading_ui",
+      "type": "ui",
       "agent": "ReadingAgent",
       "capabilities": [
         "web_search",
         "web_get",
-        "search_notes",
         "run_prompt"
       ],
       "input": {
-        "topic": "string",
-        "document": "string"
+        "topic": "string"
       },
-      "output_ui": "list"
+      "output_ui": "list（拓展阅读，附已核实网页清单）",
+      "note": "联网优先，只引用实际抓取成功的 URL；web_search 不可用时降级为经典材料推荐并标注 ⚠️ 未经链接核实"
     },
     {
       "id": "E10",
       "name": "tutor_answer",
+      "method": "GET",
+      "path": "/tutor_answer_ui",
+      "type": "ui",
       "agent": "TutorAgent",
       "capabilities": [
         "search_notes",
         "read_note",
-        "search_material",
         "web_search",
         "web_get",
         "run_prompt"
       ],
       "input": {
-        "question": "string",
-        "profile": "object",
-        "study_mode": "boolean",
-        "session_id": "integer"
+        "question": "string"
       },
-      "output_ui": "chat + card（分级来源）",
+      "output_ui": "card（解答，subtitle 为来源层级）",
       "coverage_tiers": [
-        "一级：课程知识库（GROUNDED）",
-        "二级：会话学习材料（MATERIAL）",
-        "三级：网络（INSUFFICIENT 显式升级）"
-      ]
+        "一级 📚 课程知识库（folder=计算机网络知识库）",
+        "二级 📎 会话材料（collection=EduAgent 学习材料）",
+        "三级 🌐 网络（一、二级均未命中才触发，只引用实际抓取的 URL）"
+      ],
+      "note": "覆盖层级由代码按各层检索命中判定并显式标注，禁止静默切换；学生画像从画像 note 加载注入"
     },
     {
       "id": "E11",
       "name": "attach_material",
+      "method": "POST",
+      "path": "/attach_material_ui",
+      "type": "ui",
       "agent": "SessionMaterialService",
       "capabilities": [
-        "write_note",
+        "create_note",
+        "add_note_to_collection",
         "search_notes"
       ],
       "input": {
-        "session_id": "integer",
         "filename": "string",
-        "content": "string（md/txt/pdf/pptx 文本）"
+        "content": "string（md/txt/pdf/pptx 提取文本）"
       },
-      "output_ui": "card（已挂载材料摘要）",
-      "note": "材料按会话写入 remio notes（source=session-material 元数据），课程知识库未命中时供 E4/E10 兜底检索"
+      "output_ui": "card（材料摘要：文件名/字符数/段落块数/挂载状态）",
+      "note": "材料写入独立集合《EduAgent 学习材料》（[EduAgent材料] 前缀），与课程知识库 folder 互不串扰；E4–E8 生成与 E10 答疑在知识库未命中时自动基于材料生成"
+    },
+    {
+      "id": "X1",
+      "name": "review_quiz",
+      "method": "GET",
+      "path": "/review_quiz_ui",
+      "type": "ui",
+      "agent": "复习自动化",
+      "capabilities": [
+        "run_prompt"
+      ],
+      "input": {},
+      "output_ui": "choice / input + button（同 E5）",
+      "note": "读取画像 weak_points，对最近薄弱点生成自测题"
+    },
+    {
+      "id": "X2",
+      "name": "generate_animation",
+      "method": "GET",
+      "path": "/generate_animation_ui",
+      "type": "ui",
+      "agent": "MediaAgent",
+      "capabilities": [
+        "run_prompt"
+      ],
+      "input": {
+        "topic": "string"
+      },
+      "output_ui": "card（3–5 幕动画分镜脚本）"
+    },
+    {
+      "id": "X3",
+      "name": "search_video",
+      "method": "GET",
+      "path": "/search_video_ui",
+      "type": "ui",
+      "agent": "VideoAgent",
+      "capabilities": [
+        "web_search",
+        "prepare_video"
+      ],
+      "input": {
+        "topic": "string"
+      },
+      "output_ui": "list（B 站视频，附时长/UP 主等元数据，可跳转）"
+    },
+    {
+      "id": "EV",
+      "name": "content_event",
+      "method": "POST",
+      "path": "/_event",
+      "type": "data",
+      "agent": "订阅自动化",
+      "input": {
+        "content_type": "string",
+        "operation": "string",
+        "payload": "object"
+      },
+      "note": "画像 note《EduAgent 学生画像》创建/修改事件 → 读取 weak_points → 生成自测题 → send_chat_message 推送"
     }
   ],
   "automations": [
     {
       "id": "A1",
-      "name": "复习提醒",
-      "trigger": "POST /_event（定时/内容更新）",
+      "name": "薄弱点复习推送",
+      "trigger": "平台静态订阅：note created/modified 且标题匹配《EduAgent 学生画像》→ POST /_event",
       "steps": [
-        "search_notes（薄弱点）",
-        "run_prompt（生成自测题）",
+        "读取画像 weak_points",
+        "run_prompt（生成一道自测题）",
         "send_chat_message（推送）"
       ]
+    },
+    {
+      "id": "A2",
+      "name": "每日/每周复习提醒（可选）",
+      "trigger": "remio 定时自动化触发 GET /review_quiz_ui，或聊天菜单「🔁 每日复习自测」手动进入",
+      "steps": []
     }
   ],
   "mcp": {
@@ -291,14 +433,15 @@
   "scoring": {
     "profile_dimensions": 8,
     "resource_types": 7,
-    "agent_count": 8,
+    "agent_count": 10,
     "anti_hallucination": [
       "rag 知识锚定",
       "会话材料锚定（知识库未命中时的兜底层）",
+      "网络层兜底（🌐 显式标注，仅引用实际抓取成功的 URL）",
       "来源引用",
       "输出过滤"
     ],
-    "streaming": "rag_stream",
+    "streaming": "run_prompt 生成 + UI 卡片即时渲染（rag_stream 为平台侧修复后的可选流式增强）",
     "initial_knowledge_base": true,
     "open_source_compliance_doc": "remio/docs/05_AI工具与开源合规说明.md"
   }

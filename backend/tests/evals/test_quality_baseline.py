@@ -129,8 +129,8 @@ def _build_eval_rag_engine() -> RAGEngine:
     store = VectorStore(EvalEmbedding())
     store.add(
         chunk_ids=[
-            "ai_intro:ch5_backprop",
-            "ai_intro:ch1_search",
+            "course_a:ch5_backprop",
+            "course_a:ch1_search",
             "python_basics:py1_runtime",
         ],
         documents=[
@@ -140,13 +140,13 @@ def _build_eval_rag_engine() -> RAGEngine:
         ],
         metadatas=[
             {
-                "course_id": "ai_intro",
+                "course_id": "course_a",
                 "chapter": "ch5",
                 "section": "ch5_s1",
                 "title": "反向传播",
             },
             {
-                "course_id": "ai_intro",
+                "course_id": "course_a",
                 "chapter": "ch1",
                 "section": "ch1_s2",
                 "title": "搜索算法",

@@ -301,7 +301,7 @@ def test_knowledge_graph_isolates_courses_with_same_chapter_ids() -> None:
     graph = KnowledgeGraph()
     graph.load_from_dict(
         {
-            "course_name": "人工智能导论",
+            "course_name": "课程 A",
             "chapters": [{"chapter_id": "ch01", "title": "AI 概述"}],
             "concepts": {
                 "搜索": {
@@ -312,7 +312,7 @@ def test_knowledge_graph_isolates_courses_with_same_chapter_ids() -> None:
                 }
             },
         },
-        course_id="ai_intro",
+        course_id="course_a",
     )
     graph.load_from_dict(
         {
@@ -331,13 +331,13 @@ def test_knowledge_graph_isolates_courses_with_same_chapter_ids() -> None:
         clear=False,
     )
 
-    assert graph.list_chapters("ai_intro") == [
-        {"id": "ch01", "title": "AI 概述", "course_id": "ai_intro"}
+    assert graph.list_chapters("course_a") == [
+        {"id": "ch01", "title": "AI 概述", "course_id": "course_a"}
     ]
     assert graph.list_chapters("python_basics") == [
         {"id": "ch01", "title": "Python 环境", "course_id": "python_basics"}
     ]
-    assert [node.name for node in graph.get_chapter_concepts("ch01", "ai_intro")] == [
+    assert [node.name for node in graph.get_chapter_concepts("ch01", "course_a")] == [
         "搜索"
     ]
     assert [
@@ -557,10 +557,10 @@ def test_rag_engine_supports_course_filter() -> None:
 async def _test_rag_engine_course_filter() -> None:
     vector_store = VectorStore(TinyEmbedding())
     vector_store.add(
-        chunk_ids=["ai_intro:ch1_search", "python_basics:py1_runtime"],
+        chunk_ids=["course_a:ch1_search", "python_basics:py1_runtime"],
         documents=["搜索算法用于状态空间探索", "Python 解释器负责运行脚本"],
         metadatas=[
-            {"course_id": "ai_intro", "chapter": "ch1", "title": "搜索算法"},
+            {"course_id": "course_a", "chapter": "ch1", "title": "搜索算法"},
             {
                 "course_id": "python_basics",
                 "chapter": "py1",

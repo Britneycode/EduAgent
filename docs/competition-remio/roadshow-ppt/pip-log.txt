@@ -1,0 +1,5 @@
+  WARNING: The script pymupdf.exe is installed in 'C:\Users\13372\AppData\Roaming\TRAE SOLO CN\ModularData\ai-agent\vm\tools\python\Scripts' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+
+[notice] A new release of pip is available: 25.3 -> 26.2.1
+[notice] To update, run: python.exe -m pip install --upgrade pip

@@ -116,7 +116,7 @@ async def test_generate_path_uses_selected_course_graph(
                 }
             }
         },
-        course_id="ai_intro",
+        course_id="course_a",
     )
     graph.load_from_dict(
         {

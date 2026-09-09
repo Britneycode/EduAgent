@@ -10,7 +10,7 @@
 - `remio/docs/*.md` = **提交给平台的材料**（方案/演示/视频/路演/合规/自评）。
 - 本目录 = **工程文档附录**（比方案文档更细的系统设计与验收口径），评审需要时随方案文档附上。
 
-> 口径基线：10 个协同 Agent（LangGraph）· LLM Wiki 知识中枢（3 门课程知识库，
-> 向量 + BM25 混合检索）· remio aApp 10 端点（E1–E10）· MCP 工具集（12 工具，
+> 口径基线：10 个协同 Agent（LangGraph）· LLM Wiki 知识中枢（引擎两门课程，remio aApp 内置《计算机网络》，
+> 向量 + BM25 混合检索）· remio aApp 18 个端点（核心 E1–E11 + 扩展，已上架 id `eduagent-pro`）· MCP 工具集（14 工具，
 > stdio 零依赖）。与 `remio/aapp/eduagent-aapp-spec.md`、`remio/mcp/README.md`、
 > `CLAUDE.md` 保持一致。

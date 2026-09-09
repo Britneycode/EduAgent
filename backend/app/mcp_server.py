@@ -1,6 +1,6 @@
 """金漪湖 · 个性化学习智能体 —— MCP 服务器。
 
-把 EduAgent 的 10 个协同 Agent 引擎，以 MCP（Model Context Protocol）的 12 个工具形式
+把 EduAgent 的 10 个协同 Agent 引擎，以 MCP（Model Context Protocol）的 14 个工具形式
 暴露给 remio 睿妙及其他支持 MCP 的智能体宿主，落地「如能在其他智能体产品中
 正常运行更佳」这一加分项。
 
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 JSONRPC_VERSION = "2.0"
 MCP_PROTOCOL_VERSION = "2024-11-05"
 
-# 10 个 Agent + Wiki 知识中枢对应的 12 个 MCP 工具（JSON Schema 输入）。
+# 10 个 Agent + Wiki 知识中枢对应的 14 个 MCP 工具（JSON Schema 输入）。
 # profile 字段在各工具中均为可选对象，缺省按空画像处理。
 TOOLS: list[dict[str, Any]] = [
     {
@@ -523,7 +523,7 @@ def _initialize_result() -> dict[str, Any]:
         "capabilities": {"tools": {}},
         "serverInfo": {
             "name": "eduagent-personalized-learning",
-            "version": "0.1.0",
+            "version": "2.0.0",
         },
         "instructions": "EduAgent 个性化多智能体学习引擎：支持意图路由、知识检索、画像抽取、"
         "文档/题目/代码/思维导图/PPT/拓展阅读/动画脚本生成与苏格拉底式答疑；"

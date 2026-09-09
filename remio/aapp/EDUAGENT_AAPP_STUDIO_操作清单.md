@@ -8,7 +8,7 @@
 
 ## 阶段 0 · 准备知识库笔记（一次性）
 
-1. 把 `backend/knowledge/计算机网络知识库/` 下的 Markdown 逐篇导入为 remio notes。
+1. 把 `knowledge/计算机网络知识库/` 下的 Markdown 逐篇导入为 remio notes。
    - 标题统一加前缀：`[计算机网络] 章节/标题`，例如 `[计算机网络] 05_运输层/TCP连接管理`。
    - 若 aapp-studio 支持元数据，补 `course_id=cn-net`、`chapter`、`section`。
 2. **验证点**：在对话里问 remio"搜一下 TCP 三次握手"，能通过 `search_notes` 返回知识库片段。
@@ -21,8 +21,23 @@
 > 1) route_intent：识别意图；2) build_profile：构建 8 维画像；3) plan_learning：拆解资源任务；
 > 4) generate_document：生成讲义；5) generate_quiz：出题；6) generate_code：代码案例；
 > 7) generate_mindmap：思维导图；8) generate_ppt：PPT 大纲；9) generate_reading：拓展阅读；
-> 10) tutor_answer：苏格拉底式答疑。
+> 10) tutor_answer：苏格拉底式答疑；11) attach_material：挂载会话学习材料。
 > 每个端点的输入输出、能力映射和 UI 组件按附上的规格文件实现。
+
+正式版共 18 个端点：除上述 11 个核心端点外，另有判题 `grade_quiz_ui`、PPT 配图
+`generate_ppt_images_ui`、薄弱点复习 `review_quiz_ui`、动画 `generate_animation_ui`、
+视频 `search_video_ui` 5 个扩展端点与主入口 `GET /`、事件订阅 `POST /_event`
+（以平台侧 `api.json` 为准）。
+
+正式版共 18 个端点：除上述 11 个核心端点外，另有判题 `grade_quiz_ui`、PPT 配图
+`generate_ppt_images_ui`、薄弱点复习 `review_quiz_ui`、动画 `generate_animation_ui`、
+视频 `search_video_ui` 5 个扩展端点与主入口 `GET /`、事件订阅 `POST /_event`
+（以平台侧 `api.json` 为准）。
+
+正式版共 18 个端点：除上述 11 个核心端点外，另有判题 `grade_quiz_ui`、PPT 配图
+`generate_ppt_images_ui`、薄弱点复习 `review_quiz_ui`、动画 `generate_animation_ui`、
+视频 `search_video_ui` 5 个扩展端点与主入口 `GET /`、事件订阅 `POST /_event`
+（以平台侧 `api.json` 为准）。
 
 然后逐端点确认，尤其：
 
@@ -30,9 +45,9 @@
 | --- | --- | --- |
 | route_intent | `run_prompt` 输出 JSON 路由；失败回退关键词正则 | 输入"给我出几道 TCP 的题"→ 返回 `resource_types=["quiz"]` |
 | build_profile | 读写画像 note（`read_note`/写回） | 输入"我是大一计算机专业"→ 弹出画像确认卡 |
-| generate_document | `rag` 取上下文 + `run_prompt` 生成；文末带 `[来源：章>节]` | 生的讲义末尾有来源引用 |
+| generate_document | `search_notes`→`read_note` 取正文 + `run_prompt` 生成；文末带 `[来源：笔记标题]` | 生成的讲义末尾有来源引用 |
 | generate_quiz | 选择题用 `choice`，填空/简答用 `input`+`button` | 判断题可自动判对错 |
-| tutor_answer | 用 `rag_stream`；`study_mode=true` 走引导式 | 输出逐字流式 + 来源卡 |
+| tutor_answer | `run_prompt(capabilities="none")` 三级兜底，卡片标注来源层级 | 答疑卡带 📚/📎/🌐 层级与来源行 |
 
 ## 阶段 2 · 对话覆盖主路径
 
@@ -77,7 +92,7 @@ Profile 串行优先，Doc/Quiz/Code/Media 并行。
 | --- | --- |
 | `rag` 答的内容与知识库不符 | 确认 notes 导入完成、标题前缀统一；端点在 `run_prompt` 里要求"只依据检索片段作答，不足则标注" |
 | 画像不生效 | 确认 `build_profile` 写回的画像 note 被后续端点通过 `read_note` 读到 |
-| 流式没效果 | 答疑端点确定用 `rag_stream`，而不是 `rag` |
+| 生成失败/空白 | 查看 aApp 日志（eduagent-pro log），多为 `run_prompt` 失败，重试即可 |
 
 > 完整端点定义见同目录 `eduagent-aapp-spec.md`；机器可读清单见 `eduagent-aapp-manifest.json`。
 > 若 aapp-studio 某处界面英文且与本清单术语对不上，按功能（端点=endpoint/能力=capability/订阅=subscription）对应即可。

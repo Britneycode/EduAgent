@@ -1,4 +1,6 @@
 .worktrees/
+.hanako/
+.screenshots/
 backend/chroma_data/
 backend/storage/
 
