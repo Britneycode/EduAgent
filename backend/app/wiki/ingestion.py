@@ -22,6 +22,95 @@ _MAX_CHUNK_CHARS = 1800
 _MIN_CHUNK_CHARS = 180
 _SUPPORTED_UPLOAD_SUFFIXES = {".md", ".markdown", ".txt", ".pdf", ".pptx"}
 
+# 教学脚手架 / 元内容小节标题：不进入检索库。
+# 这些是给 AI/教师的提示、教学组织信息、导航或来源记录，进入检索会稀释
+# 有效知识块的排名（评测中表现为 top 结果被「导师 Agent 教学提示」等占据）。
+_META_SECTION_KEYWORDS = (
+    "学习目标",
+    "先修知识",
+    "教学提示",
+    "生成钩子",
+    "生成提示词",
+    "Agent 使用提示",
+    "Agent使用提示",
+    "相关链接",
+    "参考来源",
+    "资源目标",
+    "内容结构",
+    "案例目标",
+    "实验目标",
+    "题集定位",
+    "检查项",
+    "可验证依据",
+    "关联知识",
+    "使用说明",
+    "适用对象",
+    "课程目标",
+    "检索验收",
+    "检索测试",
+)
+
+
+def _is_meta_section(title: str) -> bool:
+    """判断小节标题是否为教学脚手架/元内容（应被过滤，不进入检索）。"""
+    clean = re.sub(r"^\d+(\.\d+)*[.、．\s]+", "", title).strip()
+    return any(keyword in clean for keyword in _META_SECTION_KEYWORDS)
+
+
+# 课程组织材料/治理文档：是「关于知识库的知识」，而非学科知识本身，不进入学科检索。
+# 学生问「ARP 是什么」不应命中课程简介、术语表或治理检查清单。
+_NON_RETRIEVABLE_DOC_TYPES = {
+    "governance",  # 图谱、质量检查清单等治理文档
+    "syllabus",  # 课程简介
+    "learning_path",  # 学习路径
+    "knowledge_map",  # 知识地图
+    "glossary",  # 术语表
+    "index",  # 文档索引/覆盖率统计
+}
+
+
+def _parse_frontmatter_meta(text: str) -> dict[str, Any]:
+    """极简 frontmatter 解析，只提取检索排序需要的固定字段，零依赖。
+
+    项目不引入 pyyaml，这里用正则直接提取 doc_type / rag.chunkable /
+    rag.retrieval_priority 三个字段，frontmatter 若缺失字段则当作默认值。
+    """
+    match = re.match(r"^---\s*\n(.*?)\n---\s*\n", text, re.DOTALL)
+    if not match:
+        return {}
+    block = match.group(1)
+    meta: dict[str, Any] = {}
+
+    def _field(name: str) -> str | None:
+        m = re.search(rf"^\s*{name}:\s*(.+?)\s*$", block, re.MULTILINE)
+        if not m:
+            return None
+        return m.group(1).strip().strip("\"'")
+
+    doc_type = _field("doc_type")
+    if doc_type:
+        meta["doc_type"] = doc_type
+
+    chunkable_raw = _field("chunkable")
+    if chunkable_raw is not None:
+        meta["chunkable"] = chunkable_raw.lower() in {"true", "1", "yes"}
+
+    priority = _field("retrieval_priority")
+    if priority:
+        meta["retrieval_priority"] = priority
+
+    hints_match = re.search(r"embedding_hints:\s*\[(.*?)\]", block)
+    if hints_match:
+        hints = [
+            item.strip().strip("\"'")
+            for item in hints_match.group(1).split(",")
+            if item.strip()
+        ]
+        if hints:
+            meta["embedding_hints"] = hints
+
+    return meta
+
 
 @dataclass(slots=True)
 class DocumentChunk:
@@ -40,6 +129,8 @@ class DocumentChunk:
     mime_type: str = ""
     scope: str = "knowledge"
     session_id: str = ""
+    doc_type: str = "knowledge"
+    hints: list[str] = field(default_factory=list)
 
 
 @dataclass(slots=True)
@@ -199,6 +290,12 @@ class KnowledgeIngestion:
     ) -> list[DocumentChunk]:
         """按三级标题 (###) 分割 Markdown 文件为知识块。"""
         text = md_file.read_text(encoding="utf-8")
+        # 解析文档类型等 frontmatter 字段，供检索排序加权使用
+        frontmatter_meta = _parse_frontmatter_meta(text)
+        doc_type = str(frontmatter_meta.get("doc_type") or "knowledge")
+        # 课程组织材料/治理文档不进入学科检索
+        if doc_type in _NON_RETRIEVABLE_DOC_TYPES:
+            return []
         chapter_id = str(
             chapter_info.get("id") or chapter_info.get("chapter_id") or ""
         )
@@ -307,6 +404,12 @@ class KnowledgeIngestion:
                 source_name=md_file.name,
             )
 
+        # 过滤教学脚手架/元内容小节，不进入检索库
+        chunks = [c for c in chunks if not _is_meta_section(c.title)]
+        hints = frontmatter_meta.get("embedding_hints") or []
+        for c in chunks:
+            c.doc_type = doc_type
+            c.hints = list(hints)
         return chunks
 
     def _parse_by_h2(
@@ -387,7 +490,12 @@ class KnowledgeIngestion:
     async def _store_chunks(self, chunks: list[DocumentChunk]) -> None:
         """批量写入向量存储和数据库。"""
         chunk_ids = [c.chunk_id for c in chunks]
-        documents = [f"{c.title}\n\n{c.content}" for c in chunks]
+        documents = [
+            f"{c.title}\n\n{c.content}"
+            if not c.hints
+            else f"{c.title}\n\n{c.content}\n\n{' '.join(c.hints)}"
+            for c in chunks
+        ]
         metadatas = [
             {
                 "course_id": c.course_id,
@@ -401,6 +509,7 @@ class KnowledgeIngestion:
                 "tags": c.tags,
                 "scope": c.scope,
                 "session_id": c.session_id,
+                "doc_type": c.doc_type,
             }
             for c in chunks
         ]

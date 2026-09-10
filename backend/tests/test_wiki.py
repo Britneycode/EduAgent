@@ -438,6 +438,89 @@ async def _test_ingestion_with_course(tmp_path: Path) -> None:
     assert result.metadata["course_id"] == "python_basics"
 
 
+def test_knowledge_ingestion_filters_meta_sections(tmp_path: Path) -> None:
+    asyncio.run(_test_ingestion_filters_meta(tmp_path))
+
+
+async def _test_ingestion_filters_meta(tmp_path: Path) -> None:
+    knowledge_dir = tmp_path / "kb"
+    knowledge_dir.mkdir()
+    (knowledge_dir / "metadata.json").write_text(
+        json.dumps(
+            {
+                "chapters": [
+                    {"chapter_id": "cn05", "title": "运输层", "file": "tcp.md"}
+                ]
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    (knowledge_dir / "tcp.md").write_text(
+        "# TCP连接管理\n\n"
+        "## 3. 知识讲解\n\n三次握手建立连接。\n\n"
+        "## 6. 导师 Agent 教学提示\n\n用打电话类比讲解三次握手。\n\n"
+        "## 1. 学习目标\n\n理解三次握手的必要性。\n\n"
+        "## 9. 相关链接\n\n见附录。",
+        encoding="utf-8",
+    )
+    vector_store = VectorStore(TinyEmbedding())
+    ingestion = KnowledgeIngestion(vector_store=vector_store)
+
+    count = await ingestion.ingest_course(knowledge_dir)
+
+    # 只有「知识讲解」应入库；教学提示、学习目标、相关链接等元内容被过滤
+    assert count == 1
+    assert vector_store.count() == 1
+    titles = [str(meta.get("title", "")) for meta in vector_store._metadatas]
+    assert any("知识讲解" in t for t in titles)
+    assert not any("教学提示" in t for t in titles)
+    assert not any("学习目标" in t for t in titles)
+    assert not any("相关链接" in t for t in titles)
+
+
+def test_knowledge_ingestion_filters_non_retrievable_doc_types(tmp_path: Path) -> None:
+    asyncio.run(_run_non_retrievable_check(tmp_path))
+
+
+async def _run_non_retrievable_check(tmp_path: Path) -> None:
+    knowledge_dir = tmp_path / "kb"
+    knowledge_dir.mkdir()
+    (knowledge_dir / "metadata.json").write_text(
+        json.dumps(
+            {
+                "chapters": [
+                    {
+                        "chapter_id": "cn01",
+                        "title": "基础",
+                        "files": ["know.md", "gov.md"],
+                    }
+                ]
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    (knowledge_dir / "know.md").write_text(
+        '---\ndoc_type: "knowledge"\n---\n# 网络基础\n\n## 2. 核心概念\n\n网络采用分层设计。',
+        encoding="utf-8",
+    )
+    (knowledge_dir / "gov.md").write_text(
+        '---\ndoc_type: "governance"\n---\n# 治理文档\n\n## 1. 检查清单\n\n这是知识库治理元数据。',
+        encoding="utf-8",
+    )
+    vector_store = VectorStore(TinyEmbedding())
+    count = await KnowledgeIngestion(vector_store=vector_store).ingest_course(
+        knowledge_dir
+    )
+
+    # 治理文档不进入学科检索；knowledge 文档正常入库且携带 doc_type
+    assert count == 1
+    assert vector_store.count() == 1
+    doc_types = {str(m.get("doc_type")) for m in vector_store._metadatas}
+    assert doc_types == {"knowledge"}
+
+
 def test_knowledge_ingestion_supports_multiple_files_per_chapter(
     tmp_path: Path,
 ) -> None:

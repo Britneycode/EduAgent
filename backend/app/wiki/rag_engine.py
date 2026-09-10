@@ -14,6 +14,18 @@ from app.wiki.vector_store import (
     tokenize_for_lexical,
 )
 
+# 按文档类型对排序分做小幅调整：学生问概念时，授课讲解（knowledge）和经核验的
+# 事实卡（fact_card）应优先于题面/习题与实验/代码/媒体等学习资源。课程组织材料与
+# 治理文档已在 ingestion 阶段过滤，不会到这里。
+_DOC_TYPE_RANK_BONUS: dict[str, float] = {
+    "knowledge": 0.0,
+    "fact_card": 0.0,
+    "exercise_set": -0.06,
+    "lab": -0.05,
+    "code_case": -0.05,
+    "media_resource": -0.05,
+}
+
 
 @dataclass(slots=True)
 class SearchResult:
@@ -233,7 +245,9 @@ class RAGEngine:
             + overlap_score * 0.1
             + exact_score * 0.05
         )
-        return min(1.0, score), overlap_score, exact_score
+        doc_type = str(candidate.metadata.get("doc_type") or "knowledge")
+        score += _DOC_TYPE_RANK_BONUS.get(doc_type, 0.0)
+        return min(1.0, max(0.0, score)), overlap_score, exact_score
 
     async def clear_cache(self) -> None:
         if self._cache is not None:
