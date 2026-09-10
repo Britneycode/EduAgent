@@ -216,7 +216,8 @@ D:\App\remiocn\Users\B60CFB8513AF4288DF6E5A688248A005\agent\remio\aapps-dev\edua
 ├── logic.py      # 运行时逻辑（E1–E11 + 扩展端点实现，改动主战场）
 ├── api.json      # 平台侧端点声明（须与 logic.py 路由保持一致）
 ├── manifest.json # 应用元数据（订阅 / 快捷菜单 / chatMenu）
-└── SKILL.md      # 端点语义契约说明（须与 logic.py 行为保持一致）
+├── SKILL.md      # 端点语义契约说明（须与 logic.py 行为保持一致）
+└── data/kb/      # 内置知识库（计算机网络 Markdown 文件，随 aApp 分发，146 个文件约 0.44 MB）
 ```
 
 改 logic.py 后需在 aapp-studio 重新加载才生效；若路径中用户哈希变化，在 `D:\App\remiocn\Users\<用户哈希>\agent\remio\aapps-dev\` 下找 `eduagent-pro`。
@@ -224,7 +225,8 @@ D:\App\remiocn\Users\B60CFB8513AF4288DF6E5A688248A005\agent\remio\aapps-dev\edua
 **关键机制**（改 aApp 代码前必读 `remio/aapp/eduagent-aapp-spec.md` 和平台 `dev-guide/开发者指南.md`）：
 
 - **知识锚定**：`search_notes` 定位候选 + `read_note` 注入笔记**正文**（不能只给标题）；锚定型端点一律 `run_prompt(capabilities="none")`——纯 LLM 推理，物理禁止联网，防止静默混入网络内容
-- **联网双通道**：E9 拓展阅读联网优先（`web_search` + `web_get`，只引用实际抓取成功的 URL）；E10 答疑三级兜底——覆盖层级由代码按各层检索命中判定（课程知识库 → 会话学习材料 → 网络），每次层级以 `📚 课程知识库` / `📎 会话材料` / `🌐 网络` 在解答卡片显式标注，禁止静默切换
+- **Tier 1 双路径**：优先查 remio 同步文件夹（`计算机网络知识库`）；未命中则回退到内置 `data/kb/` 关键词匹配（文件级搜索，无需 remio 索引）。内置知识库已随 aApp 分发，其他用户安装后即可使用 Tier 1b 作为兜底锚定源。
+- **联网双通道**：E9 拓展阅读联网优先（`web_search` + `web_get`，只引用实际抓取成功的 URL）；E10 答疑三级兜底——覆盖层级由代码按各层检索命中判定（同步文件夹 → 内置知识库 → 课程知识库 → 会话学习材料 → 网络），每次层级以 `📚 课程知识库` / `📎 会话材料` / `🌐 网络` 在解答卡片显式标注，禁止静默切换
 - **rag 能力的坑**：平台 `rag` 对批量导入的 File 类型笔记可能返回空（问答语料与检索索引是两条管线），项目实际走 `search_notes → run_prompt` 链路，rag 仅作平台侧修复后的可选增强
 - **降级纪律**：所有联网调用必须 try/except 降级到知识库作答并提示（`web_search` 依赖用户配置商业搜索源，且可能额度耗尽）
 

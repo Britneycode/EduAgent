@@ -512,7 +512,7 @@ function drawMotif(s, nodes, edges, dotColor, lineColor, dotSize = 0.07) {
     align: "center", valign: "middle", margin: [0.06, 0.2, 0.06, 0.24],
   });
   addFooter(s, 8);
-  s.addNotes("强调防幻觉是赛题刚性要求，Wiki 是所有 Agent 的事实边界；aApp 内置计算机网络，另两门经 MCP 提供。");
+  s.addNotes("强调防幻觉是赛题刚性要求，Wiki 是所有 Agent 的事实边界；aApp 内置计算机网络，另一门经 MCP 提供。");
 }
 
 // ============================================================
@@ -782,11 +782,22 @@ function drawMotif(s, nodes, edges, dotColor, lineColor, dotSize = 0.07) {
     fill: { color: C.dark }, line: { type: "none" }, fontFace: FONT,
     align: "center", valign: "middle", margin: [0.08, 0.2, 0.08, 0.24],
   });
-  s.addText("aApp 已上架 remio 市场，MCP 可接入任意宿主，均支持现场实测闭环。", {
-    x: ML, y: 6.4, w: CW, h: 0.4, fontFace: FONT, fontSize: 12.5, bold: true, color: C.accent, align: "left", valign: "middle",
+  // 量化证据（2026-09-09 实跑，详见 remio/docs/08_评测报告.md）
+  const stats = [
+    ["142/142", "引擎测试通过"],
+    ["11/11", "质量基线通过"],
+    ["100%", "RAG top-1（24 条真实查询）"],
+    ["18/18", "端点三方一致"],
+  ];
+  stats.forEach((st, i) => {
+    const x = ML + i * (2.873 + 0.2);
+    card(s, x, 6.3, 2.873, 0.62, [
+      { text: st[0] + "　", options: { fontSize: 14, bold: true, color: C.accent, fontFace: MONO } },
+      { text: st[1], options: { fontSize: 9, color: C.sub } },
+    ], { fill: C.cardTint, noBorder: true, margin: [0.05, 0.1, 0.05, 0.12] });
   });
   addFooter(s, 15);
-  s.addNotes("验收表逐条可测。邀请评委用触发语现场实测，是最有说服力的收口。");
+  s.addNotes("验收表逐条可测。底部为 2026-09-09 实跑量化基线：142/142 测试、11/11 质量基线、RAG 内容相关 top-1 100%（24 查询）、18 端点三方一致；复现：uv run pytest / tests/evals/eval_rag_hit_real.py / app.mcp_server --self-test。邀请评委用触发语现场实测收口。");
 }
 
 // ============================================================

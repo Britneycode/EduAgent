@@ -78,7 +78,9 @@
       "estimated_hours": 4,
       "difficulty": 1,
       "files": [
-        "02_物理层/物理层概述.md"
+        "02_物理层/物理层概述.md",
+        "02_物理层/传输介质.md",
+        "02_物理层/编码与调制.md"
       ],
       "resource_types": ["讲解文档"]
     },

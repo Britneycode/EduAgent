@@ -46,7 +46,7 @@
 ## 2. 知识库导入（一次性的"知识底座"）
 
 EduAgent 已内置结构化课程知识库：`knowledge/计算机网络知识库/`，含全课程
-章节文档、事实卡、习题解析、代码案例、实验文档（约 160 篇 Markdown）。
+章节文档、事实卡、习题解析、代码案例、实验文档（141 篇 Markdown）。
 
 **导入 remio 的步骤**：把它们逐文件写入 remio notes，标题携带章节前缀，便于
 `search_notes` 按 `chapter` / `section` 过滤：
