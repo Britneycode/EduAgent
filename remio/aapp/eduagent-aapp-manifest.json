@@ -40,7 +40,7 @@
       "path": "/",
       "type": "ui",
       "agent": "入口",
-      "description": "主视图：画像感知问候 + 画像/规划/答疑入口按钮"
+      "description": "主视图：画像感知问候 + 薄弱点待复习提示 + 画像/规划/答疑入口按钮"
     },
     {
       "id": "E1",
@@ -65,7 +65,7 @@
         ],
         "quiz_only": "boolean"
       },
-      "note": "LLM 路由，失败回退关键词正则",
+      "note": "LLM 路由，缺失/None 键用关键词正则 fallback 按键合并补齐；答疑词表与 backend RouterAgent 对齐，出题词收窄为多字词（单字「考」不误伤），文档词命中反向排除答疑",
       "route": "update_profile → E2 | is_tutor_question → E10 | else → E3"
     },
     {
@@ -137,7 +137,8 @@
         "run_prompt"
       ],
       "input": {
-        "topic": "string"
+        "topic": "string",
+        "focus": "string（可选，学习计划步骤目标描述）"
       },
       "output_ui": "card（讲义，subtitle 为来源层级）",
       "structure": [
@@ -148,7 +149,7 @@
         "复习建议",
         "来源引用"
       ],
-      "note": "三级来源兜底（见 knowledge_source_tiers）：课程知识库 → 会话材料 → 网络（只引用实抓 URL），层级由代码判定并显式标注；三层均未命中标注 ⚠️ 请核对教材"
+      "note": "注入学生画像；三级来源兜底（见 knowledge_source_tiers）：课程知识库 → 会话材料 → 网络（只引用实抓 URL），层级由代码判定并显式标注；三层均未命中标注 ⚠️ 请核对教材；讲义自动落盘「EduAgent 学习资源」集合（[EduAgent资源] 讲义·{topic}，update-or-create）"
     },
     {
       "id": "E5",
@@ -165,7 +166,8 @@
         "run_prompt"
       ],
       "input": {
-        "topic": "string"
+        "topic": "string",
+        "focus": "string（可选，学习计划步骤目标描述）"
       },
       "output_ui": "choice / input + button",
       "types": [
@@ -174,7 +176,7 @@
         "填空（input）",
         "简答（input）"
       ],
-      "note": "生成 4–6 道混合题型；三级来源兜底（见 knowledge_source_tiers），基于材料（📎）或网络（🌐）出题时提示学生核对原始来源"
+      "note": "注入学生画像；生成 4–6 道混合题型，来源行恒显（📚/📎/🌐 均标注）；三级来源兜底（见 knowledge_source_tiers），基于材料（📎）或网络（🌐）出题时提示学生核对原始来源；题目+参考答案自动落盘「EduAgent 学习资源」集合"
     },
     {
       "id": "E5b",
@@ -191,7 +193,7 @@
         "q1…q6": "string（逐题作答）"
       },
       "output_ui": "card（逐题对错 + 苏格拉底式提示）",
-      "note": "答错/未答的知识点自动写入画像 weak_points"
+      "note": "薄弱点 SRS 记录 {t, ts, n, m}：答错 → 记录/重复出错 n+1（答错与未答并存时答错为主信号）；仅未答 → 不记录（卡片提示「未作答的题目不计入薄弱点」）；全部答对 → 标记已掌握（m=true）；兼容旧字符串列表，写入时自动归一化，上限 10 条"
     },
     {
       "id": "E6",
@@ -208,10 +210,11 @@
         "run_prompt"
       ],
       "input": {
-        "topic": "string"
+        "topic": "string",
+        "focus": "string（可选，学习计划步骤目标描述）"
       },
       "output_ui": "card（可运行 Python + 运行说明 + 预期输出）",
-      "note": "三级来源兜底（见 knowledge_source_tiers）：知识库代码案例/实验文档优先，材料次之，网络兜底"
+      "note": "注入学生画像；三级来源兜底（见 knowledge_source_tiers）：知识库代码案例/实验文档优先，材料次之，网络兜底；附免责行「预期输出为示例输出，请以实际运行为准」，产物自动落盘「EduAgent 学习资源」集合"
     },
     {
       "id": "E7",
@@ -228,10 +231,11 @@
         "run_prompt"
       ],
       "input": {
-        "topic": "string"
+        "topic": "string",
+        "focus": "string（可选，学习计划步骤目标描述）"
       },
-      "output_ui": "card（Markdown 层级结构，≤3 层）",
-      "note": "三级来源兜底（见 knowledge_source_tiers）"
+      "output_ui": "image（Mermaid 渲染 PNG，base64 data URL）+ text（来源层级）；渲染失败回退 card（结构文本）",
+      "note": "注入学生画像；三级来源兜底（见 knowledge_source_tiers）；渲染链路 kroki 主路径、mermaid.ink 回退，失败不影响端点返回；Mermaid 源码无论渲染成败先落盘「EduAgent 学习资源」集合，渲染失败时回退卡带「🔄 重试渲染」按钮"
     },
     {
       "id": "E8",
@@ -248,10 +252,11 @@
         "run_prompt"
       ],
       "input": {
-        "topic": "string"
+        "topic": "string",
+        "focus": "string（可选，学习计划步骤目标描述）"
       },
       "output_ui": "list（6–8 页大纲）+ button（生成配图建议）",
-      "note": "三级来源兜底（见 knowledge_source_tiers）"
+      "note": "注入学生画像；三级来源兜底（见 knowledge_source_tiers）；大纲自动落盘「EduAgent 学习资源」集合"
     },
     {
       "id": "E8b",
@@ -267,7 +272,7 @@
         "topic": "string"
       },
       "output_ui": "card（逐页配图主题 + 作图提示词）",
-      "note": "大纲确认后触发"
+      "note": "大纲确认后触发；配图建议为创意扩展，不承诺三级知识锚定"
     },
     {
       "id": "E9",
@@ -302,7 +307,8 @@
         "run_prompt"
       ],
       "input": {
-        "question": "string"
+        "question": "string",
+        "history": "string（可选，此前对话简要记录，每行一条，格式如『学生：…』『助手：…』，截断 2000 字符）"
       },
       "output_ui": "card（解答，subtitle 为来源层级）",
       "coverage_tiers": [
@@ -310,7 +316,7 @@
         "二级 📎 会话材料（collection=EduAgent 学习材料）",
         "三级 🌐 网络（一、二级均未命中才触发，只引用实际抓取的 URL）"
       ],
-      "note": "覆盖层级由代码按各层检索命中判定并显式标注，禁止静默切换；学生画像从画像 note 加载注入"
+      "note": "覆盖层级由代码按各层检索命中判定并显式标注，禁止静默切换；学生画像从画像 note 加载注入；history 作为 Recent conversation 上下文注入支持多轮追问；检索有命中但正文全空时继续落内置知识库兜底（层级仍标 📚）；web 检索/抓取失败记日志并降级为无命中；三层均未命中时换用未锚定模板（允许通识作答，禁止编造引用，必须提醒未锚定并建议换问法/传材料/查教材）"
     },
     {
       "id": "E11",
@@ -329,7 +335,7 @@
         "content": "string（md/txt/pdf/pptx 提取文本）"
       },
       "output_ui": "card（材料摘要：文件名/字符数/段落块数/挂载状态）",
-      "note": "材料写入独立集合《EduAgent 学习材料》（[EduAgent材料] 前缀），与课程知识库 folder 互不串扰；E4–E8 生成与 E10 答疑在知识库未命中时自动基于材料生成"
+      "note": "按 filename update-or-create（同名材料覆盖更新，不产生陈旧多版本）；材料写入独立集合《EduAgent 学习材料》（[EduAgent材料] 前缀），与课程知识库 folder 互不串扰；下游仅注入材料开头约 2000 字符（来源行标注「节选」），完整分块待平台检索语义验证；E4–E8 生成与 E10 答疑在知识库未命中时自动基于材料生成"
     },
     {
       "id": "X1",
@@ -343,7 +349,7 @@
       ],
       "input": {},
       "output_ui": "choice / input + button（同 E5）",
-      "note": "读取画像 weak_points，对最近薄弱点生成自测题"
+      "note": "按「最旧未掌握优先」轮转读取画像 weak_points 生成自测题；无未掌握项时提示「薄弱点已全部掌握或暂无记录」"
     },
     {
       "id": "X2",
@@ -358,7 +364,8 @@
       "input": {
         "topic": "string"
       },
-      "output_ui": "card（3–5 幕动画分镜脚本）"
+      "output_ui": "card（3–5 幕动画分镜脚本，创意扩展）",
+      "note": "动画分镜为创意扩展，不承诺三级知识锚定"
     },
     {
       "id": "X3",
@@ -374,7 +381,8 @@
       "input": {
         "topic": "string"
       },
-      "output_ui": "list（B 站视频，附时长/UP 主等元数据，可跳转）"
+      "output_ui": "list（B 站视频，附时长/UP 主等元数据，可跳转）",
+      "note": "元数据获取失败时回退 web_search 摘要项，所有条目（含回退项）均带 open_target 跳转"
     },
     {
       "id": "EV",
@@ -388,7 +396,7 @@
         "operation": "string",
         "payload": "object"
       },
-      "note": "画像 note《EduAgent 学生画像》创建/修改事件 → 读取 weak_points → 生成自测题 → send_chat_message 推送"
+      "note": "画像 note《EduAgent 学生画像》创建/修改事件 → 取最旧未掌握薄弱点 → 生成单题 → send_chat_message 推送可作答交互卡片（单题组件与 E5 一致 + 「提交答案」按钮 POST /grade_quiz_ui，payload 带完整单题 quiz JSON，不随题发提示）；事件处理器内绝不写画像 note，避免事件循环"
     }
   ],
   "automations": [
@@ -418,6 +426,8 @@
       "search_knowledge",
       "attach_material",
       "search_material",
+      "create_session",
+      "list_sessions",
       "extract_profile",
       "generate_document",
       "generate_quiz",

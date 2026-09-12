@@ -3,7 +3,12 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-from app.agents.common import build_profile_lines, build_wiki_context_with_sources
+from app.agents.common import (
+    AnchoredContext,
+    build_anchored_context,
+    build_profile_lines,
+    build_wiki_context_with_sources,
+)
 from app.agents.resource_types import AgentResource
 from app.core.llm import BaseLLMClient, get_llm_client
 
@@ -30,16 +35,38 @@ class ReadingAgent:
         profile: dict[str, Any] | None,
         document_content: str | None = None,
         course_id: str | None = None,
+        session_id: int | None = None,
     ) -> AgentResource:
         normalized_topic = topic.strip() if topic else "当前学习主题"
-        wiki_context, wiki_fallback, confidence, sources = (
-            await self._build_wiki_context(normalized_topic, course_id=course_id)
-        )
+        anchored: AnchoredContext | None = None
+        if session_id is not None:
+            # 会话材料锚定：知识库未命中/低置信时回退该会话已挂载材料（统一入口）。
+            anchored = await build_anchored_context(
+                self.wiki_service,
+                query=normalized_topic,
+                course_id=course_id,
+                session_id=session_id,
+                logger=logger,
+            )
+            wiki_context = anchored.context
+            wiki_fallback = anchored.kind == "none"
+            confidence = anchored.confidence
+            sources = anchored.sources
+        else:
+            (
+                wiki_context,
+                wiki_fallback,
+                confidence,
+                sources,
+            ) = await self._build_wiki_context(normalized_topic, course_id=course_id)
+        context_kind = anchored.kind if anchored else ""
+
         prompt = self.build_prompt(
             normalized_topic,
             profile or {},
             wiki_context=wiki_context,
             document_content=document_content or "",
+            anchored=anchored,
         )
         content = await self.llm_client.generate_text(prompt)
         return AgentResource(
@@ -52,6 +79,7 @@ class ReadingAgent:
             wiki_context=wiki_context,
             confidence=confidence,
             sources=sources,
+            context_kind=context_kind,
         )
 
     def build_prompt(
@@ -61,6 +89,7 @@ class ReadingAgent:
         *,
         wiki_context: str = "",
         document_content: str = "",
+        anchored: AnchoredContext | None = None,
     ) -> str:
         parts = [
             "你是 EduAgent 的拓展阅读助手。",
@@ -69,7 +98,8 @@ class ReadingAgent:
         ]
 
         if wiki_context:
-            parts.extend(["", wiki_context])
+            material_section = self._material_section(anchored)
+            parts.extend(["", material_section if material_section else wiki_context])
         if document_content:
             parts.extend(["", "上游学习讲义摘要：", document_content[:1200]])
 
@@ -91,6 +121,18 @@ class ReadingAgent:
             ]
         )
         return "\n".join(parts)
+
+    def _material_section(self, anchored: AnchoredContext | None) -> str | None:
+        """材料锚定时生成带来源标注的上下文段落；其余情况返回 None 走原有路径。"""
+        if anchored is None or anchored.kind != "material" or not anchored.context:
+            return None
+        material_label = "、".join(anchored.material_titles) or "已上传材料"
+        return (
+            "学生上传的学习材料（检索到的相关片段）：\n"
+            f"{anchored.context}\n"
+            "推荐依据：结合上述学生材料推荐衔接的拓展阅读，"
+            f"并标注材料来源：📎 {material_label}。"
+        )
 
     async def _build_wiki_context(
         self, topic: str, course_id: str | None = None

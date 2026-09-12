@@ -34,7 +34,7 @@
 EduAgent 是一个以 **LLM Wiki（知识中枢）** 为核心的个性化多 Agent 学习系统，面向高等教育场景。通过 10 个协同 Agent 为学生生成个性化、多模态学习资源，内置多门课程知识库（计算机网络、算法设计与分析）。这是一个参赛项目（2026 智能体 OPC · 金漪湖论剑，remio 赛道），以 **remio aApp 为主体作品**，辅以 **MCP 工具集** 作为跨智能体产品运行的加分项：
 
 1. **remio aApp**（`remio/`）：10 个 Agent 重表达为 remio 平台的语义端点（合计 18 个端点），已上架 remio 应用市场（id `eduagent-pro`），开发副本在 remio 客户端 aapps-dev 目录
-2. **MCP 工具集**（`backend/app/mcp_server.py`）：同一引擎封装为 14 个 MCP 工具，可在任何支持 MCP 的宿主中注册调用
+2. **MCP 工具集**（`backend/app/mcp_server.py`）：同一引擎封装为 16 个 MCP 工具（含 create_session/list_sessions 会话管理），可在任何支持 MCP 的宿主中注册调用
 
 **核心文档：**
 - `docs/competition-remio/` — remio 赛道方案说明书（需求 / 系统设计 / 验收口径）
@@ -53,7 +53,7 @@ EduAgent 是一个以 **LLM Wiki（知识中枢）** 为核心的个性化多 Ag
 - **数据库**: 默认 SQLite（`eduagent.db`，零配置启动），可通过 `DATABASE_URL` 切换 PostgreSQL
 - **向量库**: 内置 numpy + JSON 持久化（默认），可切换 Chroma HTTP Server
 - **Embedding**: BAAI/bge-small-zh-v1.5（中文）
-- **跨宿主输出**: MCP stdio 服务（`app/mcp_server.py`，14 个工具，零三方依赖）
+- **跨宿主输出**: MCP stdio 服务（`app/mcp_server.py`，16 个工具，零三方依赖）
 
 ---
 
@@ -99,7 +99,7 @@ backend/app/
 ├── schemas/      # 领域模型 / 数据契约（agents/services 复用）
 ├── services/     # 业务逻辑层
 ├── core/         # 基础设施（DB、LLM 客户端、配置）
-└── mcp_server.py # MCP 工具集（14 个工具，stdio JSON-RPC）
+└── mcp_server.py # MCP 工具集（16 个工具，stdio JSON-RPC）
 ```
 
 ### 10 个 Agent 角色
@@ -230,7 +230,7 @@ D:\App\remiocn\Users\B60CFB8513AF4288DF6E5A688248A005\agent\remio\aapps-dev\edua
 - **rag 能力的坑**：平台 `rag` 对批量导入的 File 类型笔记可能返回空（问答语料与检索索引是两条管线），项目实际走 `search_notes → run_prompt` 链路，rag 仅作平台侧修复后的可选增强
 - **降级纪律**：所有联网调用必须 try/except 降级到知识库作答并提示（`web_search` 依赖用户配置商业搜索源，且可能额度耗尽）
 
-另外，`backend/app/mcp_server.py` 把 10 个 Agent 封装为 14 个 MCP 工具（stdio JSON-RPC，零三方依赖），可在 remio MCP 外部工具、Claude Desktop 等任何 MCP 宿主中注册运行，见 `remio/mcp/README.md`。
+另外，`backend/app/mcp_server.py` 把 10 个 Agent 封装为 16 个 MCP 工具（stdio JSON-RPC，零三方依赖；含 create_session/list_sessions 会话管理工具），可在 remio MCP 外部工具、Claude Desktop 等任何 MCP 宿主中注册运行，见 `remio/mcp/README.md`。
 
 ---
 

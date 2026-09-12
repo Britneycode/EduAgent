@@ -12,7 +12,7 @@ EduAgent 不只是问答机器人，而是"**先理解学生，再组织知识�
 | 形态 | 位置 | 说明 |
 |---|---|---|
 | remio aApp（主力作品） | 已上架市场（id `eduagent-pro`，v6），规格 `remio/`，开发副本在 remio 客户端 aapps-dev | 10 Agent 重表达为 18 个端点（核心 E1–E11 + 判题/配图/复习/动画/视频扩展），内置 146 个文件的计算机网络知识库（data/kb/），运行在 remio 睿妙：三级可信来源标注（同步文件夹 → 内置知识库 → 网络） |
-| MCP 工具集 | `backend/app/mcp_server.py` | 10 个 Agent 封装为 14 个 MCP 工具（stdio JSON-RPC，零三方依赖），可在 remio / Claude Desktop 等任何 MCP 宿主注册调用 |
+| MCP 工具集 | `backend/app/mcp_server.py` | 10 个 Agent 封装为 16 个 MCP 工具（含 create_session/list_sessions 会话管理，stdio JSON-RPC，零三方依赖），可在 remio / Claude Desktop 等任何 MCP 宿主注册调用 |
 
 ---
 
@@ -37,7 +37,7 @@ EduAgent/
 │   │   ├── wiki/            # LLM Wiki：多课程发现、摄取、向量检索、知识图谱
 │   │   ├── models/          # SQLAlchemy 模型（默认 SQLite，可切 PostgreSQL）
 │   │   ├── core/            # 配置、LLM 客户端
-│   │   └── mcp_server.py    # MCP 工具集（14 个工具）
+│   │   └── mcp_server.py    # MCP 工具集（16 个工具）
 │   └── tests/               # pytest（agents/core/evals）
 ├── knowledge/               # 多课程知识库（见下）
 ├── remio/                   # remio aApp 规格、参赛文档、MCP 说明
@@ -86,7 +86,7 @@ aApp 已在 remio 市场发布（id `eduagent-pro`）。开发副本位于 remio
 |---|---|
 | [CLAUDE.md](CLAUDE.md) | 开发约束、架构要点、代码风格、知识库维护约定（**改代码前必读**） |
 | [remio/aapp/eduagent-aapp-spec.md](remio/aapp/eduagent-aapp-spec.md) | remio aApp 规格：18 个端点定义、能力分工、防幻觉与联网双通道设计 |
-| [remio/mcp/README.md](remio/mcp/README.md) | MCP 工具集：14 个工具清单与宿主注册方法 |
+| [remio/mcp/README.md](remio/mcp/README.md) | MCP 工具集：16 个工具清单与宿主注册方法 |
 | [docs/competition-remio/](docs/competition-remio/) | remio 赛道：方案说明书（需求 / 系统设计 / 验收口径） |
 
 ---
@@ -95,4 +95,4 @@ aApp 已在 remio 市场发布（id `eduagent-pro`）。开发副本位于 remio
 
 - **引擎**：Python 3.12 · LangGraph · SQLAlchemy (async) · SQLite/PostgreSQL · numpy/Chroma 向量检索 · bge-small-zh-v1.5 Embedding
 - **LLM**：DeepSeek（主）· OpenAI 兼容接口（备，均可配置）
-- **平台移植**：remio aApp（语义端点 + run_prompt/search_notes/web_search 编排，18 个端点）· MCP stdio（14 个工具）
+- **平台移植**：remio aApp（语义端点 + run_prompt/search_notes/web_search 编排，18 个端点）· MCP stdio（16 个工具）

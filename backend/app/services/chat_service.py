@@ -16,6 +16,13 @@ class ChatService:
         self.session = session
         self._resource_id_seq = 1
 
+    async def list_recent_sessions(self, limit: int = 20) -> list[ChatSession]:
+        """按创建时间倒序列出最近 N 个会话（MCP list_sessions 工具使用）。"""
+        result = await self._require_session().execute(
+            select(ChatSession).order_by(ChatSession.id.desc()).limit(limit)
+        )
+        return list(result.scalars().all())
+
     async def create_session(
         self,
         title: str = "新学习会话",
@@ -275,3 +282,27 @@ class ChatService:
         if self.session is None:
             raise ValueError("ChatService 需要有效的数据库会话")
         return self.session
+
+
+DEFAULT_SESSION_TITLE = "MCP 默认会话"
+
+
+async def get_or_create_default_session(db: AsyncSession) -> ChatSession:
+    """获取或创建 MCP 免登录形态的默认会话（按标题幂等，取最新一条）。
+
+    MCP 宿主省略 session_id 时自动落到该会话，避免「必须先建会话才能挂材料」
+    的工具链死锁；已有多个同标题会话时复用最新一条，不重复创建。
+    """
+    result = await db.execute(
+        select(ChatSession)
+        .where(ChatSession.title == DEFAULT_SESSION_TITLE)
+        .order_by(ChatSession.id.desc())
+        .limit(1)
+    )
+    chat_session = result.scalars().first()
+    if chat_session is None:
+        chat_session = ChatSession(title=DEFAULT_SESSION_TITLE)
+        db.add(chat_session)
+        await db.commit()
+        await db.refresh(chat_session)
+    return chat_session

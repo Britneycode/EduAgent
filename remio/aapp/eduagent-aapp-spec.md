@@ -112,15 +112,15 @@ EduAgent 已内置结构化课程知识库：`knowledge/计算机网络知识库
 | E4 | `GET /generate_document_ui` | Doc | `search_notes` + `read_note` + `web_search` + `web_get` + `run_prompt`（三级来源） | 主题 | card（讲义） |
 | E5 | `GET /generate_quiz_ui` | Quiz | `search_notes` + `read_note` + `web_search` + `web_get` + `run_prompt`（三级来源） | 主题 | choice / input + button |
 | E6 | `GET /generate_code_ui` | Code | `search_notes` + `read_note` + `web_search` + `web_get` + `run_prompt`（三级来源） | 主题 | card（代码块） |
-| E7 | `GET /generate_mindmap_ui` | Media | `search_notes` + `read_note` + `web_search` + `web_get` + `run_prompt`（三级来源） | 主题 | card（Markdown 结构） |
+| E7 | `GET /generate_mindmap_ui` | Media | `search_notes` + `read_note` + `web_search` + `web_get` + `run_prompt`（三级来源） | 主题 | image（Mermaid 渲染 PNG）+ text（来源层级） |
 | E8 | `GET /generate_ppt_ui` | Media | `search_notes` + `read_note` + `web_search` + `web_get` + `run_prompt`（三级来源） | 主题 | list（大纲）+ button |
 | E9 | `GET /generate_reading_ui` | Reading | `web_search` + `web_get` + `run_prompt` | 主题 | list（拓展阅读） |
 | E10 | `GET /tutor_answer_ui` | Tutor | `search_notes` + `read_note` + `run_prompt`（三级兜底） | 问题（画像注入） | card（解答 + 来源层级） |
 | E11 | `POST /attach_material_ui` | SessionMaterial | `create_note` + `add_note_to_collection` | 材料文件名 + 文本 | card（材料摘要） |
 
-**扩展端点（5 个）**：`POST /grade_quiz_ui`（E5 判题——逐题对错 + 苏格拉底式提示，答错知识点自动写入画像 `weak_points`）、`GET /generate_ppt_images_ui`（E8 配图——大纲确认后逐页给出配图主题与作图提示词）、`GET /review_quiz_ui`（薄弱点复习——读画像 `weak_points` 生成自测题）、`GET /generate_animation_ui`（动画分镜脚本）、`GET /search_video_ui`（B 站视频搜索——`web_search` 定位 + `prepare_video` 取视频元数据）。
+**扩展端点（5 个）**：`POST /grade_quiz_ui`（E5 判题——逐题对错 + 苏格拉底式提示，薄弱点按 SRS 规则写入画像 `weak_points`：答错记录/重复出错 n+1、仅未答不记、全对标记已掌握）、`GET /generate_ppt_images_ui`（E8 配图——大纲确认后逐页给出配图主题与作图提示词，创意扩展不承诺知识锚定）、`GET /review_quiz_ui`（薄弱点复习——按「最旧未掌握优先」轮转取画像 `weak_points` 生成自测题，全部掌握/无记录时空态提示）、`GET /generate_animation_ui`（动画分镜脚本，创意扩展不承诺知识锚定）、`GET /search_video_ui`（B 站视频搜索——`web_search` 定位 + `prepare_video` 取视频元数据，元数据失败时回退 web_search 摘要项，所有条目均带 `open_target` 跳转）。
 
-**入口与订阅（2 个）**：`GET /` 主视图（画像感知问候 + 画像/规划/答疑入口按钮）；`POST /_event` 内容事件处理器（画像 note 创建/修改 → 读取薄弱点 → 推送自测题）。
+**入口与订阅（2 个）**：`GET /` 主视图（画像感知问候 + 「📍 当前有 N 个薄弱点待复习」待复习提示 + 画像/规划/答疑入口按钮）；`POST /_event` 内容事件处理器（画像 note 创建/修改 → 取最旧未掌握薄弱点 → 生成单题 → `send_chat_message` 推送**可作答交互卡片**：单题组件与 E5 一致 + 「提交答案」按钮 POST `/grade_quiz_ui`，payload 携带完整单题 quiz JSON，不随题发提示；事件处理器内绝不写画像 note，避免事件循环）。
 
 > **E4–E8 生成与 E10 答疑的知识来源均为三级兜底**，层级由代码按各层检索命中逐级判定：
 > 课程知识库（📚）→ 会话学习材料（📎）→ 网络（🌐），层级标注在结果卡片上并附来源行，
@@ -130,7 +130,10 @@ EduAgent 已内置结构化课程知识库：`knowledge/计算机网络知识库
 
 - **触发**：用户每轮输入后最先调用。
 - **输入**：`{text: 学生原话}`
-- **逻辑**：`run_prompt` 让模型输出 JSON 路由决策；失败时回退规则路由（关键词正则）。
+- **逻辑**：`run_prompt` 让模型输出 JSON 路由决策；失败时回退规则路由（关键词正则，答疑词表与
+  backend RouterAgent 对齐：什么是/为什么/怎么/如何/不理解/不明白/看不懂/没看懂/没懂/区别/解释/请问
+  及疑问语气词；出题词收窄为多字词，单字「考」不误伤；文档词命中时反向排除答疑判定）。
+  LLM 返回的 JSON 与关键词 fallback **按键合并**：缺失或为 None 的键用 fallback 默认值补齐后返回。
 - **输出**：
   ```json
   {"topic": "TCP", "update_profile": false, "is_tutor_question": true,
@@ -157,43 +160,60 @@ EduAgent 已内置结构化课程知识库：`knowledge/计算机网络知识库
 
 ### E4 · 讲义生成 `generate_document_ui`
 
+- **输入**：`topic`（可选，缺省时提示补主题）+ `focus`（可选，来自 E3 学习计划步骤的目标描述，
+  作为 step goal 注入生成提示词）。
 - **逻辑**：
-  1. 按**三级知识来源**（第 2 节公共机制）获取知识上下文：课程知识库（📚）→
+  1. 注入学生画像（从画像 note 加载）；
+  2. 按**三级知识来源**（第 2 节公共机制）获取知识上下文：课程知识库（📚）→
      会话材料（📎，需 E11 挂载）→ 网络搜索（🌐，`web_search` + `web_get` 抓正文注入），
      命中即停，层级由代码判定；
-  2. `run_prompt(capabilities="none")` 用 DocAgent 人设 + 知识上下文生成中文讲义
+  3. `run_prompt(capabilities="none")` 用 DocAgent 人设 + 知识上下文生成中文讲义
      （主题概览→核心概念→学习步骤→常见误区→复习建议）；
-  3. 三层均未命中或网络不可用时，谨慎作答并标注
+  4. 三层均未命中或网络不可用时，谨慎作答并标注
      "⚠️ 未经课程知识库与学习材料锚定，请核对教材"。
+  5. 产物自动落盘：update-or-create 到「EduAgent 学习资源」集合中
+     `[EduAgent资源] 讲义·{topic}` 笔记（同主题重复生成即覆盖更新）。
 - **输出**：card（讲义正文，subtitle 为来源层级，末尾附来源引用行）。
 
 ### E5 · 出题 `generate_quiz_ui`（判题 `grade_quiz_ui`）
 
-- **逻辑**：按**三级知识来源**（第 2 节公共机制）获取知识上下文 →
+- **输入**：`topic`（必填）+ `focus`（可选，学习计划步骤目标）。
+- **逻辑**：注入学生画像 → 按**三级知识来源**（第 2 节公共机制）获取知识上下文 →
   `run_prompt(capabilities="none")` 生成 4–6 道混合题型（choice 承载选择/判断，
-  input 承载填空/简答）；基于材料（📎）或网络（🌐）出题时，题目卡片提示学生
-  核对原始来源。
+  input 承载填空/简答）；**来源行恒显**（与 E4 一致，不论命中层级都标注 📚/📎/🌐 与来源）；
+  题目与参考答案自动落盘到 `[EduAgent资源] 练习题·{topic}`。
 - **输出**：choice / input + button「提交并解析」；提交后 `POST /grade_quiz_ui` 判分并
-  逐题给出对错与苏格拉底式提示，答错/未答的知识点自动写入画像 `weak_points`。
+  逐题给出对错与苏格拉底式提示。
+- **薄弱点 SRS 记录**：画像 `weak_points` 为 `{t: 主题, ts: 日期, n: 出错次数, m: 已掌握}` 条目
+  （兼容旧字符串列表，写入时自动归一化，上限 10 条）：有答错 → 记录/重复出错 n+1 并刷新日期
+  （答错与未答并存时，答错仍是主信号）；仅未答 → 不记录（卡片提示「未作答的题目不计入薄弱点」）；
+  全部答对 → 标记该主题已掌握（m=true）。
 
 ### E6 · 代码实操 `generate_code`
 
-- **逻辑**：按**三级知识来源**获取上下文（知识库代码案例/实验文档优先，材料次之，
-  网络兜底）→ `run_prompt(capabilities="none")` 生成可运行 Python 案例。
+- **输入**：`topic`（必填）+ `focus`（可选，学习计划步骤目标）。
+- **逻辑**：注入学生画像 → 按**三级知识来源**获取上下文（知识库代码案例/实验文档优先，材料次之，
+  网络兜底）→ `run_prompt(capabilities="none")` 生成可运行 Python 案例；代码卡片附免责行
+  「预期输出为示例输出，请以实际运行为准」；产物自动落盘到 `[EduAgent资源] 代码案例·{topic}`。
 - **输出**：card 展示可运行 Python 案例 + button「复制代码」；附运行说明与预期输出。
 
 ### E7 · 思维导图 `generate_mindmap`
 
-- **逻辑**：按**三级知识来源**获取上下文 → `run_prompt(capabilities="none")` 生成
-  Markdown 层级结构（≤3 层）。
-- **输出**：card 展示 Markdown 层级结构；如 aapp-studio 支持，转 `image` 渲染。
+- **输入**：`topic`（必填）+ `focus`（可选，学习计划步骤目标）。
+- **逻辑**：注入学生画像 → 按**三级知识来源**获取上下文 → `run_prompt(capabilities="none")` 生成
+  Mermaid mindmap（≤3 层）→ 渲染服务（kroki 主路径，mermaid.ink 回退）转 PNG。
+  **Mermaid 源码无论渲染成败都先落盘**到 `[EduAgent资源] 思维导图·{topic}`。
+- **输出**：image 组件（base64 data URL）+ text 标注来源层级；渲染失败回退 card（Mermaid 结构文本）
+  并附「🔄 重试渲染」按钮（源码已入资源笔记，重试不丢产物）。
 
 ### E8 · PPT `generate_ppt_ui`（配图 `generate_ppt_images_ui`）
 
-- **逻辑**：按**三级知识来源**获取上下文 → `run_prompt(capabilities="none")` 生成
-  6–8 页大纲（每页标题 + 要点）。
+- **输入**：`topic`（必填）+ `focus`（可选，学习计划步骤目标）。
+- **逻辑**：注入学生画像 → 按**三级知识来源**获取上下文 → `run_prompt(capabilities="none")` 生成
+  6–8 页大纲（每页标题 + 要点）；大纲自动落盘到 `[EduAgent资源] PPT大纲·{topic}`。
 - **输出**：list（6–8 页大纲，每页标题 + 要点）+ button「🎨 生成配图建议」；
   确认后进入配图端点，逐页输出配图主题与作图提示词。
+- **口径**：E8b 配图建议为**创意扩展**，不承诺三级知识锚定。
 
 ### E9 · 拓展阅读 `generate_reading`（联网优先）
 
@@ -209,26 +229,34 @@ EduAgent 已内置结构化课程知识库：`knowledge/计算机网络知识库
 覆盖层级由代码按各层检索命中判定（不由模型自报），学生画像从画像 note 加载并注入，
 三级逻辑同第 2 节公共机制：
 
+- **输入**：`question`（必填）+ `history`（可选。此前对话简要记录，每行一条，格式如
+  『学生：…』『助手：…』，截断 2000 字符后以 "Recent conversation (for context)" 注入提示词，
+  支持多轮追问连续性）。
 - **一级（📚 课程知识库）**：`search_notes`（folder=计算机网络知识库）+ `read_note`
-  注入正文 → `run_prompt(capabilities="none")` 苏格拉底式解答，末尾附 `[来源：笔记标题]`。
+  注入正文 → `run_prompt(capabilities="none")` 苏格拉底式解答，末尾附 `[来源：笔记标题]`；
+  检索有命中但正文全空时，继续落入内置知识库兜底（层级仍标 📚）。
 - **二级（📎 会话材料）**：仅当一级检索未命中、且学生已通过 E11 挂载材料时触发：
   `search_notes`（collection=EduAgent 学习材料）→ 基于材料作答；明确告知
-  "课程知识库未充分覆盖此问题，以下基于你上传的材料"，并标注材料文件名。
+  "课程知识库未覆盖此主题，以下基于你上传的材料（节选自材料开头部分）"，并标注材料文件名。
 - **三级（🌐 网络）**：仅当一、二级均未命中时触发：`web_search` → `web_get` 抓正文 →
   基于抓取内容作答；明确告知"课程知识库与已上传材料均未覆盖此问题，以下来自网络"，
-  仅引用实际抓取过的 URL。
-- **兜底**：三层均未覆盖时，明确说明"课程知识库、学习材料与网络均未充分覆盖此问题，
-  以下为谨慎作答"。
+  仅引用实际抓取过的 URL；检索/抓取失败均记日志并降级为无命中。
+- **兜底（未锚定模板）**：三层均未覆盖时，system prompt 换为专用未锚定模板——允许基于通识作答，
+  但禁止编造具体引用/数据/页码，必须显式提醒学生本回答未经锚定，并建议换种问法、上传学习材料或
+  查阅教材；不再要求"只依据上下文作答"（消除无上下文时的指令矛盾）。
 - **输出**：card（解答，subtitle 为来源层级）+ 末尾来源行。
 
 ### E11 · 挂载学习材料 `attach_material_ui`
 
 - **触发**：学生上传自己的笔记/课件/讲义（md/txt/pdf/pptx 提取文本）。
-- **逻辑**：`create_note` 写入标题带 `[EduAgent材料]` 前缀的 note，并加入独立集合
+- **逻辑**：按 filename **update-or-create**——同名材料笔记（`[EduAgent材料] <filename>` 前缀）
+  已存在则 `update_note` 覆盖内容，不产生陈旧多版本；新文件才 `create_note`，并加入独立集合
   `EduAgent 学习材料`（`add_note_to_collection`）。
+- **注入策略**：下游生成/答疑仅注入材料开头约 2000 字符（来源行标注「节选自材料开头部分」）；
+  完整分块待平台检索语义验证后再做。
 - **隔离**：课程知识库检索限定 folder（`计算机网络知识库`），材料检索限定 collection，
   两个来源互不串扰。
-- **输出**：card 展示已挂载文件名、字符数、段落块数与挂载状态。
+- **输出**：card 展示已挂载文件名、字符数、段落块数与挂载状态（含「基于材料开头部分（节选）」提示）。
 - **后续**：E4–E8 全部生成端点与 E10 答疑在知识库未命中时自动基于材料生成并标注来源。
 
 ---
@@ -277,10 +305,10 @@ EduAgent 已内置结构化课程知识库：`knowledge/计算机网络知识库
 
 | 自动化场景 | 实现方式 |
 | --- | --- |
-| 薄弱点复习推送 | 平台静态订阅：画像 note《EduAgent 学生画像》创建/修改 → `POST /_event` 读取 `weak_points` → 生成一道自测题 → `send_chat_message` 推送 |
-| 每日/每周复习提醒 | 可配置 remio 定时自动化触发 `GET /review_quiz_ui`，或从聊天菜单「🔁 每日复习自测」手动进入 |
-| 薄弱知识点回访 | 画像 note 中记录「最近答错知识点」，触发后让 `tutor_answer` 出 1 道自测题 |
-| 学习资产沉淀 | 画像与薄弱点持久化到画像 note（`update_note`），判题后自动回写 |
+| 薄弱点复习推送 | 平台静态订阅：画像 note《EduAgent 学生画像》创建/修改 → `POST /_event` 取最旧未掌握薄弱点 → 生成一道单题 → `send_chat_message` 推送**可作答交互卡片**（choice/input + 「提交答案」按钮回传 `/grade_quiz_ui` 判分） |
+| 每日/每周复习提醒 | 用户侧建议（非产品内承诺）：可在 remio 配置定时 automation 触发 `GET /review_quiz_ui`，或从聊天菜单「🔁 每日复习自测」手动进入 |
+| 薄弱知识点回访 | 画像 note `weak_points` 为 SRS 条目（主题/日期/出错次数/已掌握），最旧未掌握项轮转复习，全对自动标记掌握 |
+| 学习资产沉淀 | 画像与薄弱点持久化到画像 note（`update_note`，损坏原文先备份到 `[EduAgent画像备份]`）；生成产物自动落盘「EduAgent 学习资源」集合，判题后自动回写 |
 
 需要用户可见反馈时，一律显式调用 `send_chat_message`。
 
