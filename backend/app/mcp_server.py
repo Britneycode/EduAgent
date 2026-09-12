@@ -819,6 +819,22 @@ async def _serve_stdio(tools: EduAgentTools) -> None:
 
 def _self_test() -> None:
     """离线冒烟：不初始化模型/向量库，仅验证导入、工具清单、会话供给与正则路由。"""
+    # 仅读配置、不加载模型：dev mode 开启时 Embedding 返回零向量、检索静默退化，
+    # 首跑结果会是假的，必须在自检最前面用红色横幅提醒，避免误把假结果当真实效果。
+    from app.core.config import get_settings
+
+    if get_settings().wiki_embedding_dev_mode:
+        sys.stderr.write(
+            "\033[91m"
+            "==============================================\n"
+            "⚠️ 警告：Embedding 开发模式已开启（WIKI_EMBEDDING_DEV_MODE=true）！\n"
+            "向量检索将使用零向量，检索结果是假的、静默退化。\n"
+            "正式评测/演示前必须关闭（在 .env 中设为 false）！\n"
+            "==============================================\n"
+            "\033[0m"
+        )
+        sys.stderr.flush()
+
     names = [tool["name"] for tool in TOOLS]
     assert len(names) == 16, f"MCP 工具数应为 16，实际 {len(names)}：{names}"
     print(f"工具数：{len(names)}")

@@ -33,12 +33,12 @@
 
 EduAgent 是一个以 **LLM Wiki（知识中枢）** 为核心的个性化多 Agent 学习系统，面向高等教育场景。通过 10 个协同 Agent 为学生生成个性化、多模态学习资源，内置多门课程知识库（计算机网络、算法设计与分析）。这是一个参赛项目（2026 智能体 OPC · 金漪湖论剑，remio 赛道），以 **remio aApp 为主体作品**，辅以 **MCP 工具集** 作为跨智能体产品运行的加分项：
 
-1. **remio aApp**（`remio/`）：10 个 Agent 重表达为 remio 平台的语义端点（合计 18 个端点），已上架 remio 应用市场（id `eduagent-pro`），开发副本在 remio 客户端 aapps-dev 目录
+1. **remio aApp**（`remio/`）：10 个 Agent 重表达为 remio 平台的语义端点（合计 20 个端点），已上架 remio 应用市场（id `eduagent-pro`），开发副本在 remio 客户端 aapps-dev 目录
 2. **MCP 工具集**（`backend/app/mcp_server.py`）：同一引擎封装为 16 个 MCP 工具（含 create_session/list_sessions 会话管理），可在任何支持 MCP 的宿主中注册调用
 
 **核心文档：**
 - `docs/competition-remio/` — remio 赛道方案说明书（需求 / 系统设计 / 验收口径）
-- `remio/aapp/eduagent-aapp-spec.md` — remio aApp 开发规格（18 个端点：核心 E1–E11 + 扩展）
+- `remio/aapp/eduagent-aapp-spec.md` — remio aApp 开发规格（20 个端点：核心 E1–E11 + 扩展）
 - `remio/mcp/README.md` — MCP 工具集说明（跨智能体宿主运行）
 
 ---
@@ -209,7 +209,7 @@ class DocAgent:
 
 ## remio aApp 移植版
 
-`remio/` 目录是本项目在 remio 睿妙平台上的运行形态：10 个 Agent 重表达为 11 个核心语义端点（E1–E11）+ 判题 / PPT 配图 / 薄弱点复习 / 动画 / 视频 5 个扩展端点，连同主入口与内容事件订阅合计 18 个端点（与平台侧 `api.json` 对齐）。aApp 已上架市场（id `eduagent-pro`），开发副本在 remio 客户端 aapps-dev 目录（本机绝对路径，改 aApp 代码直接来这里）：
+`remio/` 目录是本项目在 remio 睿妙平台上的运行形态：10 个 Agent 重表达为 11 个核心语义端点（E1–E11）+ 判题 / PPT 配图 / 薄弱点复习 / 动画 / 视频 / 学习仪表盘 / 学习档案导出 7 个扩展端点，连同主入口与内容事件订阅合计 20 个端点（与平台侧 `api.json` 对齐）。aApp 已上架市场（id `eduagent-pro`），开发副本在 remio 客户端 aapps-dev 目录（本机绝对路径，改 aApp 代码直接来这里）：
 
 ```
 D:\App\remiocn\Users\B60CFB8513AF4288DF6E5A688248A005\agent\remio\aapps-dev\eduagent-pro\eduagent-pro\
@@ -217,7 +217,7 @@ D:\App\remiocn\Users\B60CFB8513AF4288DF6E5A688248A005\agent\remio\aapps-dev\edua
 ├── api.json      # 平台侧端点声明（须与 logic.py 路由保持一致）
 ├── manifest.json # 应用元数据（订阅 / 快捷菜单 / chatMenu）
 ├── SKILL.md      # 端点语义契约说明（须与 logic.py 行为保持一致）
-└── data/kb/      # 内置知识库（计算机网络 Markdown 文件，随 aApp 分发，146 个文件约 0.44 MB）
+└── data/kb/      # 内置知识库（按课程子目录：计算机网络知识库/ 146 个文件 + 算法设计与分析/ 39 个文件，随 aApp 分发，检索按画像「当前课程」路由）
 ```
 
 改 logic.py 后需在 aapp-studio 重新加载才生效；若路径中用户哈希变化，在 `D:\App\remiocn\Users\<用户哈希>\agent\remio\aapps-dev\` 下找 `eduagent-pro`。
@@ -225,7 +225,7 @@ D:\App\remiocn\Users\B60CFB8513AF4288DF6E5A688248A005\agent\remio\aapps-dev\edua
 **关键机制**（改 aApp 代码前必读 `remio/aapp/eduagent-aapp-spec.md` 和平台 `dev-guide/开发者指南.md`）：
 
 - **知识锚定**：`search_notes` 定位候选 + `read_note` 注入笔记**正文**（不能只给标题）；锚定型端点一律 `run_prompt(capabilities="none")`——纯 LLM 推理，物理禁止联网，防止静默混入网络内容
-- **Tier 1 双路径**：优先查 remio 同步文件夹（`计算机网络知识库`）；未命中则回退到内置 `data/kb/` 关键词匹配（文件级搜索，无需 remio 索引）。内置知识库已随 aApp 分发，其他用户安装后即可使用 Tier 1b 作为兜底锚定源。
+- **Tier 1 双路径**：优先查 remio 同步文件夹（按画像「当前课程」取同名课程文件夹，如 `计算机网络知识库`）；未命中则回退到内置 `data/kb/<当前课程>/` 关键词匹配（文件级搜索，无需 remio 索引）。内置知识库已随 aApp 分发（计算机网络知识库/ 146 文件 + 算法设计与分析/ 39 文件），其他用户安装后即可使用 Tier 1b 作为兜底锚定源。
 - **联网双通道**：E9 拓展阅读联网优先（`web_search` + `web_get`，只引用实际抓取成功的 URL）；E10 答疑三级兜底——覆盖层级由代码按各层检索命中判定（同步文件夹 → 内置知识库 → 课程知识库 → 会话学习材料 → 网络），每次层级以 `📚 课程知识库` / `📎 会话材料` / `🌐 网络` 在解答卡片显式标注，禁止静默切换
 - **rag 能力的坑**：平台 `rag` 对批量导入的 File 类型笔记可能返回空（问答语料与检索索引是两条管线），项目实际走 `search_notes → run_prompt` 链路，rag 仅作平台侧修复后的可选增强
 - **降级纪律**：所有联网调用必须 try/except 降级到知识库作答并提示（`web_search` 依赖用户配置商业搜索源，且可能额度耗尽）
