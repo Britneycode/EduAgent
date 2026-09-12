@@ -8,6 +8,7 @@ from app.agents.common import build_wiki_context_with_sources, parse_json_object
 from app.agents.resource_types import AgentResource
 from app.core.image_gen import ImageGenClient, ImageGenError
 from app.core.llm import BaseLLMClient, get_llm_client
+from app.core.mindmap_render import extract_mermaid_block, render_mindmap_image
 
 if TYPE_CHECKING:
     from app.wiki.wiki_service import WikiService
@@ -67,6 +68,9 @@ class MediaAgent:
             normalized_topic, profile or {}, wiki_context, document_content or ""
         )
         content = await self.llm_client.generate_text(prompt)
+        # 渲染失败/无 mermaid 源码时 image_url 保持空串，content 与其余行为不变
+        mermaid_code = extract_mermaid_block(content)
+        image_url = await render_mindmap_image(mermaid_code) if mermaid_code else ""
         return AgentResource(
             title=f"{normalized_topic}思维导图",
             resource_type="mindmap",
@@ -77,6 +81,7 @@ class MediaAgent:
             wiki_context=wiki_context,
             confidence=confidence,
             sources=sources,
+            image_url=image_url,
         )
 
     async def generate_ppt_outline(

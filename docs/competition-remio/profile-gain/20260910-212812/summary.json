@@ -1,0 +1,82 @@
+{
+  "planned": 9,
+  "complete": 0,
+  "failed": 9,
+  "mean_gain": null,
+  "mean_accuracy_delta": null,
+  "positive_pairs": 0,
+  "pairs": [
+    {
+      "id": 1,
+      "topic": "TCP 三次握手",
+      "status": "failed",
+      "gain": null,
+      "accuracy_delta": null,
+      "scores": null
+    },
+    {
+      "id": 2,
+      "topic": "TCP 三次握手",
+      "status": "failed",
+      "gain": null,
+      "accuracy_delta": null,
+      "scores": null
+    },
+    {
+      "id": 3,
+      "topic": "TCP 三次握手",
+      "status": "failed",
+      "gain": null,
+      "accuracy_delta": null,
+      "scores": null
+    },
+    {
+      "id": 4,
+      "topic": "子网划分与子网掩码",
+      "status": "failed",
+      "gain": null,
+      "accuracy_delta": null,
+      "scores": null
+    },
+    {
+      "id": 5,
+      "topic": "子网划分与子网掩码",
+      "status": "failed",
+      "gain": null,
+      "accuracy_delta": null,
+      "scores": null
+    },
+    {
+      "id": 6,
+      "topic": "子网划分与子网掩码",
+      "status": "failed",
+      "gain": null,
+      "accuracy_delta": null,
+      "scores": null
+    },
+    {
+      "id": 7,
+      "topic": "DNS 域名解析过程",
+      "status": "failed",
+      "gain": null,
+      "accuracy_delta": null,
+      "scores": null
+    },
+    {
+      "id": 8,
+      "topic": "DNS 域名解析过程",
+      "status": "failed",
+      "gain": null,
+      "accuracy_delta": null,
+      "scores": null
+    },
+    {
+      "id": 9,
+      "topic": "DNS 域名解析过程",
+      "status": "failed",
+      "gain": null,
+      "accuracy_delta": null,
+      "scores": null
+    }
+  ]
+}

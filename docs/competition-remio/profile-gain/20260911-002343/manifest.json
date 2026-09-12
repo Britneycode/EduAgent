@@ -1,0 +1,64 @@
+{
+  "started_utc": "2026-09-10T16:23:43.234544+00:00",
+  "git_head": "17386221c0fde6bff2fdd06ec0a01d3fd7351211",
+  "generator_model": "deepseek-ai/DeepSeek-V4-Pro-0813",
+  "judge_model": "agnes-3.0-flash",
+  "same_model_judge": false,
+  "temperature": 0.7,
+  "max_tokens": 4096,
+  "fallback": false,
+  "scope": "后端DocAgent提示词消融，固定知识正文，不含检索、remio实机或真人学习效果",
+  "script_sha256": "f86102acc36f2c3f95fd4ae61f65d52b340527846aa0d2a02cf16329b78478c3",
+  "cases": 9,
+  "profiles": [
+    {
+      "id": "基础补齐",
+      "major": "计算机科学",
+      "grade": "大一",
+      "knowledge_base": {
+        "计算机网络": "薄弱"
+      },
+      "learning_goal": "期末通过，先理解基础概念再做简单题",
+      "coding_level": "初级",
+      "cognitive_style": "图文结合，类比和分步说明",
+      "learning_pace": "慢速循序渐进",
+      "weekly_hours": 3
+    },
+    {
+      "id": "考试强化",
+      "major": "软件工程",
+      "grade": "大三",
+      "knowledge_base": {
+        "计算机网络": "中等，基本概念已掌握"
+      },
+      "learning_goal": "考研复习，辨析易错点并练习推理题",
+      "coding_level": "中级",
+      "cognitive_style": "简洁对比表和逻辑推导",
+      "learning_pace": "快速重点复习",
+      "weekly_hours": 6
+    },
+    {
+      "id": "工程实践",
+      "major": "网络工程",
+      "grade": "大四",
+      "knowledge_base": {
+        "计算机网络": "熟练"
+      },
+      "learning_goal": "网络工程岗位实习，能够诊断故障和验证结论",
+      "coding_level": "高级",
+      "cognitive_style": "案例驱动和动手实验",
+      "learning_pace": "按任务推进",
+      "weekly_hours": 8
+    }
+  ],
+  "dimensions": [
+    "难度匹配",
+    "示例贴合",
+    "表达适配",
+    "目标可执行性",
+    "事实准确性"
+  ],
+  "primary_metric": "前四维分别评分，换序均值后计算有画像减无画像；事实准确性单独报告",
+  "reuse_generations": null,
+  "calls_planned": 38
+}

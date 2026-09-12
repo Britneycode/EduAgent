@@ -1,0 +1,24 @@
+{
+  "id": 3,
+  "topic": "TCP 三次握手",
+  "profile": {
+    "id": "工程实践",
+    "major": "网络工程",
+    "grade": "大四",
+    "knowledge_base": {
+      "计算机网络": "熟练"
+    },
+    "learning_goal": "网络工程岗位实习，能够诊断故障和验证结论",
+    "coding_level": "高级",
+    "cognitive_style": "案例驱动和动手实验",
+    "learning_pace": "按任务推进",
+    "weekly_hours": 8
+  },
+  "status": "failed",
+  "generations": {},
+  "judgments": [],
+  "source": "knowledge\\计算机网络知识库\\05_运输层\\TCP连接管理.md",
+  "source_sha256": "2fb4edbb5c7cfd2e40314aef3dca64cc494287a03efd0a93219740119ef586b1",
+  "context": "\n\n# TCP连接管理\n\n\n## 2. 核心概念\nTCP 连接管理通过控制报文段和状态转换建立、维护和释放连接。\n\n\n## 3. 知识讲解\nTCP 连接状态机中的关键状态：\n\n| 状态 | 说明 |\n|---|---|\n| CLOSED | 初始/终止状态，无连接 |\n| LISTEN | 服务器等待连接请求 |\n| SYN_SENT | 客户端已发送 SYN，等待 SYN+ACK |\n| SYN_RECEIVED | 服务器收到 SYN，已发送 SYN+ACK |\n| ESTABLISHED | 连接建立，可双向传输数据 |\n| FIN_WAIT_1 | 主动关闭方已发送 FIN |\n| FIN_WAIT_2 | 主动关闭方收到对方 ACK |\n| CLOSE_WAIT | 被动关闭方收到 FIN，等待应用关闭 |\n| LAST_WAIT | 被动关闭方发送 FIN，等待最终 ACK |\n| TIME_WAIT | 主动关闭方等待 2MSL（最大报文段寿命）后关闭 |\n| CLOSING | 双方同时关闭 |\n\n**三次握手详细过程：**\n1. 客户端 CLOSED → SYN_SENT：发送 SYN(seq=x)\n2. 服务器 LISTEN → SYN_RECEIVED：发送 SYN(seq=y)+ACK(ack=x+1)\n3. 客户端 SYN_SENT → ESTABLISHED：发送 ACK(ack=y+1)\n4. 服务器 SYN_RECEIVED → ESTABLISHED\n\n**四次挥手详细过程：**\n1. 主动方 ESTABLISHED → FIN_WAIT_1：发送 FIN\n2. 被动方 ESTABLISHED → CLOSE_WAIT：发送 ACK\n3. 被动方 CLOSE_WAIT → LAST_ACK：发送 FIN\n4. 主动方 FIN_WAIT_1 → FIN_WAIT_2 → TIME_WAIT → CLOSED：发送 ACK，等待 2MSL\n\n**TIME_WAIT 的 2MSL 等待：** 确保最后一个 ACK 能到达被动方（若丢失，被动方会重发 FIN），同时等待网络中残余报文过期，防止旧连接的报文干扰新连接。\n\n\n\n## 4. 关键事实\n- 本主题应与课程分层模型一起理解，避免脱离上下文记忆术语。\n- 未经来源核验的事实保持 `verified: false`，正式教学或考试生成前需要补充教材、RFC 或标准来源。\n- 题库 Agent 生成题目时应同时引用章节文档和高优先级事实卡。\n\n\n## 5. 易混淆点\n- 不要把教学简化描述当成所有工程环境下的绝对行为。\n- 注意区分协议规范、操作系统实现、抓包观察和应用层表现。\n\n\n\n## 7. 例题与解析\n**例题：** 请说明TCP连接管理解决的核心问题。\n**解析：** 从层次定位、输入输出、关键机制、常见限制四方面作答。\n\n\n## 10. 参考来源\n- 待补充：教材章节、RFC、IEEE/IETF 标准、实验截图。\n",
+  "error_type": "LLMClientError"
+}

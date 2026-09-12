@@ -32,3 +32,6 @@ Thumbs.db
 # Logs
 *.log
 *-log.txt
+
+# Large media
+docs/competition-remio/Demo.mp4

@@ -30,6 +30,10 @@ class Settings(BaseSettings):
     openai_compatible_model: str = "qwen3.6-plus"
     openai_compatible_enable_thinking: bool | None = None
     dashscope_api_key: str = ""
+    # 画像消融实验的独立裁判，不参与产品请求的自动回退。
+    eval_judge_api_base_url: str = ""
+    eval_judge_api_key: str = ""
+    eval_judge_model: str = ""
 
     # 相关视频联网搜索：默认使用 Tavily，并限制到 B站域名。
     video_search_enabled: bool = True

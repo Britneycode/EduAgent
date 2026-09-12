@@ -32,3 +32,5 @@ class AgentResource:
     metadata: dict[str, Any] = field(default_factory=dict)
     # 锚定来源三态：knowledge（知识库）/ material（会话材料）/ none（未锚定）
     context_kind: str = ""
+    # 思维导图等资源的渲染图地址（data URL 或 https URL），空串表示未生成
+    image_url: str = ""
